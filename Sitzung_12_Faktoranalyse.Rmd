@@ -1,0 +1,243 @@
+
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 12: Faktorenanalyse"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+editor_options:
+  chunk_output_type: console
+
+---
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+
+____
+<br />
+  
+```{r setup, include=FALSE}
+## include this at top of your RMarkdown file for pretty output
+## make sure to have the printr package installed: install.packages('printr')
+knitr::opts_chunk$set(echo = TRUE, results = TRUE, message = FALSE, warning = FALSE)
+# library(printr)
+```
+
+
+
+
+# 1. Einleitung
+
+Nachdem wir verschiedene statistische Verfahren kennengelernt haben, um Zusammenhänge zu erkennen und diese visualisiert haben, werden wir uns nun mit der *Faktorenanalyse* beschäftigen. 
+
+Die Faktorenanalyse ist ein multivariates statistisches Verfahren zur Dimensionsreduktion. Diese Reduktion wird dadurch erreicht, dass aus einer Vielzahl an Variablen wenige Faktoren extrahiert werden. Mit der Faktorenanalyse wird Übersichtlichkeit erreicht und Gemeinsamkeiten zwischen den Variablen können gefunden werden. Das Verfahren geht mit Informationsverlust, bei gleichzeitiger Variablenverdichtung, einher.
+
+Auch Arend Lijphart hat die Faktorenanalyse in *"Patterns of Democracy"* angewandt. Sein Ergebnis visualisierte er mit der *"Landkarte der Demokratie"*, mit welcher demokratische Länder anhand von zwei Dimensionen eingeordnet werden können. Zudem konnte er zwischen Konsens- und Mehrheitsdemokratien unterscheiden. In dieser Sitzung werden wir Lijpharts Faktorenanalyse replizieren. 
+
+
+# 2. Pakete laden, Daten einlesen und Variablen transformieren
+
+Dazu müssen Sie zunächst die nötigen Pakete und Daten laden und einige Variablen umkodieren.
+
+```{r}
+# Pakete laden
+library(Hmisc)
+library(foreign)
+library(ggplot2)
+library(stats)
+```
+
+```{r eval=FALSE}
+# Daten einlesen
+getwd()
+setwd("eigener Pfad")
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+```{r include=FALSE}
+setwd("/Users/Christoph/Seafile/Lehrstuhl/Lehrstuhl Hannover Forschung/Forschung/01 Hönnige/025 MWK_StatistikR/Daten/")
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+Zusätzlich zu den Datentransformationen der letzten Sitzungen müssen wir noch einige weitere Variablen umkodieren.
+
+```{r}
+# 1. Zweiparteiensystem vs. Mehrparteiensystem 
+# (ENPP)
+lijphart$enpp4510 <- as.numeric(lijphart$enpp4510)
+
+# 2. Einparteienkabinette vs. Koalitionsregierungen 
+# (Mittelwert Regierungsdauer Minimal-Winning Koalition und Einparteienkabinette)
+lijphart$minwin_one_part4510 <- as.numeric(lijphart$minwin_one_part4510)
+
+# 3. Exekutivdominanz vs. dominante Legislative 
+# (Durchschnittliche Lebensdauer von Kabinetten)
+lijphart$exe_dom4510 <- as.numeric(lijphart$exe_dom4510)
+
+# 4. Mehrheitswahlrecht vs. Verhältniswahlrecht
+# (Gallagher-Index der elektoralen Disproportionalität)
+lijphart$disprop4510 <- as.numeric(lijphart$disprop4510)
+
+# 5. Pluralistische vs. korporatistische Interessenvertretung
+# (Korporatismus-Index nach Siaroff)
+lijphart$inter_gr_plural4510 <- as.numeric(lijphart$inter_gr_plural4510)
+
+# 6. Unitarisch-zentralisiert vs. Föderaldezentralisiert
+# (Skala von 1 bis 4 (zentral unitarisch bis föderal und dezentral))
+lijphart$fed_unit4510 <- as.numeric(lijphart$fed_unit4510)
+
+# 7. Unikameralismus vs. Bikameralismus
+# Skala von 1 bis 4, (unikameral bis stark bikameral)
+lijphart$bicam4510 <- as.numeric(lijphart$bicam4510)
+
+# 8. Flexible vs. Rigide Verfassungen
+# (Skala von 1 bis 4, (einfach, absolut, super, größer super))
+lijphart$const_rigid4510 <- as.numeric(lijphart$const_rigid4510)
+
+# 9. Keine Normenkontrolle vs. Normenkontrolle durch Verfassungsgericht
+# (Skala von 1 bis 4, vergeben nach Sekundärliteratur)
+lijphart$judic_rev4510 <- as.numeric(lijphart$judic_rev4510)
+
+# 10. Abhängige vs. Unabhängige Zentralbank
+# (Grad Zentralbankautonomie (Indizies Cukierman, Grilli…))
+lijphart$cen_bank_indep4594 <- as.numeric(lijphart$cen_bank_indep4594)
+```
+
+# 3. Vorbereitung der Faktorenanalyse
+
+## 3.1 Auswahl der Variablen 
+
+Grundsätzlich ist die Auswahl der Variablen wichtig, weil sie in einem hohen Maße den Erfolg der Faktorenanalyse bestimmt. Lijphart nutzt für seine Faktorenanalyse zehn Variablen. Es sind die Variablen, die wir zuvor umkodiert haben. 
+
+Aus diesen Variablen erstellen wir ein `subset`. 
+
+```{r}
+sub_lijphart <- lijphart[, c("enpp4510", "minwin_one_part4510", "exe_dom4510", 
+                             "disprop4510", "inter_gr_plural4510",
+                             "fed_unit4510", "bicam4510", "const_rigid4510",                                 "judic_rev4510", "cen_bank_indep4594")]
+head(sub_lijphart)
+``` 
+
+## 3.2 Voraussetzungen
+
+Generell sind nur Variablen, welche miteinander korrelieren, fähig zur Bündlung. Daher folgt nach der Variablenauswahl die Berechnung einer *Korrelationsmatrix*. In `R` geht dies mit folgendem Code: 
+
+```{r}
+cor_matrix <- rcorr(as.matrix(sub_lijphart))
+cor_matrix
+```
+
+Diese Korrelationsmatrix wird in `R` in mehreren Zeilen angezeigt, weil sie zu groß ist. Um ein übersichtlicheres Ergebnis zu erhalten, müssten Sie die Grafik mit Excel, Word o.Ä. aufarbeiten. Durch eine Aufarbeitung würden Sie ein ähnliches Ergebnis wie Lijphart erhalten und könnten dann zwei Dreiecke erkennen. In diesen Dreicken wärem die Werte durchweg signifikant. Trotzdem werden die Ihnen jetzt vorliegende Korrelationsmatrix und jene von Lijphart nicht identisch sein. Dies liegt an statistischen Ungenauigkeiten und daran, dass verschiedene Statistikprogramme unterschiedliche Algorithmen nutzen. 
+
+# 4. Durchführung der Faktorenanalyse 
+
+## 4.1 Hauptkomponentenanalyse
+
+Nachdem wir die Variablen für unsere Analyse ausgewählt und die Voraussetzungen geprüft haben, können wir zunächst eine *Hauptkomponentenanalyse* durchführen. Die Hauptkomponentenanalyse dient zur Strukturierung von Daten, nicht zur Dimensionsreduktion. Doch sie ist notwendig, um die Anzahl der Faktoren statistisch festzulegen. 
+
+```{r}
+model_princomp <- princomp(sub_lijphart)
+print(model_princomp$loadings, digits = 2)
+```
+
+Mit der Funktion `princomp()` können wir in `R` die Hauptkomponentenanalyse durchführen. Dazu müssen wir lediglich unser ` subset` *sub_lijphart* angeben. Mit der zweiten Zeile Code gibt `R` die gerundeten *Faktorladungen* aus. Die Faktorladungen geben an, wie hoch die Erklärungskraft eines Faktors für die Varibalen ist. 
+
+## 4.2 Screeplot 
+
+Um die Faktorenanalyse zu optimieren, kann die Anzahl der Faktoren geschätzt werden. Neben der Bestimmung der Anzahl der Faktoren in Form einer theoriebasierten Schätzung, können wir auch bestimmte statistische Tests nutzen. Eine einfache Möglichkeit ist die Auswertung eines *Screeplots*.  
+
+Das Screeplot ist eine Visualisierung der *Eigenwerte* in einem Koordinatensystem. Die Eigenwerte geben wieder, wie bedeutsam ein Faktor ist. Bei dem Screeplot sind sie absteigend geordnet. Die Anzahl der Faktoren erkennt man an dem Knick. Dieser Knick ist die größte Differenz der Eigenwerte zwischen zwei Variablen. Hier ist der erste Punkt links des Knickes gleich der Anzahl der Variablen. In diesem Fall ergibt die Auswertung des Screeplotes, dass zwei Faktoren am besten für unsere Analyse geeignet sind.
+
+```{r}
+screeplot(model_princomp, 
+          type = "lines", 
+          main = "Screeplot")
+```
+
+## 4.3 Faktorenanalyse
+
+Durch die Bestimmung der Anzahl der Faktoren können wir diese mit in unsere Analyse einbinden. Dazu nutzen wir eine Faktorenanalyse. In `R` geht dies über die Funktion `factanal()`. 
+
+```{r}
+model_factanal <- factanal(sub_lijphart, 2, rotation = "varimax", scores = "regression")
+print(model_factanal, round = 2, cutoff = .3)
+```
+
+Der Befehl `factanal()` für die Faktorenanalyse besteht aus den Variablen, der Anzahl der Faktoren und der Rotationsmethode. Dabei wählen wir als Erstes unser `subset` *sub_lijphart* als unsere Variablen aus. Es folgt die Anzahl der Faktoren. Zudem kann durch das Argument `rotation` die Rotationsmethode ausgewählt werden. Die Rotationsmethode beeinflusst das Endergebnis unserer Analyse. In diesem Fall verwenden wir `varimax` als orthogonale Rotationsmethode. Lijphart hat sich für diese Rotationsmethode entschieden, weil sie sicherstellt, dass die Faktoren unabhängig voneinander sind. Indem wir das Argument `scores` auf `regression` setzen, können wir zusätzlich die Faktorwerte errechnen lassen. Diese werden wir für die Visualisierung benötigen. 
+
+Mit der Funktion `print` fordern wir `R` dazu auf, das Ergebnis der Faktorenanalyse auszugeben. Dabei legen wir mit dem Argument `digits` die Anzahl der Rundungsziffern fest. Zudem können wir mit `cutoff` bestimmen, ab welcher Grenze die Ergebnisse nicht mehr angezeigt werden sollen. So können wir die Übersichtlichkeit unserer Faktorenanalyse erhöhen. 
+
+Der Output der Faktorenanalyse gibt die gewünschte Anzahl an Faktoren und ihre Faktorenladungen für die zehn Variablen wieder. Aufgabe des Forschenden ist es nun, die Faktoren inhaltlich zu interpretieren. In der Regel wird nach Gemeinsamkeiten der Variablen gesucht. Lijphart nennt den ersten Faktor die *Exekutive-Parteien-Dimension* und den zweiten Faktor die *Föderalismus-Unitarismus-Dimension*.
+ 
+ 
+# 5. Visualisierung
+
+Lijphart fasst seine Ergebnisse der Faktorenanalyse in einer *"Landkarte der Demokratie"* zusammen. Dort können die Demokratien, welche er untersucht, mithilfe der beiden Dimensionen eingeordnet werden. Es entsteht ein Schaubild, in welchem Demokratien eingeordnet und miteinander verglichen werden können. 
+
+Diese Form der Visualisierung wird *"mapping"* genannt. Wir können sie mit `R` replizieren. Hierzu benötigen wir die *Faktorwerte*. Die Faktorwerte geben wieder, wie stark die Untersuchungseinheiten von den Faktoren erfasst werden. Das bedeutet in diesem Fall, wie gut eine Demokratie von der Exekutive-Parteien-Dimension und der Föderalismus-Unitarismus-Dimension beschrieben werden. Die Faktorenwerte können in `R` mit folgendem Code ausgegeben werden: 
+
+```{r}
+# Faktorwerte ausgeben lassen 
+head(model_factanal$scores)
+```
+
+Um die *"Landkarte der Demokratie"* nachzustellen, müssen wir zunächst einen Dataframe erstellen. Dazu nutzen wir die Funktion ` as.data.frame()` und erstellen ein neues Objekt. 
+Danach erstellen wir die Grafik, indem wir das Paket `ggplot2` nutzen. Um unsere Replikation mit Lijpharts *"Landkarte der Demokratie"* vergleichbarer zu machen, passen wir sie etwas an.  Wir verändern die Datenpunkte über `geom_point()`, indem wir sie mit dem Argument `size ` verkleinern, mit `shape` die Form zu einer Raute ändern und diese mit `fill` schwarz ausfüllen. Zudem beschriften wir unsere Datenpunkte, um prüfen zu können, ob sie in etwa der Position von Lijpharts Datenpunkten übereinstimmen. Dazu nutzen wir `geom_text ()`. Zunächst legen wir mit `label` die Daten für unsere Beschriftung fest. Danach können wir die Beschrftung mit `nudge_y` auf der y-Achse verschieben. Das Argument `check_overlap` dient dazu, das Überlappen von Beschriftungen zu vermeiden. Mit `geom_hline()` und `geom_vline()` können wir eine horizontale und eine vertikale Linie an der Stelle 0 zeichnen. Dadurch wird die Einordnung der Demokratien erleichtert. Anschließend definieren wir mit `labs()` die Achsenbeschriftungen, den Titel und den Untertitel. Durch `coord_cartesian()` können wir das Koordinatensystem an der x-Achse spiegeln, indem wir die Definitionsränder von `xlim` von negativ nach positiv anordnen. Schließlich bestimmen wir mit `theme_linedraw()` das Design für unsere Grafik. 
+
+```{r}
+# Dataframe erstellen 
+scores_data <- as.data.frame(model_factanal$scores)
+
+# Visualisierung
+plot <- ggplot(data = scores_data, aes(x = Factor1, y = Factor2)) + 
+  geom_point(size = 1, shape = 23, fill = "black") +
+  geom_text(aes(label = lijphart$Country),
+            nudge_y = -.2,
+            check_overlap = T) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  labs(x = "Exekutive-Parteien Dimension", 
+       y = "Foederalismus-Unitarismus Dimension", 
+       title = "Die Landkarte der Demokratie", 
+       subtitle = "Eine Replikation nach Arend Lijphart") +
+  coord_cartesian(ylim = c(2.5, -2.5), xlim = c(-2.1, 2.1)) +
+  theme_linedraw() 
+plot
+
+# Grafik speichern
+ggsave("Landkarte der Demokratie.png")
+```
+
+Anschließend speichern wir die Grafik mit `ggsave()` in unserer working directory. 
+
+Bitte beachten Sie, dass die Linien in der von Ihnen replizierten *"Landkarte der Demokratie"* je nach Betriebssystem in `R` anders ausgegeben werden können. In der abgespeicherten Grafik sollten die Linien dann wie die in diesem Tutorial aussehen.  
+
+Nun können wir unsere *"Landkarte der Demokratie"* mit jener von Arend Lijphart aus *"Patterns of Democracy"* vergleichen. Es fällt auf, dass die Grafiken starke Gemeinsamkeiten aufweisen. Jedoch sind einige Demokratien in unserer Grafik verschoben, z.B. liegt Argentinien bei uns etwas weiter links als bei Lijphart. Das liegt daran, dass Faktorenanalysen in verschiedenen Statistikprogrammen mit unterschiedlichen Algorithmen berechnet werden. 
+
+# 6. Zusammenfassung
+
+In dieser Sitzung konnten Sie mit `R` die Faktorenanalyse von Arend Lijphart aus *"Patterns of Democracy"* replizieren. Dazu haben Sie alle relevanten Variablen umkodiert und aus ihnen ein `subset` erstellt. Mit der Funktion `princomp()` konnten Sie eine Hauptkomponentenanalyse durchführen. Dadurch gelang es Ihnen, ein Screeplot zu zeichnen und die Anzahl der Faktoren zu bestimmen, sodass Sie eine Faktorenanalyse durchführen konnten. Dabei haben Sie die Rotationsmethode und die Anzahl der Faktoren festgelegt. Zum Schluss haben Sie Ihre Ergebnisse visualisieren können, indem Sie Lijpharts *"Landkarte der Demokratie"* repliziert haben.
+
+
+# 7. Aufgaben
+
+1. Verändern Sie die Anzahl der Faktoren zu: 
+     (a) drei Faktoren und 
+     (b) zu einem Faktor. 
+Wie verändern sich die Ergebnisse? Können Sie Ihre Ergebnisse sinnvoll interpretieren? Vergleichen Sie Ihre Ergebnisse mit Ihrer replizierten Faktorenanalyse. 
+
+2. Erstellen Sie ein neues `subset` mit allen Variablen aus *sub_lijphart* außer der Variablen der Interessenvertretung. Führen Sie eine Faktorenanalyse mit zwei Faktoren durch. Wie wirkt sich die Reduktion auf Ihre Ergebnisse aus? Ziehen Sie den Vergleich zu Ihrer replizierten Faktorenanalyse. Erstellen Sie dazu auch eine Visualisierung, welche Sie mit der replizierten "Landkarte der Demokratie" vergleichen. 
+
+3. Replizieren Sie die Faktorenanalyse erneut. Verwenden Sie dabei alle Untersuchungseinheiten außer die Demokratien Großbritannien und Neuseeland. Erstellen Sie eine Visualisierung. Welche Veränderungen können Sie beobachten? Vergleichen Sie dazu Ihre Ergebnisse mit Ihrer replizierten Faktorenanalyse. 
