@@ -1,0 +1,335 @@
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 4: Variablen um-/kodieren"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+editor_options:
+  chunk_output_type: console
+
+---
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+
+____
+<br />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# 1. Einleitung
+
+Nachdem wir die Datensätze, mit denen wir in diesem Kurs arbeiten werden, in der vorherigen Sitzung kennengelernt und eingeladen haben, wollen wir in dieser Sitzung die darin enthaltenen Variablen so anpassen, dass wir unsere Analysen durchführen können. Dabei sprechen wir vom Recodieren der Variablen.
+
+# 2. Einladen der Datensätze
+
+Von nun an müssen wir am Beginn jedes Skriptes die Datensätze, die wir verwenden, in den Workspace laden. Andernfalls stünden sie uns nicht zur Bearbeitung zur Verfügung. In dieser Sitzung benötigen wir den Datensatz der GLES zur Bundestagswahl 2017 (`gles`) und den Datensatz zu "Patterns of Democracy" (`lijphart`). Wie in der vergangenen Sitzung behandelt, müssen wir zunächst das Verzeichnis prüfen und ggf. auf den Speicherort festlegen, an dem die Datensätze abgespeichert sind.
+
+```{r eval=FALSE}
+getwd()
+setwd("eigener Pfad")
+```
+
+Nun werden die Datensätze eingeladen. Da die Funktion zum Einladen des Fremdformats .sav `read.spss()` aus dem Paket `foreign` stammt, muss dieses zunächst geladen werden. `read.csv2()` ist eine Funktion aus dem Paket `base`, sodass kein besonderes Paket zu seiner Verwendung geladen werden muss.
+
+```{r eval=FALSE}
+library(foreign)
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+```{r include=FALSE}
+library(foreign)
+setwd("/Users/Christoph/Seafile/Lehrstuhl/Lehrstuhl Hannover Forschung/Forschung/01 Hönnige/025 MWK_StatistikR/Daten/")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+Wenn alles geklappt hat, sehen Sie rechts oben im `Global Environment` die beiden als Dataframes vorliegenden Datensätze `gles` mit 2112 Beobachtungen und 602 Variablen und `lijphart` mit  36 Beobachtungen und 74 Variablen. Variablen, die wir im Folgenden neu bilden, werden die Datensätze erweitern bzw. werden rechts an die Datensätze angehängt. Wenn wir vorliegende Variablen modifizieren, werden die Datensätze lediglich in ihrer bestehenden Form verändert. Beobachten und überwachen Sie also jeweils die Veränderungen der Datensätze im `Global Environment`. Die Veränderungen der einzelnen Variablen sollten Sie außerdem mittels `View()` nachvollziehen.
+
+# 3. Variablen der `gles`
+
+Anhand der Wahlforschungsdaten der GLES wollen wir im weiteren Verlauf des Seminars die Wahlentscheidung der Befragten mittels sozio-demografischer Größen und politischer Einstellungen erklären. Dabei interessiert uns insbesondere, wie die Wahlentscheidung zugunsten der AfD erklärt werden kann. Außerdem werden wir versuchen, die Selbsteinstufung der Befragten entlang einer Links-Rechts-Achse zu erklären. Wir benötigen die folgenden Variablen: das Alter der Befragten, deren Geschlecht, Einkommen, Wohnort, subjektive Links-Rechts-Einstufung und die Angabe, ob sie bei der Bundestagswahl 2017 ihre Stimme für die Partei AfD abgegeben haben. Im Folgenden werden wir uns die Variablen jeweils einmal in der Form anschauen, in der sie im Datensatz vorkommen. Danach werden wir sie zu unseren Zwecken verändern. Wir beginnen mit den unabhängigen Variablen.
+
+## 3.1 Alter
+
+Das Alter der Befragten könnte einen Einfluss auf die Wahlentscheidung und die Position entlang einer gedachten Links-Rechts-Achse haben. Tatsächlich wurden die Befragten nicht ausdrücklich nach ihrem Alter gefragt, sondern nach ihrem Geburtsdatum (Schauen Sie mal in den Fragebogen, S. 11). Das Geburtsjahr ist dabei in der Variable `q2c`, einem Faktor, vercodet worden. 
+
+```{r}
+class(gles$q2c)
+table(gles$q2c)
+```
+
+Wir berechnen das Alter, indem wir das Geburtsjahr der Befragten von dem Jahr, in dem die Befragung stattfand, subtrahieren. Dazu müssen wir die Variable zunächst in einen numerischen Vektor umwandeln. Wenn man jedoch Faktoren direkt in numerische Vektoren umwandelt, werden die zugrunde liegenden Levels der Faktoren herangezogen und als numerische Werte interpretiert. Diese Levels ordnet `R` willkürlich zu, sodass wir sie (ohne Aufwand sie zu ordnen) nicht verwenden können (vgl. Sitzung 1).
+
+```{r}
+head(as.numeric(gles$q2c)) # nicht sinnvoll; durch `head()` nur die ersten Werte ausgegeben 
+```
+
+Deshalb müssen wir den Faktor `q2c` etwas umständlich zuerst zu einem character-Vektor und danach zu einem numerischen Vektor umwandeln. Dazu verschachteln wir die Explicit-Coercion-Funktionen zu `as.numeric(as.character())`. Die numerischen Geburtsjahre speichern wir als `q2c_num`. Schließlich führen wir die Subtraktion durch. Das so berrechnete Alter speichern wir in einer neuen Variable `alter`, die wir an den Datensatz anfügen.
+
+```{r}
+q2c_num <- as.numeric(as.character(gles$q2c))
+gles$alter <- 2017 - q2c_num # Warnung "NA's introduced by coercion" weil eine Person mit "keine Angabe" antwortete und das numerisch nicht interpretierbar ist
+class(gles$alter)
+table(gles$alter)
+summary(gles$alter)
+```
+```{r eval=FALSE}
+View(gles$alter)
+```
+
+Wie die `summary()` zeigt, sind Personen zwischen 16 und 95 Jahren befragt worden, wobei der Median bei 51 Jahren und das arithmetische Mittel bei 50,15 Jahren liegt. Bei einer Person liegt keine Information über das Alter vor (`NA`), diese Person hat die Angabe verweigert (s.o.). `table()` zeigt, wie viele Personen mit einer bestimmten Jahreszahl jeweils enthalten sind, also z.B. 22 16-Jährige, 48 17-Jährige usw. Mit `View()` können wir die Variable inspizieren.
+
+## 3.2 Geschlecht
+
+Womöglich hat das Geschlecht der Befragten einen Einfluss. Das Geschlecht der Befragten ist direkt erfasst worden und liegt als Faktor vor. Wir vergeben lediglich einen aussagekräftigen Variablennamen.
+
+```{r}
+names(gles)[names(gles) == "q1"] <- "geschlecht"
+table(gles$geschlecht)
+```
+Wie die `table()` zeigt, sind Männer in unserem Sample leicht überrepräsentiert.
+
+## 3.3 Haushaltseinkommen
+
+Auch die wirtschaftliche Situation der Befragten könnte eine Rolle spielen. Das (Netto-)Haushaltseinkommen der Befragten ist in Kategorien abgefragt worden (siehe hierzu die Fragebogendokumentation, S. 206).
+
+```{r}
+table(gles$q192)
+```
+
+Da diese sehr kleinteilig sind, wollen wir sie neu zuschneiden. Die sieben neuen Kategorien lauten wie folgt: weniger als 1000 Euro, 1000 bis 1999 Euro, 2000 bis 2999 Euro, 3000 bis 3999 Euro, 4000 bis 4999 Euro, 5000 bis 7499 Euro und 7500 Euro und mehr.
+
+Wir verwenden zur Indizierung wieder eckige Klammern, allerdings diesmal in Kombination mit dem logischen Oder `|`. Der nachfolgende Code sagt folgendes aus: Wenn `q192` die Ausprägung "unter 500 Euro" aufweist, *oder* wenn die Variable "500 bis unter 750 Euro" aufweist, *oder* wenn sie "750 bis unter 1000 Euro" aufweist, dann ordne `einkommen_cat` "weniger als 1000 Euro" zu. Für die anderen Kategorien geschieht dies analog. Machen Sie sich bewusst, dass der Inhalt der eckigen Klammern jeweils ein logischer Vektor mit `TRUE`- und `FALSE`-Aussagen ist. Wenn `TRUE`, dann wird `einkommen_cat` der String rechts von `<-` zugewiesen.
+
+Führen Sie zu Veranschaulichungszwecken diese Codezeile zunächst einzeln aus.
+
+```{r}
+gles$einkommen_cat[gles$q192 == "unter 500 Euro" |
+                     gles$q192 == "500 bis unter 750 Euro" |
+                     gles$q192 == "750 bis unter 1000 Euro"] <- "weniger als 1000"
+```
+
+Lassen Sie sich dann `View(gles$einkommen_cat)` ausgeben:
+
+```{r eval=FALSE}
+View(gles$einkommen_cat)
+```
+
+Sie sehen, dass `einkommen_cat` für die meisten Beobachtungen ein `NA` ("not available") enthält. Das sind die Personen, deren Haushaltseinkommen 1000 Euro und mehr beträgt. Wenn Sie nun schrittweise die folgenden Codezeilen ausführen, verschwinden die `NA`s nach und nach.
+
+```{r}
+gles$einkommen_cat[gles$q192 == "1000 bis unter 1250 Euro" |
+                     gles$q192 == "1250 bis unter 1500 Euro" |
+                     gles$q192 == "1500 bis unter 2000 Euro"] <- "1000 bis 1999"
+gles$einkommen_cat[gles$q192 == "2000 bis unter 2500 Euro" |
+                     gles$q192 == "2500 bis unter 3000 Euro"] <- "2000 bis 2999"
+gles$einkommen_cat[gles$q192 == "3000 bis unter 4000 Euro"] <- "3000 bis 3999"
+gles$einkommen_cat[gles$q192 == "4000 bis unter 5000 Euro"] <- "4000 bis 4999"
+gles$einkommen_cat[gles$q192 == "5000 bis unter 7500 Euro"] <- "5000 bis 7499"
+gles$einkommen_cat[gles$q192 == "7500 bis unter 10000 Euro" |
+                     gles$q192 == "10000 Euro und mehr"] <- "7500 und mehr"
+```
+
+Wenn Sie alle Zeilen ausgeführt haben, werden immernoch einige `NA`s übrig bleiben. Das sind die Personen, die die Aussage verweigert haben, die ihr Haushaltseinkommen nicht kannten, oder deren Haushaltseinkommen aus anderen Gründen nicht vorlag. Die Variable sieht schließlich so aus:
+
+```{r}
+table(gles$einkommen_cat)
+```
+
+Dabei fällt uns auf, dass die eigentlich niedrigste Kategorie "weniger als 1000" im Output als letzte erscheint. Um die ursprünglich richtige Ordnung herzustellen, wandeln wir `einkommen_cat` in einen Faktor um und ordnen die Levels händisch.
+
+```{r}
+gles$einkommen_cat <- factor(gles$einkommen_cat,
+                                levels = c("weniger als 1000",
+                                           "1000 bis 1999",
+                                           "2000 bis 2999",
+                                           "3000 bis 3999",
+                                           "4000 bis 4999",
+                                           "5000 bis 7499",
+                                           "7500 und mehr"))
+
+table(gles$einkommen_cat)
+```
+
+Nun ist die Variable richtig geordnet.
+
+Wir können das Haushaltseinkommen auch als kontinuierliche Variable behandeln, da es in der vorliegenden Kodierweise sieben Ausprägungen aufweist. Dazu verändern wir die eben erstellte Variable wie folgt:
+
+```{r}
+gles$einkommen_num[gles$einkommen_cat == "weniger als 1000"] <- 1
+gles$einkommen_num[gles$einkommen_cat == "1000 bis 1999"] <- 2
+gles$einkommen_num[gles$einkommen_cat == "2000 bis 2999"] <- 3
+gles$einkommen_num[gles$einkommen_cat == "3000 bis 3999"] <- 4
+gles$einkommen_num[gles$einkommen_cat == "4000 bis 4999"] <- 5
+gles$einkommen_num[gles$einkommen_cat == "5000 bis 7499"] <- 6
+gles$einkommen_num[gles$einkommen_cat == "7500 und mehr"] <- 7
+table(gles$einkommen_num)
+```
+
+Wie Sie sehen, entsprechen sich die Kategorien von `einkommen_cat` und `einkommen_num` in Bezug auf die Fallzahl pro Kategorie.
+
+## 3.4 Wohnort
+
+Außerdem könnte der Wohnort der Befragten einen Einfluss auf die politische Position oder die Wahlentscheidung haben. In diesem Fall sind die in der Ursprungsform vorliegenden Kategorien ausreichend. Allerdings sind die Labels recht unhandlich, weshalb wir sie umbenennen.
+
+```{r}
+table(gles$q197)
+gles$wohnort[gles$q197 == "Grossstadt"] <- "Großstadt"
+gles$wohnort[gles$q197 == "kleine oder mittelgrosse Stadt"] <- "Kleinstadt"
+gles$wohnort[gles$q197 == "laendliche Gegend oder Dorf"] <- "Land"
+gles$wohnort[gles$q197 == "Vorstadt/ Vorort einer Grossstadt"] <- "Vorstadt"
+table(gles$wohnort)
+```
+
+Da lediglich die Kategorienamen und nicht die Datenstruktur angepasst wurden, hat sich am Zuschnitt der Kategorien nichts geändert.
+
+## 3.5 Links-Rechts-Selbsteinstufung
+
+Schließlich kommen wir zu den unabhängigen Variablen unserer Analysen. Bei der Links-Rechts-Selbsteinstufung wurden die Befragten aufgefordert, ihre Position anhand einer 11-stufigen Links-Rechts-Skala einzuschätzen. Wir schauen uns wieder zunächst mit der `table()` an, wie sich die Befragten einordnen.
+
+```{r}
+table(gles$q32)
+```
+
+Auch in diesem Fall belassen wir die Kategorisierung (zunächst) in ihrer Ursprungsform, wandeln die Variable jedoch in einen numerischen Vektor um und kodieren die als Strings enthaltenden Ausprägungen zu numerisch interpretierbaren Zahlen.
+
+```{r}
+gles$LiRe <- as.character(gles$q32)
+gles$LiRe[gles$LiRe == "1 links"] <- "1"
+gles$LiRe[gles$LiRe == "11 rechts"] <- "11"
+gles$LiRe <- as.numeric(gles$LiRe)
+```
+
+Auch hier muss der Faktor `q32` zunächst in einen character-Vektor umgewandelt werden (dabei wird er als neues Objekt `LiRe` gespeichert), damit man ihn sinnvoll umkodieren und schließlich in einen numerischen Vektor umwandeln kann.
+
+Die Links-Rechts-Selbsteinstufung wollen wir des Weiteren etwas aggregieren, sodass mehrere ihrer Kategorien zusammengefasst werden. Die Kategorien eins und zwei sollen in der neuen Kategorie "links", die Kategorien drei und vier in der Kategorie "moderat links", die Kategorien fünf, sechs und sieben in der Kategorie "mittig", die Kategorien acht und neun in der Kategorie "moderat rechts" und die Kategorien 10 und 11 in der Kategorie "rechts" zusammengefasst werden. Wir erstellen die aggregierte Variable ausgehend von der eben gebildeten Variable `LiRe` und verwenden die Vergleichsoperatoren `>=` (größer-gleich) und `<=` (kleiner-gleich).
+
+```{r}
+gles$LiRe_cat[gles$LiRe >= 1 &
+                gles$LiRe <= 2] <- "links"
+gles$LiRe_cat[gles$LiRe >= 3 &
+                gles$LiRe <= 4] <- "moderat links"
+gles$LiRe_cat[gles$LiRe >= 5 &
+                gles$LiRe <= 7] <- "mittig"
+gles$LiRe_cat[gles$LiRe >= 8 &
+                gles$LiRe <= 9] <- "moderat rechts"
+gles$LiRe_cat[gles$LiRe >= 10 &
+                gles$LiRe <= 11] <- "rechts"
+table(gles$LiRe_cat)
+```
+
+Durch die Aggregierung hat die neue Variable weniger Kategorien, jedoch mehr Fälle pro Kategorie. Allerdings sind die Kategorien ähnlich wie beim kategorialen Haushaltseinkommen durcheinandergeraten. Wir stellen die richtige Ordnung her, indem wir sie zu einem Faktor umwandeln und die Levels händisch ordnen.
+
+```{r}
+gles$LiRe_cat <- factor(gles$LiRe_cat,
+                                levels = c("links",
+                                           "moderat links",
+                                           "mittig",
+                                           "moderat rechts",
+                                           "rechts"))
+
+table(gles$LiRe_cat)
+```
+
+Mit `LiRe` und `LiRe_cat` stehen uns nun zwei unabhängige Variablen zur Verfügung anhand derer wir die Links-Rechts-Selbsteinstufung der Befragten messen können.
+
+## 3.6 AfD-Wahl
+
+Schließlich benötigen wir eine Variable, die eine Aussage darüber trifft, ob eine befragte Person die AfD gewählt oder nicht gewählt hat. Bei solchen Variablen, die eine Aussage darüber treffen, ob etwas zutrifft oder nicht, sprechen wir von *dichotomen Variablen*. Dichotome Variablen vercoden den Wert 1, wenn etwas zutrifft und den Wert 0, wenn etwas nicht zutrifft. Die dichotome abhängige Variable zur AfD-Wahl bilden wir aus der Variable `q19ba`, die die berichtete Wahlentscheidung der Befragten enthält.
+
+```{r}
+table(gles$q19ba)
+```
+```{r eval=FALSE}
+View(gles$q19ba)
+```
+
+Wie zu erkennen ist, sind viele Kategorien nicht besetzt. Uns interessiert nun lediglich, ob eine Person die AfD gewählt hat oder nicht. Entsprechend wird in der neuen Variable `AfD.Wahl` Personen, die die AfD gewählt haben, eine 1 zugewiesen, während Personen, die eine andere Partei als die AfD gewählt haben, eine 0 zugewiesen wird. Wir verwenden `==` (gleich) und `!=` (ungleich).
+
+```{r}
+gles$AfD.Wahl[gles$q19ba == "AfD"] <- 1
+gles$AfD.Wahl[gles$q19ba != "AfD"] <- 0
+```
+
+Die neue Variable beinhaltet jetzt ausschließlich Einsen und Nullen. Wenn in `q19ba` keine Information über die Wahlentscheidung vorliegt (`NA`), beinhaltet allerdings auch die neue gebildete Variable `NA`.
+
+```{r}
+table(gles$AfD.Wahl)
+```
+```{r eval=FALSE}
+View(gles$AfD.Wahl)
+```
+
+# 4. Variablen aus `lijphart`
+
+Die Variablen des Datensatzes zu "Patterns of Democracy" werden im weiteren Verlauf dieses Kurses in der Form verwendet, in der sie ursprünglich vorliegen. Wir müssen sie also nicht recodieren. Allerdings liegen sie als character-Vektoren vor und müssen zu numerischen Vektoren umgewandelt werden. Das sei hier beispielhaft für die Variable `enpp4510` dargestellt, die die Effective Number of Parliamentary Parties in den Jahren 1945 bis 2010 für alle Länder enthält.
+
+```{r}
+class(lijphart$enpp4510)
+table(lijphart$enpp4510)
+summary(lijphart$enpp4510)
+```
+
+Wie der Output der Funktionen `table()` und `summary()` zeigen, ist die Variable in dieser Form nicht sinnvoll zu interpretieren. Wir wandeln sie entsprechend um:
+
+```{r}
+lijphart$enpp4510 <- as.numeric(lijphart$enpp4510)
+summary(lijphart$enpp4510)
+```
+
+Anders als beim GLES überschreiben wir hier die Ursprungsvariable bzw. bilden keine neue Variable. Das hat damit zu tun, dass die Variable eigentlich numerisch sein müsste, wir sie also "reparieren" anstatt sie für unsere Zwecke anzupassen. So gehen wir mit allen Variablen vor, die wir im Kurs verwenden werden. Für den Gallagher-Index zur Messung der Disproportionalität von Wahlsystemen:
+```{r}
+lijphart$disprop4510 <- as.numeric(lijphart$disprop4510)
+summary(lijphart$disprop4510)
+```
+
+Für den Bikameralismus-Index:
+
+```{r}
+lijphart$bicam4510 <- as.numeric(lijphart$bicam4510)
+summary(lijphart$bicam4510)
+```
+
+Für den Anteil von Minimal-Winning-Koalition mit einer Partei, der zur Messung des Kabinettstyps herangezogen wird:
+
+```{r}
+lijphart$minwin_one_part4510 <- as.numeric(lijphart$minwin_one_part4510)
+summary(lijphart$minwin_one_part4510)
+```
+
+Sowie für die Kabinettsdauer, mithilfe derer die Exekutivdominanz operationalisiert wird:
+
+```{r}
+lijphart$exe_dom4510 <- as.numeric(lijphart$exe_dom4510)
+summary(lijphart$exe_dom4510)
+```
+
+# 5. Zusammenfassung
+
+Variablen der GLES haben wir geprüft und umkodiert. Dabei haben wir die Datenmanipulationen jeweils mit `table()`, `summary()` und `View()` nachvollzogen. Bestehende Variablen wurden in ihrer Ursprungsform belassen, während recodierte Variablen an den Datensatz angehängt wurden. Er beinhaltet nun 609 Variablen. Die Variablen aus dem Datensatz zu "Patterns of Democracy", die wir in unseren Analysen verwenden werden, wurden lediglich zu numerischen Vektoren umgewandelt. Sie wurden nicht in Form neuer Objekte gespeichert, sondern überschrieben. Dieser Datensatz hat sich in seinem Umfang somit nicht verändert.
+
+
+# 6. Aufgaben
+
+1. Suchen Sie im Fragebogen der GLES nach einer geeigneten Variable zur Messung der schulischen Bildung der Befragten. Diese sollte Information über die Schulabschlüsse der Befragten enthalten.
+2. Bilden Sie eine Variable `schulab` mit den folgenden Kategorien: Hochschulreife, Fachhochschulreife, Realschule, Hauptschule, kein Abschluss. Inspizieren Sie die Variable und stellen Sie sicher, dass bei Befragten, die einen anderen oder noch keinen Schulabschluss haben, ein `NA` vercodet wurde.
+3. Bilden Sie aus `einkommen_num` eine Variable `einkommen_cat1`, die vier Kategorien hat: "weniger als 2000", "2000 bis unter 4000", "4000 bis unter 7500", "7500 und mehr". Nutzen Sie die Vergleichsoperatoren `>`, `<`, `>=` & `<=` sowie den logischen Operator `&`.
+4. Bilden Sie eine identische Variable `einkommen_cat2`. Nutzen Sie diesmal die Operatoren `==` und `|`. Inspizieren Sie, ob beide tatsächlich identisch sind.
+5. Suchen Sie per Google eine Funktion, mit der Sie prüfen können, ob Objekte/Variablen identisch sind. Wenden Sie diese Funktion auf `einkommen_cat1` und `einkommen_cat2` an.
+6. Was ist an der Berechnung des Alters der Befragten nicht ganz richtig?

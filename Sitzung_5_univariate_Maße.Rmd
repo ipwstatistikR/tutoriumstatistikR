@@ -1,0 +1,343 @@
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 5: Univariate Maße"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+editor_options:
+  chunk_output_type: console
+
+---
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+
+____
+<br />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# 1. Einleitung
+
+Nachdem wir die Datensätze, mit denen wir in diesem Kurs arbeiten werden, in den vergangenen Sitzungen geladen und für unsere Analysen angepasst haben, wollen wir sie in dieser Sitzung näher kennenlernen. Um genau zu sein, werden wir Lage- und Streuungsmaße der Variablen berechnen, die wir in der letzten Sitzung erstellt haben. So verschaffen wir uns einen Eindruck von deren Verteilung. Wir werden zunächst Lagemaße mit `R` berechnen und  daraufhin zu Streuungsmaßen wechseln.
+
+# 2. Datensätze laden und umkodieren
+
+Damit wir mit unseren Datensätzen und den darin enthaltenen Variablen arbeiten können, müssen wir sie wie immer zuerst laden.
+```{r eval=FALSE}
+getwd()
+setwd("eigener Pfad")
+library(foreign)
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+```{r include=FALSE}
+library(foreign)
+setwd("/Users/Christoph/Seafile/Lehrstuhl/Lehrstuhl Hannover Forschung/Forschung/01 Hönnige/025 MWK_StatistikR/Daten/")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+Wir müssen sie außerdem so umkodieren, wie in der letzten Sitzung gezeigt. Die Datenmanipulationen der vergangenen Sitzung müssen wiederholt werden, weil wir den Workspace und damit die Veränderungen an den Datensätzen nicht gespeichert haben (vgl. Sitzung 1). Zum Glück haben wir den Code in Form eines Skripts gespeichert und müssen ihn nicht erneut schreiben, sondern können ihn in das Skript dieser Sitzung kopieren.
+
+```{r}
+# GLES
+# Alter
+q2c_num <- as.numeric(as.character(gles$q2c))
+gles$alter <- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == "q1"] <- "geschlecht"
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == "unter 500 Euro" |
+                     gles$q192 == "500 bis unter 750 Euro" |
+                     gles$q192 == "750 bis unter 1000 Euro"] <- "weniger als 1000"
+gles$einkommen_cat[gles$q192 == "1000 bis unter 1250 Euro" |
+                     gles$q192 == "1250 bis unter 1500 Euro" |
+                     gles$q192 == "1500 bis unter 2000 Euro"] <- "1000 bis 1999"
+gles$einkommen_cat[gles$q192 == "2000 bis unter 2500 Euro" |
+                     gles$q192 == "2500 bis unter 3000 Euro"] <- "2000 bis 2999"
+gles$einkommen_cat[gles$q192 == "3000 bis unter 4000 Euro"] <- "3000 bis 3999"
+gles$einkommen_cat[gles$q192 == "4000 bis unter 5000 Euro"] <- "4000 bis 4999"
+gles$einkommen_cat[gles$q192 == "5000 bis unter 7500 Euro"] <- "5000 bis 7499"
+gles$einkommen_cat[gles$q192 == "7500 bis unter 10000 Euro" |
+                     gles$q192 == "10000 Euro und mehr"] <- "7500 und mehr"
+
+gles$einkommen_cat <- factor(gles$einkommen_cat,
+                                levels = c("weniger als 1000",
+                                           "1000 bis 1999",
+                                           "2000 bis 2999",
+                                           "3000 bis 3999",
+                                           "4000 bis 4999",
+                                           "5000 bis 7499",
+                                           "7500 und mehr"))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == "weniger als 1000"] <- 1
+gles$einkommen_num[gles$einkommen_cat == "1000 bis 1999"] <- 2
+gles$einkommen_num[gles$einkommen_cat == "2000 bis 2999"] <- 3
+gles$einkommen_num[gles$einkommen_cat == "3000 bis 3999"] <- 4
+gles$einkommen_num[gles$einkommen_cat == "4000 bis 4999"] <- 5
+gles$einkommen_num[gles$einkommen_cat == "5000 bis 7499"] <- 6
+gles$einkommen_num[gles$einkommen_cat == "7500 und mehr"] <- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == "Grossstadt"] <- "Großstadt"
+gles$wohnort[gles$q197 == "kleine oder mittelgrosse Stadt"] <- "Kleinstadt"
+gles$wohnort[gles$q197 == "laendliche Gegend oder Dorf"] <- "Land"
+gles$wohnort[gles$q197 == "Vorstadt/ Vorort einer Grossstadt"] <- "Vorstadt"
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe <- as.character(gles$q32)
+gles$LiRe[gles$LiRe == "1 links"] <- "1"
+gles$LiRe[gles$LiRe == "11 rechts"] <- "11"
+gles$LiRe <- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe >= 1 &
+                gles$LiRe <= 2] <- "links"
+gles$LiRe_cat[gles$LiRe >= 3 &
+                gles$LiRe <= 4] <- "moderat links"
+gles$LiRe_cat[gles$LiRe >= 5 &
+                gles$LiRe <= 7] <- "mittig"
+gles$LiRe_cat[gles$LiRe >= 8 &
+                gles$LiRe <= 9] <- "moderat rechts"
+gles$LiRe_cat[gles$LiRe >= 10 &
+                gles$LiRe <= 11] <- "rechts"
+
+gles$LiRe_cat <- factor(gles$LiRe_cat,
+                                levels = c("links",
+                                           "moderat links",
+                                           "mittig",
+                                           "moderat rechts",
+                                           "rechts"))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == "AfD"] <- 1
+gles$AfD.Wahl[gles$q19ba != "AfD"] <- 0
+
+# Lijphart
+# ENPP
+lijphart$enpp4510 <- as.numeric(lijphart$enpp4510)
+
+# Gallagher-Index
+lijphart$disprop4510 <- as.numeric(lijphart$disprop4510)
+
+# Bikameralismus-Index
+lijphart$bicam4510 <- as.numeric(lijphart$bicam4510)
+
+# Minimal-Gewinn-Koalition mit einer Partei
+lijphart$minwin_one_part4510 <- as.numeric(lijphart$minwin_one_part4510)
+
+# Exekutivdominanz (Kabinettsdauer)
+lijphart$exe_dom4510 <- as.numeric(lijphart$exe_dom4510)
+```
+
+# 3. Lagemaße
+
+Lagemaße vermitteln uns einen Eindruck der zentralen Tendenz einer Verteilung. Wir behandeln hier das arithmetische Mittel, den Median, den Modus, das Maximum und Minimum sowie Quantile.
+
+## 3.1 arithmetisches Mittel
+
+Das arithmetische Mittel ("Mittelwert", "Durchschnitt") summiert die Merkmalsausprägung jeder Beobachtung und teilt die Summe durch die Fallzahl:
+
+$\frac1n\sum_{i=1}^n(x_i)$.
+
+In `R` steht dazu die einfache Funktion `mean()` im `base`-Paket zur Verfügung. Im Folgenden spezifizieren wir das Argument `na.rm = TRUE` ("rm" für "remove"), damit `NA`s bei der Berechnung außen vor bleiben. `R` wüsste sonst nicht, wie es mit den `NA`s rechnerisch umgehen sollte.
+
+Das mittlere Alter der Befragten der GLES liegt bei
+
+```{r}
+mean(gles$alter, na.rm = TRUE)
+```
+
+etwa 50 Jahren. Die mittlere subjektive politische Position auf der Links-Rechts-Achse liegt in unserem Sample bei
+
+```{r}
+round(mean(gles$LiRe, na.rm = TRUE), digits = 1)
+```
+
+etwa 5,2 und damit leicht links der Skalenmitte (6). Wir runden hier auf die erste Nachkommastelle mit der Funktion `round(x, digits = 1)`. Wollten wir mehr Nachkommastellen ausgeben lassen, müssten wir das Argument `digits` auf einen höheren Wert setzen.
+
+## 3.2 Median
+
+Der Median ist der mittlere Wert einer Verteilung, wenn diese der Größe nach sortiert ist und teilt die Beobachtungen in gleiche "Hälften". Bei gerader Fallzahl wird das arithmetische Mittel der beiden mittleren Werte berechnet. In `R` lässt sich der Median mit `median()` berechnen.
+
+```{r}
+median(gles$alter, na.rm = TRUE)
+median(gles$alter[1:100], na.rm = TRUE)
+median(gles$einkommen_num, na.rm = TRUE)
+```
+
+Der Median des Alters der Befragten liegt bei 51 Jahren und damit leicht über dem arithmetischen Mittel. Betrachtet man nur die ersten 100 Personen des Samples, liegt der Median bei 52 Jahren. Die mittlere befragte Person fällt in Bezug auf das Nettohaushaltseinkommen in die Kategorie 3, ihr Haushaltseinkommen liegt also zwischen 2000 und 2999 Euro.
+
+## 3.3 Modus
+
+Der Modus ist der häufigste Wert einer Verteilung bzw. die Merkmalsausprägung, die am häufigsten realisiert wird. Für den Modus gibt es keine spezielle Funktion in `R`, allerdings können wir ihn uns bei Variablen mit wenigen Kategorien ganz einfach mit einer Häufigkeitstabelle ausgeben lassen.
+
+```{r}
+table(gles$LiRe_cat)
+```
+
+Die häufigste Merkmalsausprägung der Variable `LiRe_cat` ist "mittig" mit 1090 Beobachtungen. Bei Variablen mit vielen Ausprägungen kommt man mit dieser Methode allerdings an seine Grenzen. Eine zugegebenermaßen nicht unbedingt elegante Lösung wäre diese:
+
+```{r}
+table(gles$alter)[max(table(gles$alter))]
+```
+
+Das in den eckigen Klammern stehende `max(table(gles$alter))` berichtet dabei, wie häufig der häufigste Wert in der Häufigkeitstabelle `table(gles$alter)` vorkommt (50 mal). Die Aussage des Codes ist also: Zeige, welches Element von `table(gles$alter)` 50 mal vorkommt. Schicken Sie diese Teile des obigen Codes jeweils einzeln ab, um die Logik dahinter nachzuvollziehen (genereller Hinweis).
+
+## 3.4 Maximum, Minimum
+
+Auch für die vielleicht offensichtlichsten Lagemaße, das Minimum und das Maximum, stehen in `R` entsprechende Funktionen bereit: `min()` und `max()`. Diese zeigen, welche die niedrigste und welche die höchste Ausprägung ist.
+
+```{r}
+min(gles$alter, na.rm = TRUE)
+max(gles$alter, na.rm = TRUE)
+```
+
+Beide Werte lassen sich auch über `range()` ("Spannweite") ausgeben.
+
+```{r}
+range(gles$alter, na.rm = TRUE)
+```
+
+## 3.5 Quantile
+
+Quantile sind bestimmte Anteile einer der Größe nach geordneten Verteilung. Quantilwerte geben an, welche Ausprägung die Beobachtung an der Grenze eines solchen Anteils der Verteilung hat. Üblicherweise findet man Quantile in Form von Quartilen vor, die die Verteilung in vier gleichgroße Anteile á 25% unterteilen. Die Funktion `quantile()` gibt standardmäßig Quartile aus.
+
+```{r}
+quantile(gles$alter, na.rm = TRUE)
+```
+
+Minimum, Median und Maximum werden hier als erste, letzte und mittlere Beobachtung genauso ausgewiesen wie die 25- und 75-Prozent-Quartile. Für das Alter der Befragten liegen diese bei 34 und 65 Jahren.
+
+Natürlich können wir Quantile auch anders zuschneiden. Wollten wir die Verteilung in Fünftel teilen, ginge das so:
+
+```{r}
+quantile(gles$alter, probs = seq(0, 1, .2), na.rm = TRUE)
+```
+
+Für 10%-Schritte so:
+
+```{r}
+quantile(gles$alter, probs = seq(0, 1, .1), na.rm = TRUE)
+```
+
+Die Funktion `seq(0, 1, 0.1)` ("sequence") mit der das Argument `probs` ("probabilities") spezifiziert wird, erstellt eine Sequenz mit Werten von 0 bis 1 in Schritten á 0,1. Schicken Sie sie einmal einzeln ab, um ihre Funktionsweise zu verstehen.
+
+## 3.6 `summary()`
+
+Um einen ersten Überblick über eine Verteilung zu bekommen, ist die (schon bekannte) `summary()`-Funktion in der Regel ein hilfreiches Werkzeug. Im Output von `summary()` finden sich das Minimum, das Maximum, das erste und dritte Quartil, der Median, das arithmetisches Mittel und die Anzahl der fehlenden Werte.
+
+```{r}
+summary(gles$alter)
+```
+
+In der vergangenen Sitzung haben wir herausgefunden, dass eine Person bei der Frage nach ihrem Geburtsdatum keine Angabe gemacht hat. Diese Person erscheint hier als fehlender Wert.
+
+# 4. Streuungsmaße
+
+Streuungsmaße ermöglichen es einzuschätzen, wie sehr die Werte einer Verteilung unterschiedlich sind bzw. wie sehr sie streuen. Verteilungen mit geringer Streuung sind eng um einen zentralen Wert herum angesiedelt. Verteilungen mit großer Streuung sind zu einem großen Teil sehr unterschiedlich von ihrem zentralen Wert. Entsprechend sind die folgenden Streuungsmaße jeweils als Differenzen zu einem zentralen Wert - dem arithmetischen Mittel - (Varianz, Standardabweichung) oder zwischen Werten, die gleich weit von dem zentralen Wert entfernt liegen (Spannweite, IQR), operationalisiert.
+
+## 4.1 Spannweite
+
+Die Spannweite ist die Differenz des Minimums und des Maximums und kann so errechnet werden:
+
+```{r}
+max(gles$alter, na.rm = TRUE) - min(gles$alter, na.rm = TRUE)
+range(gles$alter, na.rm = TRUE)[2] - range(gles$alter, na.rm = TRUE)[1]
+```
+
+## 4.2 Quartilsabstand
+
+Der Quartilsabstand ("interquartile range", IQR) ist die Spanne zwischen dem ersten und dritten Quartil und ein übliches Maß, da sich die Streuung der gesamten Verteilung recht gut anhand der Streuung der mittleren 50% der Verteilung einschätzen lässt.
+
+```{r}
+IQR(gles$alter, na.rm = TRUE)
+```
+
+Die Person, die älter ist als die jüngsten 25% aller Befragten, ist 31 Jahre jünger als die Person, die älter ist als 75% der Befragten.
+
+## 4.3 Varianz
+
+Die Varianz und die Standardabweichung werden jeweils über die Differenz jedes einzelnen Wertes zum arithmetischen Mittel berechnet. Wie beim arithmetischen Mittel selbst, werden diese einzelnen Abweichungen addiert und durch die Fallzahl dividiert. Da einige Abweichungen positiv und andere negativ sind, würden sie sich bei der Summierung gegenseitig aufheben. Deshalb werden sie zuvor quadriert:
+
+$\frac1n\sum_{i=1}^n(x_i-\overline{x})^2$.
+
+Durch die Quadrierung nimmt die Varianz im Vergleich zu den ursprünglichen Werten meist deutlich größere Werte an.
+
+`R` berechnet die Varianz mit `var()`. Für das Alter der Befragten liegt die Varianz bei:
+
+```{r}
+var(gles$alter, na.rm = TRUE)
+```
+
+Die Varianz des Anteils von Minimal-Gewinnkoalitionen mit einer Partei im Lijphart-Datensatz liegt bei:
+ 
+```{r}
+var(lijphart$minwin_one_part4510, na.rm = TRUE)
+```
+ 
+## 4.4 Standardabweichung
+
+Zur Berechnung der Standardabweichung wird die Wurzel der Varianz gezogen. So wird der Effekt der Quadrierung ausgeglichen und die Werte bleiben vergleichbar groß wie die Ursprungswerte. Die Standardabweichung ist dadurch sinnvoll interpretierbar, etwa als "mittlere Abweichung vom Mittel". Schließlich wird sie analog zum arithmetischen Mittel berechnet, mit dem Unterschied, dass die zugrundeliegenden Werte die einzelnen Abweichungen sind und diese vor der Summierung quadriert werden sowie nach der Summierung die Wurzel gezogen wird:
+
+$\sqrt{\frac1n\sum_{i=1}^n(x_i-\overline{x})^2}$.
+
+`R` berechnet die Standardabweichung mit der Funktion `sd()` (Abkürzung für "standard deviation").
+
+```{r}
+sd(gles$alter, na.rm = TRUE)
+```
+
+Anders als bei der im Vergleich zu den zugrunde liegenden Werten deutlich größer ausfallenden Varianz, können wir die Standardabweichung inhaltlich sinnvoll interpretieren: Durchschnittlich weicht das Alter eines Befragten um etwa 19 Jahre vom mittleren Alter ab.
+
+## 4.5 Populations- und Stichprobenvarianz
+
+Um genau zu sein, werden die Varianz (und die varianzbasierte Standardabweichung) in `R` als Populationsmaße berechnet. D.h., dass bei ihrer Berechnung nicht (wie in den obigen Formeln gezeigt) durch die Fallzahl $n$, sondern durch die Freiheitsgrade $n-1$ dividiert wird. Um die Stichprobenvarianz zu berechnen, multiplizieren wir den Output von `var()` mit $(n-1)/n$. Die Fallzahl $n$ ermitteln wir mit der Funktion `nrow()` ("number of rows"), also der Anzahl von Beobachtungen (Zeilen) eines Datensatzes.  
+
+```{r}
+var(gles$alter, na.rm = TRUE) * (nrow(gles) - 1) / nrow(gles)
+var(lijphart$minwin_one_part4510, na.rm = TRUE) * (nrow(lijphart) - 1) / nrow(lijphart)
+```
+
+Im Ergebnis identisch und länger (damit weniger effizient), aber verallgemeinerbar, ist folgender Code. Hier wird die Fallzahl mit `length()` ermittelt. `length()` bestimmt die Anzahl der Elemente in eindimensionalen Objekten, also Vektoren. Damit kann diese Berechnung auch für eindimensionale Objekte (außerhalb von Datensätzen) durchgeführt werden. Während die Dataframes `gles` und `lijphart` zwei Dimensionen (Zeilen und Spalten) aufweisen, sodass wir `nrow()` sinnvoll verwenden können, sind einzelne Variablen innerhalb der Dataframes wie `alter` und `minwin_one_part4510` eindimensionale Vektoren, sodass `length()` angemessen ist.
+
+```{r}
+var(gles$alter, na.rm = TRUE) * (length(gles$alter) - 1) / length(gles$alter)
+var(lijphart$minwin_one_part4510, na.rm = TRUE) * (length(lijphart$minwin_one_part4510) - 1) / length(lijphart$minwin_one_part4510)
+```
+
+
+Je größer die Fallzahl (der Datensatz), desto weniger fällt die Verwendung der Populationsvarianz ins Gewicht. Für das Alter der Befragten im GLES-Datensatz mit 2112 Beobachtungen fällt die Differenz zwischen Stichproben- und Populationsvarianz deutlich geringer aus als für den Anteil von Minimal-Gewinnkoalitionen mit einer Partei aus dem Lijphart-Datensatz mit 36 Beobachtungen.
+
+# 5. Zusammenfassung
+
+Lagemaße zeigen die zentrale Tendenz, Streuungsmaße die Unterschiedlichkeit einer Verteilung. Die meisten univariaten Kennzahlen liegen als einfach zu handhabende Funktionen in `R` vor. Das arithmetische Mittel wird mit `mean()`, der Median mit `median()`, Quantile mit `quantile()`, eine Zusammenfassung von Lagemaßen mit `summary()`, der Quartilsabstand mit `IQR()`, die Varianz mit `var()` und die Standardabweichung mit `sd()` berechnet. In der Regel müssen dabei `NA`s mit `na.rm = TRUE` ausgeschlossen werden. `var()` errechnet die Populationsvarianz, sodass bei kleineren Stichproben auf die Stichprobenvarianz zurückgegriffen werden sollte. 
+
+# 6. Aufgaben
+
+1. Lassen Sie sich das arithmetische Mittel, den Median und Quantile für die den Gallagher-Disproportionalitätsindex, den Anteil von Minimal-Gewinnkoalitionen mit einer Partei sowie die Exekutivdominanz ausgeben. Berechnen Sie bei einer Variable Quartile, bei einer Variable 12,5%-Quantile sowie bei einer Variable 5%-Quantile. Runden Sie den Mittelwert jeweils auf die zweite Nachkommastelle.
+2. Erstellen Sie eine Häufigkeitstabelle des kategorisierten Haushaltseinkommens sowie eine Zusammenfassung der wesentliche Lagemaße des numerisch codierten Haushaltseinkommens. Ermitteln Sie außerdem den Quartilsabstand des numerisch codierten Haushaltseinkommens. Wie hoch ist das Haushaltseinkommen der mittleren 50% der Befragten?
+3. Ermitteln Sie Varianz und Standardabweichung der Links-Rechts-Selbsteinstufung und des Gallagher-Indexes.
+4. Berechnen Sie die Stichprobenvarianz der Links-Rechts-Selbsteinstufung und des Gallagher-Indexes. Berechnen Sie nun die Standardabweichung für beide Variablen auf Grundlage der Stichprobenvarianz. Tipp: Die mathematische Operation dazu ist aus Sitzung 1 bekannt.
+5. Speichern Sie das Geburtsjahr der Befragten (`q2c`) in einem numerischen Vektor `gj`, den Sie nicht an den Datensatz anhängen. Subtrahieren Sie 1900. Berechnen Sie nun die Stichprobenvarianz und auf deren Grundlage die Standardabweichung. Tipp: Wie man Faktoren in numerische Vektoren umwandelt, haben wir in der vergangenen Sitzung behandelt.

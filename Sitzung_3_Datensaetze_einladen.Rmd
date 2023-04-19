@@ -1,0 +1,144 @@
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 3: Datensätze einladen"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+editor_options:
+  chunk_output_type: console
+
+---
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+
+____
+<br />
+
+```{r include=FALSE}
+library(foreign)
+setwd("/Users/Christoph/Seafile/Lehrstuhl/Lehrstuhl Hannover Forschung/Forschung/01 Hönnige/025 MWK_StatistikR/Daten/")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+# 1. Einleitung
+
+Bisher haben wir uns mit den unterschiedlichen Objekte und Objektklassen in `R` auseinandergesetzt. In der zweiten Sitzung gingen wir dabei auf zweidimensionale Objekte und auf die Arbeit mit Datensätzen ein. In dieser dritten und der kommenden vierten Sitzung wollen wir unsere Kenntnis der Arbeit mit Datensätzen vertiefen, indem wir externe Datensätze einladen und zur Handhabung aufbereiten. Dabei lernen wir die Datensätze kennen, mit denen wir im weiteren Verlauf des Kurses arbeiten werden.
+
+# 2. Externe Datensätze einladen
+
+Nur wenige Forschende haben die Ressourcen, sämtliche für ihre Analyse notwendigen Daten eigenständig zu erheben. Das gilt umso mehr für Studierende. Deshalb ist es essentiell zu wissen, wie Sekundärdaten (Daten, die andere Forschende zur Verfügung stellen) für die eigene Datenanalyse nutzbar gemacht werden können. Diese stehen in Form von Datensätzen in unterschiedlichen Datenformaten zur Verfügung. `R`, bzw. einige Pakete, bieten vierschiedene Möglichkeiten an, Datensätze in unterschiedlichen Formaten zur Analyse zu laden.
+
+## 2.1 GLES 2017
+
+Um zu Erlernen, auf welchem Wege man üblicherweise an Forschungsdaten gelangt, wollen wir in einem ersten Schritt öffentlich verfügbare Daten herunterladen und von der eigenen Festplatte laden. Besuchen Sie dazu den Web-Auftritt des Leibniz Instituts für Sozialwissenschaften unter <https://www.gesis.org/home>. Die Gesis bietet einen großen Fundus an sozialwissenschaftlichen Daten, der Ihnen auch über den Kontext dieses Kurses hinaus an die Hand gegeben sei. Hier finden Sie eine Reihe relevanter Forschungsdaten wie den ALLBUS und das SOEP.
+
+Suchen Sie aber die Suchleiste nach dem "Nachwahl-Querschnitt (GLES 2017)". Die German Longitudinal Election Study (GLES) ist ein Projekt der Gesis in Kooperation mit der Deutschen Gesellschaft für Wahlforschung (DGfW). Sie vereint Vor- und Nachwahlbefragungen einer repräsentativen Stichprobe der Wählerschaft bei Bundestagswahlen. Der hier verwendete Nachwahl-Querschnitt befragte die Respondenten im Nachgang der Bundestagswahl 2017 zu politischen Themen, Einstellungen und Verhaltensweisen, Meinungsbildung im Wahlkampf sowie sozio-demografischen Merkmalen. Insbesondere ist es uns damit möglich, die Wahlentscheidung der Befragten zu analysieren bzw. Einflussfaktoren der Wahl einer bestimmten Partei zu bestimmen.
+
+Laden Sie sich rechts oben unter "Downloads" -> "Datensätze" die Version "ZA6801_de_v4-0-1.sav deutsch (Datensatz)" mit 2.37 MB herunter. Dazu werden Sie aufgefordert, sich ein Konto bei der Gesis anzulegen. Laden Sie sich bitte außerdem unter "Fragebögen" den Fragebogen "ZA6801_fb.pdf deutsch" und unter "andere Dokumente" die Studienbeschreibung "ZA6801_sb.pdf" herunter und machen Sie sich mit beidem vertraut. Das ist wichtig, um einen Überblick über die Studie, den Datensatz und die vercodete Information bzw. insbesondere die vorhandenen Variablen und damit verbundenen Interviewfragen zu bekommen. Die Variablennamen sind technisch gehalten und an sich wenig aussagekräftig, weshalb die Begleitdokumentation wesentlich ist, um zu verstehen, welche inhaltliche Information dahinter steckt.
+
+Legen Sie den Datensatz an einer geeigneten Stelle auf ihrem Computer ab. Am besten ist es, wenn Sie sich einen Ordner zu diesem Seminar anlegen, in dem Sie den Datensatz, die Begleitdokumentation und die Kursskripte speichern. Um den Datensatz nun in `R` zu laden, müssen wir zunächst herausfinden, auf welchen Ordner `R` zugreift. Mit `getwd()` wird uns das derzeitige Verzeichnis angezeigt. "wd" steht dabei für "working directory" (etwa: Arbeitsverzeichnis). Im Working Directory "arbeitet" `R` bzw. liest Daten ein und speichert Skripte, den Workspace (nicht empfohlen) und geschriebene Objekte.
+ 
+```{r eval=FALSE}
+getwd()
+```
+
+Nun zeigt `R` an, wo es Daten speichert woher es sie einliest. Wir wollen nun erreichen, dass `R` auf den Ordner zugreift, in dem der Datensatz abgelegt ist. Deshalb legen wir das Verzeichnis mit `setwd()` fest. Schreiben Sie dazu den Pfad zu dem Verzeichnis, in dem der Datensatz abgelegt ist, in Anführungszeichen in die Funktion und führen Sie sie aus. Ein Dateipfad weist beispielsweise bei Apple die folgende Struktur auf: "/Users/christophgarwe/R_Projekt/Daten". Bei Windows lautet der Pfad: "C:/Users/christophgarwe/R_Projekt/Daten", wenn die Daten beim Nutzer "christophgarwe" im Ordner "R_Projekt" im Unterordner "Daten" liegen. Möchten Sie ihr Verzeichnis woanders anlegen bzw. anders benennen, müssen Sie dies anpassen. Nachfolgend müssen Sie also immer wenn von "Eigener Pfad" die Rede ist, dieses Verzeichnis dort hineinschreiben.
+
+```{r eval=FALSE}
+setwd("eigener Pfad")
+```
+
+Prinzipiell können wir den Datensatz nun von `R` aus ansteuern bzw. laden. Dazu werden üblicherweise Befehle wie `read.table()` verwendet.
+
+```{r eval=FALSE}
+?read.table # Machen Sie sich mit den Argumenten von read.table() vertraut
+```
+
+Dazu müssten wir `R` lediglich anhand des Dateipfades mitteilen, wo der Datensatz abgelegt ist (Argument `file`). Allerdings liegt dieser Datensatz in dem speziellen Datenformat ".sav" vor, dem Format des Statistikprogramms SPSS. Deshalb benötigen wir eine spezielle Funktion, mit der wir den Datensatz laden können. Die Funktion, die wir zum Einladen des Datensatzes in diesem Format verwenden, lautet `read.spss()` und gehört zum Paket `foreign`. Wir installieren und laden das Paket:
+
+```{r eval=FALSE}
+install.packages("foreign")
+```
+```{r eval=FALSE}
+library(foreign)
+```
+
+Nun können wir den Datensatz mit der Funktion `read.spss()` laden, die der oben erwähnten `read.table()` sehr ähnlich ist, jedoch speziell für "fremde" Datenformate im Rahmen des Pakets `foreign` entworfen wurde. Wir speichern den Datensatz in dem Objekt `gles`. Außerdem spezifizieren wir das Argument `to.data.frame = TRUE`, wodurch wir festlegen, dass der Datensatz in Form eines Dataframe vorliegen soll.
+
+```{r eval=FALSE}
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+```
+
+Beachten Sie: In dieser Form funktioniert dieser Code nur, weil wir oben mittles `setwd()` das Verzeichnis so gesetzt haben, dass `R` am Ende des Dateinpfades die Datei "ZA6801_de_v4-0-1.sav" findet. Hätten wir das Verzeichnis nicht festgelegt, müssten wir den gesamten Dateienpfad (inklusive der Datei) unter `file` nennen.
+
+## 2.2 Patterns of Democracy
+
+Um den Datensatz zu "Patterns of Democracy" (A. Lijphart) zu laden, gehen wir prinzipiell genauso vor. Dieser Datensatz wird über StudIP in der Veranstaltung "Politikwissenschaftliche Methoden mit R" als "Lijphart_Data_recode.csv" angeboten. Laden Sie ihn herunter und legen Sie ihn ebenfalls an einem geeigneten Ort ab (am besten in einem Kurs-Ordner).
+
+Arend Lijpharts "Patterns of Democracy" ist ein Klassiker der Demokratieforschung und untersucht zwei Typen von Demokratien, die Mehrheitsdemokratie mit den klassischen Beispielen Neuseeland (vor 1996) und Barbados und die Konsensdemokratie mit den klassischen Beispielen Schweiz und Belgien. Der vorliegende Datensatz beinhaltet alle Variablen, die Lijphart verwendet, um die latenten Konzepte Mehrheits- und Konsensdemokratie zu messen. Die Beobachtungseinheiten sind dabei anders als beim GLES nicht Befragte, sondern Länder.
+
+Anders als der GLES-Datensatz, liegt der Lijphart-Datensatz im sog. CSV-Format ("comma seperated values") vor. D.h., in diesem Datensatz stehen alle Werte einer Zeile hintereinander, jeweils nur durch ein Komma (oder Semikolon) getrennt. Öffnen Sie den Datensatz mal mit einem .txt-Programm wie TextEdit oder einem Textverarbeitungsprogramm wie Microsoft Word, um sich einen Eindruck zu verschaffen.
+
+Den Datensatz zu "Patterns of Democracy" laden wir mit der Funktion `read.csv2()`, einer der Varianten von `read.table()` (-> `?read.table`). Je nach Betriebssystem kann es sein, dass sich `read.csv()` besser eignet, probieren Sie es im Zweifel einmal aus. Wir legen auch diesen Datensatz in einem Objekt ab, das wir "lijphart" nennen.
+
+```{r eval=FALSE}
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+# 3. Ein erster Blick in die Datensätze
+
+Nachdem uns nun beide Datensätze zur Verfügung stehen, möchten wir nun einen Überlick über die darin enthaltenen Variablen bekommen. Eine einfache Möglichkeit dazu ist die Funktion `str()` ("structure"), die den Objekttyp des Datensatzes sowie einen Überblick über die Variablen und enthaltenen Werte zeigt.
+
+```{r}
+str(gles)
+```
+
+`gles` liegt als Dataframe vor und enthält 2112 Beobachtungen (Zeilen) und 602 Variablen (Spalten). Variablen sind `study`, `version`, `doi` usw., wobei das Dollarzeichen, wie bei Dataframes üblich, Variablen kenzeichnet (Stizung 2). Die ersten Variablen vercoden Information zur Durchführung des Interviews, die inhaltlich interessanten Variablen folgen später. Die Bezeichnung der meisten ist recht technisch gehalten. Die Variablen liegen als numerische und character-Vektoren sowie als Faktoren vor, die in Datafraes verbunden werden können (Sitzung 2).
+
+```{r}
+str(lijphart)
+```
+
+`lijphart` ist ebenso ein Dataframe und beinhaltet 36 Beobachtungen und 74 Variablen (`Country`, `exe_part4510`, `exe_part8110` usw.). Die Variablen sind hauptsächlich character-Vectors sowie teilweise integer-Vectors (ganze Zahlen).
+
+Mit `View()` können wir unsere Datensätze in ihrer eigentlichen Form, nämlich als große Tabelle, ansehen. Dabei ist zu beachten, dass man gerade bei größeren Datensätzen nur recht langsam durch den Datensatz scrollen kann. 
+
+```{r eval=FALSE}
+View(gles)
+View(lijphart)
+```
+
+Wenn wir anstatt dessen nur einen Eindruck der Variablen und der ersten enthaltenen Werte bekommen möchten, bieten sich die Funktionen `head()` und `tail()` an, die die jeweils ersten und letzten zehn Zeilen des Datensatzes zeigen. Aufgrund der Größe der Datensätze ist der Output für `lijphart` übersichtlicher als für `gles`.
+
+```{r}
+# head(gles)
+# tail(gles)
+
+head(lijphart)
+tail(lijphart)
+```
+
+# 4. Zusammenfassung
+
+`gles` ist ein Datensatz aus der Wahlforschung zur Bundestagswahl 2017. `lijphart` ist der Datensatz zu Arend Lijpharts "Patterns of Democracy". Um Datensätze zu laden, müssen Verzeichnisse mit `setwd()` gesetzt und Daten je nach Format mit einer Funktion wie `read.table()` geladen werden. Bei Fremdformaten kommen Funktionen des Pakets `foreign` wie `read.spss()` zur Anwendung. Mit `str()`, `View()` sowie `head()` und `tail()` bekommen wir einen ersten Überblick über Datensätze.
+ 
+# 5. Datensätze Quellen
+
+GLES (2019). Nachwahl-Querschnitt (GLES 2017). GESIS Datenarchiv, Köln. ZA6801 Datenfile Version 4.0.1, https://doi.org/10.4232/1.13235.
+
+Lijphart, Arend (2012): Patterns of Democracy. Government Forms and Performance in Thirty-Six Countries. 2nd Edition. New Haven/London: Yale University Press.
