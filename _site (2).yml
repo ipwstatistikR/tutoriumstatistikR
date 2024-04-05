@@ -4,32 +4,28 @@ navbar:
   title: "Politikwissenschaftliche Statistik mit R"
   left:
     - text: "(0) Willkommen"
-      href: index.html
-    - text: "(1) Grundlagen"
-      href: Sitzung_1_Einfuehrung.html
-    - text: "(2) Faktoren & Objekte"
-      href: Sitzung_2_Faktoren_und_Zweidimensionale_Objekte.html
-    - text: "(3) Datensätze"
-      href: Sitzung_3_Datensaetze_einladen.html
-    - text: "(4) Variablen"
-      href: Sitzung_4_Variablen_Kodieren.html
-    - text: "(5) Univariate Maße"
-      href: Sitzung_5_univariate_Maße.html
-    - text: "(6) Visualisierung I"
-      href: Sitzung_6_Visualisierung_I.html
-    - text: "(7) Bivariate Maße"
-      href: Sitzung_7_bivariate_Zusammenhangsmaße.html
-    - text: "(8) Lineare Regression"
-      href: Sitzung_8_bivariate_OLS.html
-    - text: "(9) Visualisierung II"
-      href: Sitzung_9_Visualisierung_II.html
-    - text: "(10) Multiple Regression"
-      href: Sitzung_10_multiple_lineare_Regression.html
-    - text: "(11) Logistische Regression"
-      href: Sitzung_11_LogitReg.html
-    - text: "(12) Faktoranalyse"
-      href: Sitzung_12_Faktoranalyse.html
-    - text: "(13) Visualisierung III"
-      href: Sitzung_13_Tabellen.html
-    - text: "(14) Hilfe"
-      href: Sitzung_14_Hilfe.html
+      href: R_0.html
+    - text: "(1) Einführung und Grundlagen"
+      href: R_1.html
+    - text: "(2) Faktoren und Objekte"
+      href: R_2.html
+    - text: "(3) Datensätze einladen und Variablen umkodieren"
+      href: R_3.html
+    - text: "(4) Univariate Analyse"
+      href: R_4.html
+    - text: "(5) Visualisierung univariater Verteilungen"
+      href: R_5.html
+    - text: "(6) Bivariate Analyse"
+      href: R_6.html
+    - text: "(7) Bivariate lineare Regression und Visualisierung"
+      href: R_7.html
+    - text: "(8) Multiple lineare Regression und Visualisierung"
+      href: R_8.html
+    - text: "(9) Anwendungsvoraussetzungen der linearen Regression"
+      href: R_9.html
+    - text: "(10) Binominale logistische Regression und Visualisierung"
+      href: R_10.html
+    - text: "(11) Zähldaten"
+      href: R_11.html
+    - text: "(12) Dimensionsreduzierende Verfahren"
+      href: R_12.html
