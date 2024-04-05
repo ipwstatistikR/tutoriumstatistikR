@@ -3,7 +3,7 @@ output_dir: "."
 navbar:
   title: "Politikwissenschaftliche Statistik mit R"
   left:
-    - text: "(0) Willkommen"
+    - text: "(0) Willkommen TEST"
       href: index.html
     - text: "(1) Grundlagen"
       href: Sitzung_1_Einfuehrung.html
