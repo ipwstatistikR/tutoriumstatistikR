@@ -4,7 +4,7 @@ navbar:
   title: "Politikwissenschaftliche Statistik mit R"
   left:
     - text: "(0) Willkommen"
-      href: R_0.html
+      href: index.html
     - text: "(1) Einführung und Grundlagen"
       href: R_1.html
     - text: "(2) Faktoren und Objekte"
