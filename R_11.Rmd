@@ -1,0 +1,195 @@
+---
+title: 'Politikwissenschaftliche Statistik mit R. Sitzung 11: Zähldaten'
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune, Timor Othersen und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+date: ''
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float: true
+    theme: lumen
+  pdf_document:
+    toc: true
+    toc_depth: '2'
+  word_document:
+    toc: true
+    toc_depth: '2'
+editor_options:
+  chunk_output_type: console
+---
+
+```{=html}
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+```
+
+------------------------------------------------------------------------
+
+<br />
+
+```{r setup, include=FALSE}
+## include this at top of your RMarkdown file for pretty output
+## make sure to have the printr package installed: install.packages('printr')
+knitr::opts_chunk$set(echo = TRUE, results = TRUE, message = FALSE, warning = FALSE)
+# library(printr)
+```
+
+# 1. Einleitung
+
+Zähldaten haben besondere Eigenschaften, weshalb lineare oder logistische Regressionen nicht sinnvoll auf sie angewendet werden können. Um dennoch Analysen mit Zähldaten durchführen zu können, gibt es besondere Regressionsverfahren. Ziel dieser Sitzung ist es, die Struktur von Zähldaten, mögliche Regressionsmodelle und ihre Voraussetzungen zu erläutern. Schließlich wird gezeigt, wie Regressionsergebnisse interpretiert werden können. Die Inhalte dieser Sitzung basieren auf einem Text von [Tutz (2010)](https://link.springer.com/chapter/10.1007/978-3-531-92038-2_33).
+
+# 2. Verteilung von Zähldaten
+
+Zähldaten sind diskrete, positive, ganze Zahlen, wie zum Beispiel 0, 1, 2 oder 17. Das bedeutet, dass sie niemals negativ sein oder in Dezimalzahlen vorliegen können. In den meisten Fällen geben Zähldaten die Anzahl von Ereignissen in einem bestimmten Intervall an, beispielsweise wie viele Kinder eine Person in ihrem Leben bzw. in den letzten zehn Jahren bekommen hat oder wie viele Klausuren ein Studierender in einem Semester geschrieben hat. Zähldaten sind nicht wie metrische Variablen normalverteilt. Dies gilt insbesondere dann, wenn die Werte, wie in den vorherigen Beispielen, nicht sehr hoch sein können. Klassische Regressionsmodelle können daher nicht angewendet werden.
+
+Aber wenn die Zähldaten nicht normalverteilt sind, wie sind sie dann verteilt? Hier kommen die Poisson-Verteilung und die negative Binomialverteilung in Frage. Die Poisson-Verteilung zeichnet sich dadurch aus, dass Erwartungswert und Varianz gleich sind. Das heißt, wenn viele Ereignisse erwartet werden, ist auch die Varianz groß. Werden hingegen nur wenige Ereignisse erwartet, ist die Varianz gering.
+
+$E(Y) = \text{var}(Y) = \lambda$
+
+Dieses Kriterium wird als *Equidispersionseigenschaft* bezeichnet. Es gilt als restriktiv und unflexibel. Häufig liegt bei Zähldaten keine Poisson-Verteilung vor, da Erwartungswert und Varianz nicht gleich sind. Meistens ist die Varianz größer, dann spricht man von *Überdispersion*. Ist die Varianz ungleich dem Erwartungswert, kann die negative Binomialverteilung genutzt werden. Hierbei gibt es zwei Parameter $\mu$ und $\nu$. 
+
+Charakteristisch für die negative Binomialverteilung ist, dass die Varianz ungleich dem Erwartungswert ist.
+
+$var(Y) = \lambda + \frac{\lambda^2}\nu$
+
+$E(Y) = \lambda$
+
+# 3. Datensätze laden und umkodieren
+
+Zunächst laden wir den `gles`-Datenatz ein.
+
+```{r eval=FALSE}
+getwd()
+setwd("eigener Pfad")
+library(foreign)
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+```
+
+```{r include=FALSE}
+library(foreign)
+setwd("C:/Users/laura/OneDrive/Documents/Arbeit/r/Meine_Überarbeitungen")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+Wenn wir die Eigenschaften von Zähldaten mit den Eigenschaften unserer bisherigen Variablen vergleichen, stellen wir fest, dass wir bisher keinen Kontakt zu Zähldaten hatten. Als abhängige Variable müssen wir also eine neue Variable suchen. Eine der wenigen Variablen im GLES-Datensatz ist sind Variablen `q110a-i`. Bei diesen Variablen wird abgefragt, an wie vielen Tagen ein Teilnehmender bestimmte Zeitungen in der Woche gelesen hat. Wir betrachten diese Variable für die Variante `q110a`, was dem Lesen der BILD-Zeitung entspricht.
+
+```{r}
+table(gles$q110a)
+```
+
+Die Variable hat sieben Ausprägungen. Die Ausprägungen geben die Anzahl der Tage an, an denen ein Teilnehmer oder eine Teilnehmerin die BILD-Zeitung gelesen hat. Eine Ausnahme bildet die erste Ausprägung, da es sich hier nicht um null Tage, sondern um weniger als einen Tag handelt. Dies widerspricht eigentlich der Annahme, dass Zähldaten immer ganze Zahlen sind. Für das Beispiel nehmen wir an, dass eine Person, die die BILD-Zeitung weniger als einmal pro Woche liest, die BILD-Zeitung nie liest. Daher können wir die Variable als Zählvariable interpretieren und kodieren sie für unsere weitere Analyse um, indem wir sie in einen *numeric* Vektor umwandeln und das Skalenniveau anpassen.
+
+```{r}
+gles$q110a_num <- as.numeric(gles$q110a)
+gles$bild <- gles$q110a_num - 1
+table(gles$bild)
+```
+
+Die Fragestellung dieser Sitzung ist: Wie beeinflussten das Geschlecht und das Alter das Lesen der BILD-Zeitung. Dazu kodieren wir die Variable `geschlecht` und `alter` wie gewohnt um.
+
+```{r}
+# Alter
+q2c_num <- as.numeric(as.character(gles$q2c))
+gles$alter <- 2017 - q2c_num
+
+#Geschlecht
+names(gles)[names(gles) == "q1"] <- "geschlecht"
+```
+
+# 3. Poisson Regression
+
+Bei einer Poisson-Verteilung kann die lineare Regression nicht verwendet werden, da eine lineare Regression unter anderem auch negative Ergebnisse liefert. Zähldaten können jedoch nicht negativ sein. Daher ist die lineare Regression ungeeignet. Wir verwenden einen mathematischen Trick, indem wir eine *Transformationsfunktion* und die Linearkombination verwenden, die wir bereits aus der linearen Regression kennen. *Transformationsfunktionen* haben die Aufgabe, dafür zu sorgen, dass der Wertebereich, den die Linearkombination annehmen kann, niemals negativ wird. Wenn $h$ unsere *Transformationsfunktion* ist, sieht unser Regressionsmodell wie folgt aus:
+
+$\mu = h(b_0 + x_1b_1 + \ldots + x_nb_n)$
+
+Aber welche *Transformationsfunktion* können wir für $h$ verwenden? Um diese Frage zu beantworten, müssen wir uns überlegen, welche Funktion niemals negativ werden kann. Das ist zum Beispiel bei der $e$-Funktion der Fall. Die $e$-Funktion hat die Form $e^x$. Egal was wir dabei für x einsetzen, das Ergebnis ist immer positiv. Wir setzen also für $h$ die *Transformationsfunktion* $e^x$ ein und erhalten:
+
+$\mu = e^{b_0 + x_1b_1 + \ldots + x_nb_n}$
+
+Diese *Transformationsfunktion* heißt *loglineares Modell* und wird meistens in dieser äquivalenten Umformung genutzt:
+
+$log(\mu) = b_0 + x_1b_1 + \ldots + x_nb_n$
+
+Hier wurde der Logarithmus $log()$ auf beiden Seiten der Gleichung angewendet, um das $e$ auf der rechten Seite aufzulösen. Somit steht auf der rechten Seite nur noch der Exponent und auf der linken Seite $log(\mu)$.
+
+Zur Anwendung einer Poisson-Regression verwenden wir wieder die Funktion `glm` wie bei der logistischen Regression. Wir spezifizieren unsere neue Variable `bild` als abhängige Variable und die Variablen `geschlecht` und `alter` als unabhängige Variablen. Mit dem Argument `data` wählen wir den Datensatz aus und mit `family` legen wir die Regressionsmethode `poisson()` fest. Innerhalb von `poisson()` können wir die *Transformationsfunktion* festlegen, also unser $h$ von oben. Wie oben definieren wir die *Transformationsfunktion* für das *loglineare Modell*, indem wir `link = "log"` angeben.
+
+```{r}
+poisson <- glm(bild ~  geschlecht + alter, data = gles, family = poisson(link = "log"))
+summary(poisson) 
+```
+
+# 4. Überdispersion 
+
+Mit der Ausgabe von `summary` können wir überprüfen, ob die Poisson-Regression angewendet werden kann. Wie bereits erwähnt, liegt *Überdispersion* vor, wenn die Varianz der abhängigen Variable größer ist als der Erwartungswert. Dagegen liegt *Unterdispersion* vor, wenn die Varianz kleiner ist als der Erwartungswert. Dies ist jedoch viel seltener der Fall. Um zu testen, ob *Überdispersion* vorliegt, gibt es mehrere Möglichkeiten. Zum einen kann *Überdispersion* mit der Funktion `dispersiontest()` getestet werden. Ist der p-Wert des Tests signifikant, liegt *Überdispersion* vor. Das bedeutet, dass die Verwendung einer Poisson-Regression *nicht* zulässig ist. Ist der p-Wert nicht signifikant, liegt auch keine *Überdispersion* vor und wir können eine Poisson-Regression verwenden.
+
+```{r}
+library(car)
+library(AER)
+dispersiontest(poisson, trafo=  1)
+```
+
+Wir können erkennen, dass der Wert signifikant ist. Daraus folgt, dass wir die Poisson-Regression nicht verwenden sollten. Stattdessen können wir eine Quasi-Poisson-Regression oder eine negative Binomialregression verwenden.
+
+
+# 5. Quasi-Poisson Regression
+Eine Alternative zur Poisson-Regression ist die Quasi-Poisson-Regression. Diese kann auch dann verwendet werden, wenn Erwartungswert und Varianz nicht gleich sind. Wir können diese Methode sowohl bei *Unterdispersion* als auch bei *Übdispersion* verwenden. Für die Varianz wird eine zusätzliche Parameterschätzung verwendet. Dies bedeutet, dass die Quasipoisson-Regression eine Erweiterung oder Verallgemeinerung der Poisson-Regression ist. In R können wir die Quasi-Poisson-Regression ähnlich wie die Poisson-Regression berechnen. Auch hier verwenden wir das *loglineare* Modell.
+
+```{r}
+quasipoisson <- glm(bild ~  geschlecht + alter, data = gles, family = quasipoisson(link = "log"))
+summary(quasipoisson)
+```
+
+Um besser lesbaren Output zu erhalten, verwenden wir die Funktion `stargazer()`.
+
+```{r}
+library(stargazer)
+stargazer(quasipoisson, type = "text")
+```
+
+Anhand der Sternchen können wir erkennen, dass es sich sowohl beim Alter als auch beim Geschlecht um statistisch signifikante Werte handelt. Die Werte vor den Sternchen geben die Koeffizienten an und die Werte in Klammern die Standardfehler. Die Koeffizienten können jedoch nur schwer interpretiert werden, da sie noch logarithmiert sind (siehe linke Seite der letzten Formel). Da der Logarithmus mit der $e$-Funktion (`exp()` in `R`) aufgehoben werden kann, schreiben wir diesen Code:
+
+```{r}
+exp(coef(quasipoisson))
+```
+
+Die Koeffizienten können nun besser interpretiert werden. Dabei bedeuten Werte kleiner als 1 einen negativen Effekt und Werte größer als 1 einen positiven Effekt. Konkret kann der Effekt des Alters auf das Lesen der BILD-Zeitung wie folgt interpretiert werden: Mit jedem weiteren Lebensjahr steigt die Wahrscheinlichkeit, die BILD-Zeitung zu lesen, um den Faktor 0,008. Oder anders ausgedrückt: Mit jedem weiteren Lebensjahr ist es um 0,8% wahrscheinlicher, dass jemand BILD liest. Für das Geschlecht ergibt sich ein negativer Zusammenhang. Um das Ergebnis besser interpretieren zu können, muss es daher noch von 1 abgezogen werden.
+
+```{r}
+1 - exp(coef(quasipoisson)[2])
+```
+
+Wenn eine Person weiblich ist, ist es 0,487-mal unwahrscheinlicher, dass eine Person die BILD-Zeitung liest. Oder anders: Wenn eine Person weiblich ist, ist es 48,7% unwahrscheinlicher, dass diese Person BILD liest.
+
+
+# 6. Negative Binomialregression
+
+Eine weitere, typischere Alternative zur Poisson-Regression, ist die negative Binomial-Regression. Sie eignet sich allerdings nur bei *Überdispersion*, also wenn die Varianz größer ist als der Erwartungswert. Die Umsetzung ist ähnlich wie bei den anderen Regressionsmethoden, allerdings muss hier auf das Paket MASS zurückgegriffen werden.
+
+```{r}
+library(MASS)
+binomial <- glm.nb(bild ~ geschlecht + alter, data = gles)
+summary(binomial)
+stargazer(binomial, type = "text")
+```
+
+Wir können erkennen, dass nur die Variable `geschlecht` statistisch signifikant ist. Zur Interpretation nutzen wir wieder die transformierten Koeffizienten.
+
+```{r}
+1 - exp(coef(binomial)[2])
+```
+
+Das Ergebnis ist der Quasipoisson-Regression sehr ähnlich. Es kann wie folgt interpretiert werden: Wenn jemand weiblich ist, dann ist die Wahrscheinlichkeit, dass diese Person BILD liest, um 48,7% geringer.
+
+
+# 7. Aufgaben
+1. Wenden Sie ein passendes Regressionsmodell aus dieser Sitzung auf eine der anderen Zeitungen aus der Variable `q110` an. 
+2. Interpretieren Sie die Ergebnisse Ihres Modells. 
