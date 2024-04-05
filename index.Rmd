@@ -103,7 +103,7 @@ Konkret werden folgende Themen abgehandelt:
 * [(10) Sitzung: Multiple lineare Regression](Sitzung_10_multiple_lineare_Regression.html)
 * [(11) Sitzung: Logistische Regression](Sitzung_11_LogitReg.html)
 * [(12) Sitzung: Faktoranalyse](Sitzung_12_Faktoranalyse.html)
-* [(13) Sitzung: Visualisierung (3): Übersichtliche Regressionstabellen](Sitzung_13_Tabellen.html)
+
 
 <br />
 
