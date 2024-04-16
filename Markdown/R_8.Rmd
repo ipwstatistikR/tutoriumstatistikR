@@ -1,0 +1,215 @@
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 8: Multiple lineare Regression"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune, Timor Othersen und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+github_repo: https://github.com/ipwstatistikR/tutoriumstatistikR.git
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+editor_options:
+  chunk_output_type: console
+---
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+
+____
+<br />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE)
+```
+
+# 1. Einleitung
+
+Bei der multiplen linearen Regression wird der Einfluss mehrerer unabhängiger Variablen auf eine abhängige metrische Variable untersucht. Je nachdem, ob das Forschungsdesign x-oder y-zentriert ist, wird versucht, die Varianz in der abhängigen Variable möglichst umfassend zu erklären (y-zentriert) oder den Einfluss der unabhängigen Variablen auf die abhängige Variable (x-zentriert) zu prüfen. In dieser Sitzung werden wir eine multiple lineare Regression durchführen, die Ergebnisse interpretieren und die wichtigsten statistischen Tests im Zusammenhang mit der multiplen linearen Regression durchführen.
+
+# 2. Datensätze laden und umkodieren
+
+```{r eval=FALSE}
+getwd()
+setwd("eigener Pfad")
+```
+
+```{r eval=FALSE}
+library(foreign)
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+```{r include=FALSE}
+library(foreign)
+setwd("C:/Users/laura/OneDrive/Documents/Arbeit/r/Meine_Überarbeitungen")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+```{r}
+# GLES
+# Alter
+q2c_num <- as.numeric(as.character(gles$q2c))
+gles$alter <- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == "q1"] <- "geschlecht"
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == "unter 500 Euro" |
+                     gles$q192 == "500 bis unter 750 Euro" |
+                     gles$q192 == "750 bis unter 1000 Euro"] <- "weniger als 1000"
+gles$einkommen_cat[gles$q192 == "1000 bis unter 1250 Euro" |
+                     gles$q192 == "1250 bis unter 1500 Euro" |
+                     gles$q192 == "1500 bis unter 2000 Euro"] <- "1000 bis 1999"
+gles$einkommen_cat[gles$q192 == "2000 bis unter 2500 Euro" |
+                     gles$q192 == "2500 bis unter 3000 Euro"] <- "2000 bis 2999"
+gles$einkommen_cat[gles$q192 == "3000 bis unter 4000 Euro"] <- "3000 bis 3999"
+gles$einkommen_cat[gles$q192 == "4000 bis unter 5000 Euro"] <- "4000 bis 4999"
+gles$einkommen_cat[gles$q192 == "5000 bis unter 7500 Euro"] <- "5000 bis 7499"
+gles$einkommen_cat[gles$q192 == "7500 bis unter 10000 Euro" |
+                     gles$q192 == "10000 Euro und mehr"] <- "7500 und mehr"
+
+gles$einkommen_cat <- factor(gles$einkommen_cat,
+                                levels = c("weniger als 1000",
+                                           "1000 bis 1999",
+                                           "2000 bis 2999",
+                                           "3000 bis 3999",
+                                           "4000 bis 4999",
+                                           "5000 bis 7499",
+                                           "7500 und mehr"))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == "weniger als 1000"] <- 1
+gles$einkommen_num[gles$einkommen_cat == "1000 bis 1999"] <- 2
+gles$einkommen_num[gles$einkommen_cat == "2000 bis 2999"] <- 3
+gles$einkommen_num[gles$einkommen_cat == "3000 bis 3999"] <- 4
+gles$einkommen_num[gles$einkommen_cat == "4000 bis 4999"] <- 5
+gles$einkommen_num[gles$einkommen_cat == "5000 bis 7499"] <- 6
+gles$einkommen_num[gles$einkommen_cat == "7500 und mehr"] <- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == "Grossstadt"] <- "Großstadt"
+gles$wohnort[gles$q197 == "kleine oder mittelgrosse Stadt"] <- "Kleinstadt"
+gles$wohnort[gles$q197 == "laendliche Gegend oder Dorf"] <- "Land"
+gles$wohnort[gles$q197 == "Vorstadt/ Vorort einer Grossstadt"] <- "Vorstadt"
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe <- as.character(gles$q32)
+gles$LiRe[gles$LiRe == "1 links"] <- "1"
+gles$LiRe[gles$LiRe == "11 rechts"] <- "11"
+gles$LiRe <- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe >= 1 &
+                gles$LiRe <= 2] <- "links"
+gles$LiRe_cat[gles$LiRe >= 3 &
+                gles$LiRe <= 4] <- "moderat links"
+gles$LiRe_cat[gles$LiRe >= 5 &
+                gles$LiRe <= 7] <- "mittig"
+gles$LiRe_cat[gles$LiRe >= 8 &
+                gles$LiRe <= 9] <- "moderat rechts"
+gles$LiRe_cat[gles$LiRe >= 10 &
+                gles$LiRe <= 11] <- "rechts"
+
+gles$LiRe_cat <- factor(gles$LiRe_cat,
+                                levels = c("links",
+                                           "moderat links",
+                                           "mittig",
+                                           "moderat rechts",
+                                           "rechts"))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == "AfD"] <- 1
+gles$AfD.Wahl[gles$q19ba != "AfD"] <- 0
+```
+
+Wenn alles geklappt hat, sehen Sie rechts oben im Global Environment die beiden Datensätze gles mit 2112 Beobachtungen und 602 Variablen und lijphart mit 36 Beobachtungen und 74 Variablen.
+
+# 3. Theorie
+
+Die Regressionskoeffizienten $b_j$ geben den Effekt einer unabhängigen Variable auf die abhängige Variable an. Bei mehreren unabhängigen Variablen werden die Regressionskoeffizienten nach $b_0$ fortlaufend mit $b_1$, $b_2$ etc. indiziert. Die Regressionsgleichung lautet:
+
+$y_i=b_0+b_1 * x_{1i}+b_2*x_{2i}+b_j*x_{ji}+e_i$.
+
+Im konkreten Modell erklären wir die Links-Rechts-Selbsteinstufung der Befragten anhand ihres Alters, Geschlechts und Wohnorts. Die Gleichung lautet also:
+
+$LiRe_i=b_0+b_{alter_i} * x_{alter_i} + b_{geschlecht_i} * x_{geschlecht_i} + b_{wohnort_i} * x_{wohnort_i} + e_i$
+
+# 4. Durchführung und Visualisierung einer multiplen linearen Regression
+
+Wie in der vorherigen Sitzung zur bivariaten linearen Regression gezeigt, berechnen wir lineare Regressionen in `R` mit dem Befehl `lm()`. Allerdings fügen wir nun jeweils mit einem + zusätzliche Variablen hinzu. Dadurch wird nicht mehr bloß der Effekt des Alters auf die Links-Rechts-Selbsteinstufung geschätzt, sondern der Effekt von Alter, Geschlecht und Wohnort parallel. Mit dem Argument data = `gles` wählen wir den Datensatz aus. Der Befehl lautet also:
+
+```{r}
+lm(LiRe ~ alter + geschlecht + wohnort, data = gles)
+```
+
+Während sich bei der bivariaten linearen Regression insbesondere das Plotten der Regressionsgeraden eignet, haben wir diese Möglichkeit bei der multiplen linearen Regression nicht. Die visuelle Darstellung müsste bei drei unabhängigen Variablen und einer abhängigen Variable vierdimensional sein. Deshalb beschränken wir uns bei der Darstellung auf die Effekte. Einen detaillierteren Regressionsoutput erhalten wir, wenn wir den Output von `lm()` in einem Objekt speichern. Dafür geben wir dem Modell einen Namen, hier modell. Dieses lassen wir uns mit dem Befehl `summary()` ausgeben:
+
+```{r}
+modell <- lm(LiRe ~ alter + geschlecht + wohnort, data = gles)
+summary(modell)
+```
+
+Im Gegensatz zu der Standardausgabe mit `summary()` gibt uns der Befehl `stargazer()` eine geordnete Ausgabe mit der Zahl der Beobachtungen, statistischen Maßzahlen, Signifikanzniveaus usw. Wir fügen der Funktion `stargazer()` das Argument `type = "text"` hinzu, damit wir eine interpretierbare Ausgabe in der Konsole erhalten:
+
+```{r}
+#install.packages("stargazer")
+library(stargazer)
+stargazer(modell, type = "text")
+```
+
+Wollen wir diese Tabelle später in eine Datei kopieren, ändern wir im Code das Argument zu `type = „html“`. Dadurch wird eine Datei im Arbeitsverzeichnis abgelegt. Beim Anklicken dieser Datei öffnet sich eine Website, von der wir die Tabelle durch die Tastenkombination `Strg. + C` (Windows) bzw. `Cmd. + C (Mac)` kopieren und in unsere Datei einfügen können.
+
+Eine grafische Visualisierungsoption bietet das Paket `ggeffects`. Zunächst verwenden wir die Funktion `ggpredict()`, mit der wir die vorhergesagten Werte für die abhängige Variable `LiRe` für bestimmte Werte der unabhängigen Variablen berechnen.
+
+```{r}
+#install.packages("ggeffects")
+library(ggeffects)
+ggpredict(modell)
+```
+
+Im Output sehen wir die für `LiRe` vorhergesagten Werte, wenn alter bestimmte Werte annimmt. Wenn eine Person zehn Jahre ist, sagt das Modell also eine Position auf der subjektiven Links-Rechtsachse von 5.06 vorher. Für 60-jährige im Mittel eine Position von 5.58 usw. Darunter finden wir analog die Vorhersagen für die anderen unabhängigen Variablen.
+
+Diese Vorhersagewerte wollen wir nun visualisieren. Wir verwenden jeweils die base-Funktion `plot`, die wir auf den Output von `ggpredict()` anwenden. Je nach Klasse der Variablen erhalten wir unterschiedliche Plots: Für das Alter als kontinuierliche Variable erhalten wir eine Gerade, welche die Vorhersagewerte für `LiRe` über die Ausprägungen von alter darstellt. Für die kategorialen Variablen geschlecht und wohnort werden jeweils die Vorhersagewerte pro Kategorie geplottet. In beiden Fällen sind die Konfidenzintervalle abgebildet: Um die Gerade des Alters als grau hinterlegter Bereich, um die Vorhersagewerte des Geschlechts und des Wohnorts mit Markern. Für die kontinuierliche Variable alter wird der Effekt also durch die Steigung der Geraden abgebildet, für die kategorialen geschlecht und wohnort sind sie direkt anhand der Skala auf der Y-Achse abzulesen.
+
+```{r}
+plot(ggpredict(modell, terms = "alter"))
+```
+
+```{r}
+plot(ggpredict(modell, terms = "geschlecht"))
+```
+
+```{r}
+plot(ggpredict(modell, terms = "wohnort"))
+```
+
+# 5. Modellinterpretation
+
+Die Regressionskoeffizienten stehen in der ersten Spalte des erzeugten Outputs. In der zweiten Spalte sind Standardfehler der Regressionskoeffizienten, in der dritten t-Werte und in der vierten p-Werte mit “Signifikanz-Sternchen” (s. Legende darunter) abgetragen. Unten sehen wir Standardfehler des Modells und Freiheitsgrade sowie den multiplen Determinationskoeffizienten $r^2$ und das $adj. r^2$. Schließlich wird der F-Test für das Gesamtmodell mitsamt p-Wert berichtet.
+
+Das Modell mit den unabhängigen Variablen `alter`, `geschlecht` und `wohnort` kann die Varianz in der abhängigen Variable `LiRe` nur zu einem sehr geringen Anteil von etwas mehr als 3 % erklären ($r^2$ = 0.036 und $adj. r^2$. = 0.033). In einer Forschungsarbeit müssten wir prüfen, ob die Erklärungsleistung des Modells mithilfe zusätzlicher unabhängiger Variablen erhöht werden kann. Der p-Wert der **F-Statistik** zeigt allerdings, dass das Modell die abhängige Variable insgesamt signifikant besser erklärt als ein Modell ohne unabhängige Variablen. Die von uns berücksichtigten Variablen sind (mit Ausnahme von Wohnort Vorstadt) statistisch hoch signifikant, d.h. es ist sehr unwahrscheinlich, dass der festgestellte Koeffizient in der Grundgesamtheit gleich Null ist (das 99.9 %-Konfidenzintervall um den Koeffizienten beinhaltet die Null nicht). Für Wohnort Vorstadt beinhaltet zumindest das 90 %-Konfidenzintervall die Null nicht.
+
+Wenn wir die Regressionskoeffizienten in die allgemeine Gleichung eingesetzt werden, kann das Modell durch folgende Gleichung beschrieben werden:
+
+$LiRe_i=4.475+ 0.010 * x_{alter_i} -0.439 * x_{geschlecht_i} + 0.480 * x_{kleinstadt_i} + 0.560 * x_{land_i} + 0.340 * x_{vorstadt_i} + e_i$
+
+
+# 6. Statistische Tests
+
+Mithilfe des **F-Tests** kann überprüft werden, ob das Regressionsmodell in der Grundgesamtheit überhaupt eine Erklärungsleistung aufweist. `R` gibt den empirischen Wert der Teststatistik und die Freiheitsgrade automatisch an. Ist der empirische F-Wert größer als der Rückweisungswert für F, kann die $H_0$ verworfen werden, d.h. große F-Werte sprechen für die $H_1$.
+
+Schließlich kann mithilfe des **t-Tests** für die einzelnen Regressionskoeffizienten geprüft werden, ob sie in der Grundgesamtheit von 0 verschieden sind. `R` gibt die empirischen t-Werte der Teststatistik ebenfalls selbstständig an, sie stehen in der dritten Spalte (t-value). Fällt der t-Wert außerhalb des Annahmebereichs für die $H_0$, wird die $H_0$ zurückgewiesen, dass der Wert des Koeffizienten in der Grundgesamtheit gleich Null ist.
+
+# 7. Übungsaufgaben
+
+1.  Berechnen Sie ein multiples lineares Regressionsmodell, bei dem die unabhängigen Variablen Ein-kommen, Alter und Geschlecht auf die Links-Rechts-Selbsteinstufung (`q32`) regressieren. Beachten Sie, dass Sie die Variablen ggf. sinnvoll umkodieren müssen. Lassen Sie sich die Ergebnisse mithilfe des stargazer-Pakets ausgeben.
+2. Interpretieren Sie das in Aufgabe 1 berechnete Regressionmodell hinsichtlich der Erklärungskraft, Signifikanz und Effektrichtung. 

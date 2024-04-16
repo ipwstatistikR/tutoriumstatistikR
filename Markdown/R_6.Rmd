@@ -1,0 +1,255 @@
+---
+title: "Politikwissenschaftliche Statistik mit R. Sitzung 6: Bivariate Analyse"
+author:
+- name: Christoph Garwe, Philipp Meyer, Laura Brune, Timor Othersen und Christoph Hönnige
+  affiliation: Institut für Politikwissenschaft, Leibniz Universität Hannover
+github_repo: https://github.com/ipwstatistikR/tutoriumstatistikR.git
+date: ''
+output:
+  html_document:
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
+    theme: lumen
+editor_options:
+  chunk_output_type: console
+---
+
+```{=html}
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+```
+____
+<br />
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warnings = FALSE)
+```
+
+```{r include=FALSE}
+library(foreign)
+setwd("C:/Users/laura/OneDrive/Documents/Arbeit/r/Meine_Überarbeitungen")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+<br />
+
+# 1 Einleitung
+
+In der bivariaten Analyse wird der Zusammenhang zwischen zwei Variablen untersucht. Dieser kann symmetrisch oder asymmetrisch sein. In der heutigen Sitzung werden wir uns der symmetrischen Beziehung zwischen X und Y widmen, bei der keine Variable als Ursache angenommen wird. Die Analyse steht dabei unter der Frage, ob der empirisch zu beobachtende Zusammenhang zwischen zwei Variablen von der theoretisch zu erwartenden Verteilung bei Unabhängigkeit abweicht. Dabei stützt sich die bivariate Analyse auf statistische Maßzahlen oder Möglichkeiten der grafischen und tabellarischen Darstellung. In dieser Sitzung werden wir bivariate Zusammenhangsmaße für nominale und metrische Variablen in R berechnen.
+
+# 2. Datensätze laden und umkodieren
+
+```{r eval=FALSE}
+getwd()
+setwd("eigener Pfad")
+```
+
+```{r eval=FALSE}
+library(foreign)
+gles <- read.spss(file = "ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+```{r include=FALSE}
+library(foreign)
+setwd("C:/Users/laura/OneDrive/Documents/Arbeit/r/Meine_Überarbeitungen")
+getwd()
+gles <- read.spss("ZA6801_de_v4-0-1.sav", to.data.frame = TRUE)
+lijphart <- read.csv2("Lijphart_Data_recode.csv")
+```
+
+```{r}
+# GLES
+# Alter
+q2c_num <- as.numeric(as.character(gles$q2c))
+gles$alter <- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == "q1"] <- "geschlecht"
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == "unter 500 Euro" |
+                     gles$q192 == "500 bis unter 750 Euro" |
+                     gles$q192 == "750 bis unter 1000 Euro"] <- "weniger als 1000"
+gles$einkommen_cat[gles$q192 == "1000 bis unter 1250 Euro" |
+                     gles$q192 == "1250 bis unter 1500 Euro" |
+                     gles$q192 == "1500 bis unter 2000 Euro"] <- "1000 bis 1999"
+gles$einkommen_cat[gles$q192 == "2000 bis unter 2500 Euro" |
+                     gles$q192 == "2500 bis unter 3000 Euro"] <- "2000 bis 2999"
+gles$einkommen_cat[gles$q192 == "3000 bis unter 4000 Euro"] <- "3000 bis 3999"
+gles$einkommen_cat[gles$q192 == "4000 bis unter 5000 Euro"] <- "4000 bis 4999"
+gles$einkommen_cat[gles$q192 == "5000 bis unter 7500 Euro"] <- "5000 bis 7499"
+gles$einkommen_cat[gles$q192 == "7500 bis unter 10000 Euro" |
+                     gles$q192 == "10000 Euro und mehr"] <- "7500 und mehr"
+
+gles$einkommen_cat <- factor(gles$einkommen_cat,
+                                levels = c("weniger als 1000",
+                                           "1000 bis 1999",
+                                           "2000 bis 2999",
+                                           "3000 bis 3999",
+                                           "4000 bis 4999",
+                                           "5000 bis 7499",
+                                           "7500 und mehr"))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == "weniger als 1000"] <- 1
+gles$einkommen_num[gles$einkommen_cat == "1000 bis 1999"] <- 2
+gles$einkommen_num[gles$einkommen_cat == "2000 bis 2999"] <- 3
+gles$einkommen_num[gles$einkommen_cat == "3000 bis 3999"] <- 4
+gles$einkommen_num[gles$einkommen_cat == "4000 bis 4999"] <- 5
+gles$einkommen_num[gles$einkommen_cat == "5000 bis 7499"] <- 6
+gles$einkommen_num[gles$einkommen_cat == "7500 und mehr"] <- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == "Grossstadt"] <- "Großstadt"
+gles$wohnort[gles$q197 == "kleine oder mittelgrosse Stadt"] <- "Kleinstadt"
+gles$wohnort[gles$q197 == "laendliche Gegend oder Dorf"] <- "Land"
+gles$wohnort[gles$q197 == "Vorstadt/ Vorort einer Grossstadt"] <- "Vorstadt"
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe <- as.character(gles$q32)
+gles$LiRe[gles$LiRe == "1 links"] <- "1"
+gles$LiRe[gles$LiRe == "11 rechts"] <- "11"
+gles$LiRe <- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe >= 1 &
+                gles$LiRe <= 2] <- "links"
+gles$LiRe_cat[gles$LiRe >= 3 &
+                gles$LiRe <= 4] <- "moderat links"
+gles$LiRe_cat[gles$LiRe >= 5 &
+                gles$LiRe <= 7] <- "mittig"
+gles$LiRe_cat[gles$LiRe >= 8 &
+                gles$LiRe <= 9] <- "moderat rechts"
+gles$LiRe_cat[gles$LiRe >= 10 &
+                gles$LiRe <= 11] <- "rechts"
+
+gles$LiRe_cat <- factor(gles$LiRe_cat,
+                                levels = c("links",
+                                           "moderat links",
+                                           "mittig",
+                                           "moderat rechts",
+                                           "rechts"))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == "AfD"] <- 1
+gles$AfD.Wahl[gles$q19ba != "AfD"] <- 0
+```
+
+# 3 Nominales Skalenniveau
+
+## 3.1 Chi-Quadrat
+
+Für Zusammenhänge zwischen zwei nominalskalierten Variablen in größeren Kontingenztabellen berechnen wir $\chi^2$ und Cramer’s V. Der $\chi^2$-Unabhängigkeitstest vergleicht die empirisch beobachtete Häufigkeit $f_{ij}$ in Kontingenztabellen mit der zu erwartenden Häufigkeit $e_{ij}$ in Indifferenztabellen bei statistischer Unabhängigkeit und prüft, ob diese Häufigkeiten signifikant unterschiedlich sind:
+
+$\chi^2 = \sum_{j=1}^m \sum_{i=1}^k \frac{(f_{ij} - e_{ij})^2}{e_{ij}}$
+
+In `R` können wir $\chi^2$ mit der Funktion `chisq.test()` berechnen. Wir beginnen mit dem angenommenen Zusammenhang zwischen der Wahl der AfD und dem Wohnort der Befragten. Die Variablen `AfD.Wahl` und `wohnort` ordnen wir den Argumenten `x` und `y` zu. Beide Variablen sind nominalskaliert. Wir speichern den Output von `chisq.test()` in dem Objekt `test_wohnort`. Wenn wir nun `test_wohnort` abschicken, zeigt `R` den Output der Funktion `chisq.test()`.
+
+```{r}
+test_wohnort <- chisq.test(gles$AfD.Wahl, gles$wohnort)
+test_wohnort
+```
+
+Der p-Wert des $\chi^2$-Tests liegt nahe Null. Daher können wir mit großer Sicherheit die Annahme von Unabhängigkeit zwischen den beiden Variablen in der Grundgesamtheit zurückweisen. `R` hat den Wert anhand der Tabellen empirisch beobachteter und bei Unabhängigkeit zu erwartender Zellenhäufigkeiten berechnet. Das können wir nachvollziehen, indem wir uns beide Tabellen mit `test_wohnort$observed` für die beobachteten und `test_wohnort$expected` für die erwarteten Häufigkeiten ausgeben. Sie sind als Teil des Outputs von `chisq.test()` in dem Objekt `test_wohnort` gespeichert worden. Dabei steht die AfD-Wahl in den Zeilen und der Wohnort in den Spalten.
+
+```{r}
+test_wohnort$observed # beobachtete Häufigkeiten
+```
+
+```{r}
+test_wohnort$expected # bei Unabhängigkeit erwartete Häufigkeiten
+```
+
+Die Kreuztabelle der beobachteten Häufigkeiten lässt sich genauso mit `table()` erstellen. Bei unterstellten Zusammenhängen zwischen zwei Merkmalen ist es häufig sinnvoll, Kreuztabellen für einen ersten Eindruck mittels `table()` zu erstellen.
+
+```{r}
+table(gles$AfD.Wahl, gles$wohnort)
+```
+
+Als weiteres Beispiel berechnen wir $\chi^2$ für den Zusammenhang zwischen der berichteten AfD-Wahl und dem Geschlecht der Befragten.
+
+```{r}
+test_geschlecht <- chisq.test(gles$AfD.Wahl, gles$geschlecht)
+test_geschlecht
+```
+
+```{r}
+test_geschlecht$observed # beobachtete Häufigkeiten
+```
+
+```{r}
+test_geschlecht$expected # bei Unabhängigkeit erwartete Häufigkeiten
+```
+
+Auch in diesem Fall liegt der p-Wert nahe an Null, sodass von einem Zusammenhang zwischen den beiden Variablen in der Grundgesamtheit ausgegangen werden kann.
+
+## 3.2 Cramer's V
+
+Ein Nachteil von $\chi^2$ ist, dass es je nach Tabellenformat und Fallzahl unterschiedlich ausfällt, d.h. kein normierter Wertebereich vorliegt. Deshalb kann Cramer’s V als Standardisierung von $\chi^2$ auf den Wertebereich [0, 1] berechnet werden:
+
+$V = \sqrt{\frac{\chi^2}{n \cdot \min(m-1, k-1)}}$
+
+
+So können wir die Stärke von Zusammenhängen vergleichen. Weil die drei oben untersuchten Variablen dem gleichen Datensatz entstammen, ist die Fallzahl identisch. Da die AfD-Wahl zudem jeweils die Variable mit den wenigsten (nämlich zwei) Kategorien ist, dürfte die Normierung durch Cramer’s V keinen Effekt haben. Der höhere $\chi^2$-Wert für den Zusammenhang zwischen Geschlecht und AfD-Wahl im Vergleich zum Zusammenhang zwischen Wohnort und AfD-Wahl, sollte auch für Cramer’s V vorliegen.
+
+Wir verwenden die Funktion `cramerV()` aus dem Paket `rcompanion`, da base-R keine Funktion zur Berechnung von Cramer’s V bereitstellt. Entsprechend müssen wir `rcompanion` zunächst installieren und laden. Die Funktion `cramerV()` erwartet als Input eine Kreuztabelle der beobachteten Häufigkeiten. Wie oben gezeigt, können wir diese entweder händisch mittels table(`Variable1`, `Variable2`) erstellen, oder die durch `chisq.test()` erstellte Tabelle verwenden, die unter `test_wohnort$observed` gespeichert ist.
+
+```{r}
+#install.packages("rcompanion")
+library(rcompanion)
+cramerV(table(gles$AfD.Wahl, gles$wohnort)) # aufgrund händisch erstellter Kreuztabelle
+```
+
+```{r}
+cramerV(test_wohnort$observed) # aufgrund von chisq.test() erstellter Kreuztabelle
+```
+
+Den Zusammenhang zwischen dem Geschlecht und der AfD-Wahl prüfen wir hier ausschließlich anhand des Outputs von `chisq.test()`.
+
+```{r}
+cramerV(test_geschlecht$observed) # aufgrund von chisq.test() erstellter Kreuztabelle
+```
+
+Wie erwartet, zeigt auch Cramer’s V einen etwas stärkeren Zusammenhang zwischen dem Geschlecht und der AfD-Wahl, als zwischen dem Wohnort und der AfD-Wahl. Tatsächlich müssen allerdings beide Zusammenhänge als eher schwach bezeichnet werden. Starke Zusammenhänge treten in den Sozialwissenschaften aber auch eher selten auf.
+
+# 4 Metrisches Skalenniveau
+
+## 4.1 Kovarianz
+
+Den Zusammenhang zwischen zwei metrisch skalierten Variablen ermitteln wir mithilfe der Kovarianz und dem Korrelationskoeffizient r. Während das Alter klar metrisch ist, ist dies für die Links-Rechts-Selbsteinstufung mit zehn Stufen eine Annahme, die in der Forschungspraxis aber häufig getroffen wird.
+
+$cov(x;y)=\frac{1}{n}\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})$.
+
+In `R` bestimmen wir die Kovarianz mithilfe der Funktion `cov()`. Für das Alter und die Links-Rechts-Selbsteinstufung berechnen wir die Kovarianz wie folgt: Die Variablen `alter` und `LiRe` werden den Argumenten `x` und `y` zugewiesen. Da es sich um die ersten beiden Argumente der Funktion handelt, müssen wir diese nicht explizit nennen. Wir spezifizieren außerdem das Argument use mit `complete.obs`. Dadurch legen wir fest, dass Beobachtungen (Zeilen), bei denen für eine der beiden Variablen keine Information vorhanden ist (`NA`), bei der Berechnung nicht berücksichtigt werden.
+
+```{r}
+cov(gles$alter, gles$LiRe, use = "complete.obs")
+```
+
+Die Kovarianz für den Zusammenhang zwischen dem Alter der Befragten und der subjektiven Links-Rechts-Selbsteinstufung liegt bei rund 3.77. Damit liegt ein positiver Zusammenhang vor. Da die Höhe des Wertes von den Skalen der Variablen abhängt, kann die Stärke des Zusammenhangs nicht ohne Weiteres eingeschätzt werden.
+
+## 4.2 Korrelationskoeffizient r
+
+Allerdings können wir die Kovarianz auf den Wertebereich -1 bis 1 normieren, sodass wir ein Maß für die Stärke des Zusammenhangs erhalten. Das erreichen wir dadurch, dass wir die Kovarianz durch das Produkt der Standardabweichungen beider Variablen dividieren (Diaz-Bone 2019: 94), um den Korrelationskoeffizienten zu berechnen.
+
+$r=\frac{cov(x;y)}{s_x\cdot s_y}$
+
+Die Funktionen zur Berechnung von Kovarianz und Korrelation in `R` sind identisch aufgebaut (siehe die Hilfeseiten für die Kovarianz und die Korrelation durch die Befehle `?cov` oder `?cor`). Wir nennen wieder die Variablen `alter` und `LiRe` als die Argumente für `x` und `y` (erneut implizit) und legen use so fest, dass Zeilen, in denen eine der beiden Variablen ein `NA` aufweist, von der Berechnung ausgeschlossen werden.
+
+```{r}
+cor(gles$alter, gles$LiRe, use = "complete.obs")
+```
+
+Für den Zusammenhang zwischen Alter und Links-Rechts-Selbsteinstufung errechnen wir einen Korrelationskoeffizienten von rund 0.1. Damit liegt ein schwacher positiver Zusammenhang vor. Durch Berücksichtigung der Skalierung der Variablen können wir eine inhaltliche Interpretation ableiten. `LiRe` ist so kodiert, dass höhere Werte einer rechteren Selbsteinstufung entsprechen. Wir können also folgern, dass mit zunehmendem Alter der Befragten eine rechtere politische Position einhergeht.
+
+# 5 Übungsaufgaben
+
+1.  Finden Sie heraus, auf Grundlage welcher Variable wir die `AfD.Wahl` ursprünglich gebildet haben. Kodieren Sie diese Variable so um, dass sie die Wahlentscheidung der Befragten für die Parteien im Deutschen Bundestag enthält. Setzen Sie andere Antworten auf `NA`. Erstellen Sie eine Kreuztabelle für die Wahlentscheidung und den Wohnort der Befragten.
+2.  Berechnen und interpretieren Sie mithilfe von $\chi^2$ und Cramer’s V den Zusammenhang zwischen Wahlentscheidung und Wohnort. Lassen Sie sich auch die Tabellen der empirisch beobachteten und erwarteten Häufigkeiten ausgeben und vergleichen Sie diese.
