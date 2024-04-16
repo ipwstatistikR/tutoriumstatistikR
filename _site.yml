@@ -1,0 +1,31 @@
+name: "ipw-statistik"
+output_dir: "."
+navbar:
+  title: "Politikwissenschaftliche Statistik mit R"
+  left:
+    - text: "(0) Willkommen"
+      href: index.html
+    - text: "(1) Einführung und Grundlagen"
+      href: R_1.html
+    - text: "(2) Faktoren und Objekte"
+      href: R_2.html
+    - text: "(3) Datensätze einladen und Variablen umkodieren"
+      href: R_3.html
+    - text: "(4) Univariate Analyse"
+      href: R_4.html
+    - text: "(5) Visualisierung univariater Verteilungen"
+      href: R_5.html
+    - text: "(6) Bivariate Analyse"
+      href: R_6.html
+    - text: "(7) Bivariate lineare Regression und Visualisierung"
+      href: R_7.html
+    - text: "(8) Multiple lineare Regression und Visualisierung"
+      href: R_8.html
+    - text: "(9) Anwendungsvoraussetzungen der linearen Regression"
+      href: R_9.html
+    - text: "(10) Binominale logistische Regression und Visualisierung"
+      href: R_10.html
+    - text: "(11) Zähldaten"
+      href: R_11.html
+    - text: "(12) Dimensionsreduzierende Verfahren"
+      href: R_12.html

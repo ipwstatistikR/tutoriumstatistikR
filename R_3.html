@@ -1,0 +1,3625 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 3: Datensätze einladen und Variablen umkodieren</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/font-awesome-5.13.0/js/script.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 3: Datensätze einladen und Variablen umkodieren</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Bisher haben wir uns mit unterschiedlichen Objektklassen in
+<code>R</code> auseinandergesetzt. Nun möchten wir externe Datensätze
+einladen und aufbereiten. Dabei lernen wir zunächst die Datensätze
+kennen, mit denen wir im weiteren Kursverlauf arbeiten werden.
+Anschließend wollen wir die darin enthaltenen Variablen so anpassen,
+dass wir unsere Analysen durchführen können, d.h. die Variablen
+umkodieren. Dieser Prozess muss vor jeder Analyse durchgeführt werden.
+Damit Ihre Veränderungen am Datensatz für Sie und andere nachvollziehbar
+sind, ist es sinnvoll, die Kommentarfunktion zu nutzen. Wenn eine Zeile
+mit <code>#</code> beginnt, ignoriert <code>R</code> den Text in der
+entsprechenden Zeile. Mithilfe von Kommentaren können Sie Ihre
+Arbeitsschritte beschreiben und Ihre Analyse übersichtlicher
+gestalten.</p>
+</div>
+<div id="externe-datensätze-einladen" class="section level1">
+<h1>2. Externe Datensätze einladen</h1>
+<p>Bisher haben wir uns mit unterschiedlichen Objektklassen in
+<code>R</code> auseinandergesetzt. Nun möchten wir externe Datensätze
+einladen und aufbereiten. Dabei lernen wir zunächst die Datensätze
+kennen, mit denen wir im weiteren Kursverlauf arbeiten werden.
+Anschließend wollen wir die darin enthaltenen Variablen so anpassen,
+dass wir unsere Analysen durchführen können, d.h. die Variablen
+umkodieren. Dieser Prozess muss vor jeder Analyse durchgeführt werden.
+Damit Ihre Veränderungen am Datensatz für Sie und andere nachvollziehbar
+sind, ist es sinnvoll, die Kommentarfunktion zu nutzen. Wenn eine Zeile
+mit # beginnt, ignoriert <code>R</code> den Text in der entsprechenden
+Zeile. Mithilfe von Kommentaren können Sie Ihre Arbeitsschritte
+beschreiben und Ihre Analyse übersichtlicher gestalten.</p>
+<div id="gles-2017" class="section level2">
+<h2>2.1 GLES 2017</h2>
+<p>Besuchen Sie die Website des GESIS Leibniz Instituts für
+Sozialwissenschaften unter <a href="https://www.gesis.org/home"
+class="uri">https://www.gesis.org/home</a>. Die GESIS bietet einen
+großen Fundus an sozialwissenschaftlichen Daten. Hier finden Sie eine
+Reihe relevanter Forschungsdaten wie die Allgemeine Bevölkerungsumfrage
+der Sozialwissenschaften (ALLBUS) oder das Sozio-ökonomische Panel
+(SOEP). Suchen Sie in der Suchleiste nach dem “Nachwahl-Querschnitt
+(GLES 2017)”. Die German Longitudinal Election Study (GLES) ist ein
+Projekt der GESIS in Kooperation mit der Deutschen Gesellschaft für
+Wahlforschung (DGfW). Sie vereint Vor- und Nachwahlbefragungen einer
+repräsentativen Stichprobe der Wählerschaft bei Bundestagswahlen. Für
+den verwendeten Nachwahl-Querschnitt wurden die Befragten im Nachgang
+der Bundestagswahl 2017 zu politischen Themen, Einstellungen und
+Verhaltensweisen, Meinungsbildung im Wahlkampf sowie
+sozio-demografischen Merkmalen befragt. Damit ist es uns möglich,
+Einflussfaktoren der Wahl zu bestimmen.</p>
+<p>Laden Sie sich unter “Downloads” -&gt; “Datensätze” Version
+“ZA6801_de_v4-0-1.sav deutsch (Datensatz)” herunter. Dafür müssen Sie
+ein Konto bei der GESIS erstellen. Laden Sie sich unter “Fragebögen”
+außerdem den Fragebogen “ZA6801_fb.pdf deutsch” und unter “andere
+Dokumente” die Studienbeschreibung “ZA6801_sb.pdf” herunter und machen
+Sie sich mit beiden vertraut. Die Variablennamen sind technisch gehalten
+und wenig aussagekräftig, weshalb die Begleitdokumentation wesentlich
+ist, um zu verstehen, welche inhaltliche Bedeutung dahintersteckt. Legen
+Sie den Datensatz an einer geeigneten Stelle auf ihrem Computer ab. Am
+besten ist es, wenn Sie sich einen Ordner zu diesem Kurs anlegen, in dem
+Sie den Datensatz ablegen. Um den Datensatz in <code>R</code>
+einzuladen, müssen wir zunächst herausfinden, auf welchen Ordner
+<code>R</code> zugreift. Mit dem Befehl <code>getwd()</code> wird uns
+das derzeitige Arbeitsverzeichnis (,,wd“ steht für Working Directory)
+angezeigt.</p>
+<pre class="r"><code>getwd()</code></pre>
+<p>Nun zeigt <code>R</code> an, wo es Daten einliest und wo es sie
+speichert. Wir wollen nun erreichen, dass <code>R</code> auf den Ordner
+zugreift, in dem Sie Ihren Datensatz abgelegt haben. Dazu legen wir das
+Verzeichnis mit <code>setwd()</code> fest. Schreiben Sie dazu den Pfad
+zu dem Verzeichnis, in dem der Datensatz abgelegt ist, in
+Anführungszeichen in die Funktion und führen Sie diese aus. Bei Apple
+weist ein Dateipfad beispielsweise die folgende Struktur auf:
+“/Users/nutzer/documents/r_selbstlernkurs”. Bei Windows lautet der Pfad:
+“C:/Users/nutzer/r_selbstlernkurs”. Möchten Sie Ihr Arbeitsverzeichnis
+woanders anlegen bzw. anders benennen, müssen Sie den Pfad entsprechend
+anpassen. Nachfolgend müssen Sie also immer, wenn von “Eigener Pfad” die
+Rede ist, das von Ihnen gewählte Verzeichnis einsetzen. Wenn Sie Windows
+nutzen und Ihren Pfad kopieren, dann müssen Sie darauf achten, dass Sie
+die Schrägstriche anpassen. Das heißt, dass Sie <code>\</code> durch
+<code>/</code> austauschen müssen.</p>
+<pre class="r"><code>setwd(&quot;eigener Pfad&quot;)</code></pre>
+<p>Nun können wir den Datensatz von <code>R</code> aus ansteuern und
+laden. Dazu müssen wir <code>R</code> lediglich anhand des Dateipfades
+mitteilen, wo der Datensatz abgelegt ist. Der Datensatz liegt im
+Datenformat <code>.sav</code> vor, dem Format des Statistikprogramms
+SPSS. Deshalb benötigen wir eine spezielle Funktion, mit der wir den
+Datensatz laden können. Die Funktion, die wir zum Laden des Datensatzes
+verwenden, lautet <code>read.spss()</code> aus dem Paket
+<code>foreign</code>. Wir installieren und laden das Paket:</p>
+<pre class="r"><code>install.packages(&quot;foreign&quot;)</code></pre>
+<pre class="r"><code>library(foreign)</code></pre>
+<p>Nun können wir den Datensatz mit der Funktion
+<code>read.spss()</code> laden. Wir speichern den Datensatz in dem
+Objekt <code>gles</code>. Außerdem spezifizieren wir das Argument
+<code>to.data.frame = TRUE</code>, mit dem wir festlegen, dass der
+Datensatz in Form eines Dataframe gespeichert werden soll.</p>
+<pre class="r"><code>gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)</code></pre>
+<p>Beachten Sie: In dieser Form funktioniert der Code nur, da wir das
+Verzeichnis mittels <code>setwd()</code> so definiert haben, dass
+<code>R</code> im gewählten Arbeitsverzeichnis die Datei
+“ZA6801_de_v4-0-1.sav” findet. Hätten wir das Verzeichnis nicht
+festgelegt, müssten wir den gesamten Dateienpfad (inklusive der Datei)
+im Argument <code>file</code> nennen.</p>
+</div>
+<div id="patterns-of-democracy" class="section level2">
+<h2>2.2 Patterns of Democracy</h2>
+<p>Um den Datensatz zu “Patterns of Democracy” (Lijphart 2012) zu laden,
+gehen wir etwas anders vor. Diesen Datensatz können Sie per Mausklick
+über den Downloadbutton auf dieser Website herunterladen. Die Datei
+heißt “Lijphart_Data_recode.csv” und wird unter Downloads gespeichert.
+Achten Sie darauf, dass Sie die Datei in Ihr Arbeitsverzeichnis
+verschieben.</p>
+<a onclick="fetch(&#39;data:text/csv;base64,Q291bnRyeTtleGVfcGFydDQ1MTA7ZXhlX3BhcnQ4MTEwO2ZlZF91bml0NDUxMDtmZWRfdW5pdDgxMTA7ZW5wcDQ1MTA7ZW5wcDgxMTA7bWlud2luX29uZV9wYXJ0NDUxMDttaW53aW5fb25lX3BhcnQ4MTEwO2V4ZV9kb200NTEwO2V4ZV9kb204MTEwO2Rpc3Byb3A0NTEwO2Rpc3Byb3A4MTEwO2ludGVyX2dyX3BsdXJhbDQ1MTA7aW50ZXJfZ3JfcGx1cmFsODExMDtmZWRlcmFsNDUxMDtmZWRlcmFsODExMDtiaWNhbTQ1MTA7YmljYW04MTEwO2NvbnN0X3JpZ2lkNDUxMDtjb25zdF9yaWdpZDgxMTA7anVkaWNfcmV2NDUxMDtqdWRpY19yZXY4MTEwO2Nlbl9iYW5rX2luZGVwNDU5NDtjZW5fYmFua19pbmRlcDgxOTQ7Z292X2VmZmVjdGl2OTYwOTtyZWd1X3F1YWxpdHk5NjA5O3J1bGVfb2ZfbGF3OTYwOTtjdHJsX2NvcnJ1cHQ5NjA5O2NvcnJ1cHRfcGVyYzEwO2dkcF9ncm93dGg4MTA5O2dkcF9ncm93dGg5MTA5O2NvbnN1bV9wcmljZTgxMDk7Z2RwX2RlZmxhdDgxMDk7Y29uc3VtX3ByaWNlOTEwOTtnZHBfZGVmbGF0OTEwOTt1bmVtcGw4MTA5O3VuZW1wbDkxMDk7YnVkZ2V0X2JhbGFuYzAwMDg7YnVkZ2V0X2JhbGFuYzAzMDc7aGVyaV9mcmVlMDkxMDtmcmFzX2ZyZWUwODtwb2xfc3RhYjk2MDk7Y29uZmxfcmlzazkwMDQ7ZG9tZXNfY29uZmxpY3Rfd2VpZ2h0ODEwOTtkb21lc19jb25mbGljdF93ZWlnaHQ5MDA5O2RlYXRoc19kb21lc190ZXJyb3I4NTEwO3ZvaWNlX2FjY291bnQ5NjA5O2VpdV9kZW1vYzA2MTA7ZWxlY19wbHVyYWwwNjEwO2dvdl9mdW5jdDA2MTA7cG9sX3BhcnQwNjEwO3BvbF9jdWx0MDYxMDtjaXZfbGliMDYxMDt3b21lbl9wYXJsX3JlcDkwO3dvbWVuX3BhcmxfcmVwMTA7d29tZW5fY2FiX3JlcDk1O3dvbWVuX2NhYl9yZXAwODtnZW5kZXJfaW5lcTA4O1gxMF8xMF9yYXRpbzAwO1gyMF8yMF9yYXRpbzAwO2dpbmlfaW5lcTAwO3R1cm5vdXQ4MTEwO25vbl9tYW5kX3R1cm5vdXQ4MTEwO3NhdGlzX2RlbW9jOTU5NjtzYXRpc19kZW1vYzA1MDc7c29jX2V4cGVuZDA1O21hbmRfc29jX2V4cGVuZDA1O2VudmlyX3BlcmZvcm0xMDtpbmNhcmNlcmF0aW9uMTA7ZGVhdGhfcGVuMTA7Zm9yZWlnbl9haWQ5MDtmb3JlaWduX2FpZDA1O2FpZF92ZXJzX2RlZjA1CkFSRzstMC45MzstMS4wMTsxLjM4OzEuMzQ7My4xNTszLjE1OzgyLjQ7ODIuNDs4LjAwOzguMDA7MTcuOTg7MTcuOTg7Mi43MDsyLjcwOzQuNTs0LjU7NC4wOzQuMDs0LjA7NC4wOzIuNzsyLjc7MC4zOTswLjM5Oy0wLjA4Oy0wLjQyOy0wLjQ4Oy0wLjM4OzIuOTs7My4yMTA7OzsxNS44NDk7MTMuNzQ1OzsxMi41MzE7Ozs1MS43OzUuOTk7LTAuMDk7MTAuMjM7TkE7OTM0OzU7MC4yODs2LjcwOzguNzU7NS4yNDs1LjU2OzUuODQ7OC4xNDs2LjM7MzguNTswLjA7MjM7NTM0OzMxLjg7MTYuMzs1MS4zOzc4LjQzOzszNTs0NS4xOzs7NjEuMDsxNTE7MDs7O05BCkFVTDstMC43MzstMC42NTsxLjYzOzEuNTg7Mi4yMjsyLjE5OzgwLjc7ODYuNTs5LjEwOzcuMzc7OS40NDsxMC4wNzsyLjEyOzEuODg7NS4wOzUuMDs0LjA7NC4wOzQuMDs0LjA7My4wOzMuMDswLjQyOzAuNDI7MS43NjsxLjU2OzEuNzI7MS45MTs4Ljc7MS44ODA7MS45MDY7NC41MDc7NC42MDc7Mi42MDE7Mi43NzQ7Ny4zMzE7Ny4xNTU7MS4yOzEuMjs4Mi41OzcuOTA7MS4wMTsxMS4zNjs2MjszNDswOzEuNDI7OS4xMzsxMC4wMDs4LjkzOzcuNzg7OC45NjsxMC4wMDs2LjE7MjQuNzs1Ljk7MjQ7Mjk2OzEyLjU7Ny4wOzM1LjI7ODIuODc7O05BOzUxLjU7MTguNTsxOS41OzY1Ljc7MTMzOzA7MC4zNDswLjI1OzE0CkFVVDswLjQzOzAuNjQ7MS4wNzswLjk3OzIuNjg7My4yMzs0My4zOzQ3LjQ7OC4wNzs1LjkwOzIuNTE7Mi4wMjswLjM4OzAuMzg7NC41OzQuNTsyLjA7Mi4wOzMuMDszLjA7My4wOzMuMDswLjU1OzAuNTM7MS44MDsxLjUxOzEuODM7MS45NTs3Ljk7MS43MzI7MS42MTM7Mi42MjM7Mi4zODI7Mi4xNDU7MS42OTI7My45MTI7NC4wOTc7LTEuODstMi4yOzcxLjk7Ny42MTsxLjE1OzExLjc5OzEwMzsxMjU7MDsxLjM3OzguNTY7OS41ODs3Ljk4OzcuNzg7OC4zNDs5LjEyOzExLjU7MjcuOTsyMy41OzM4OzMwMDs2Ljk7NC40OzI5LjE7NzguMjM7NzguMjM7NjM7OzI0Ljk7MjUuNTs3OC4xOzEwMzswOzAuMTE7MC41Mjs1OApCQUg7LTEuNTA7LTEuMzM7LTAuMTU7LTAuMTg7MS42OTsxLjc0OzEwMC4wOzEwMC4wOzkuNDQ7Ny4zNzsxNi40ODsxNS45MDszLjAwOzMuMDA7MS4wOzEuMDsyLjA7Mi4wOzMuMDszLjA7Mi4wOzIuMDswLjQxOzAuNDE7MS4xNDsxLjAxOzEuMTY7MS4yODs7Ozs7Ozs7Ozs7LTEuODs2OC4wOzcuMjE7MC44OTsxMC44MzswOzA7MjsxLjA5Ozs7Ozs7OzQuMTsxMi4yOzI3LjM7ODtOQTs7Ozs2Ny4xNjs2Ny4xNjtOQTs7Ozs7Mzc2OzI7OztOQQpCQVI7LTEuMjg7LTEuMjA7LTAuNDk7LTAuNTM7MS42ODsxLjYyOzEwMC4wOzEwMC4wOzguODc7Ny4zNzsxNy4yNzsxOC43MjsyLjIwOzIuMDA7MS4wOzEuMDsyLjA7Mi4wOzIuMDsyLjA7Mi4wOzIuMDswLjM4OzAuMzg7MS4zNjswLjk4OzEuMTI7MS4zMjs3Ljg7Ozs7Ozs7Ozs7OzY4LjU7Ni4zNTsxLjA1OzsxNzsyNTsyOzEuMjE7Ozs7Ozs7My43OzEwLjA7MjcuMzsyODs0NDg7Ozs7NzEuMzU7NzEuMzU7TkE7Ozs7OzMyNjsyOzs7TkEKQkVMOzEuMTQ7MS4xMDswLjEwOzAuNDQ7NC43Mjs2LjEzOzM3LjM7MzYuMzsyLjU3OzQuMjE7My4zNTszLjc1OzEuMTU7MS4zMzszLjU7NC4yOzIuODsyLjU7My4wOzMuMDsxLjg7Mi43OzAuMjc7MC4zMDsxLjY4OzEuMjQ7MS4zMTsxLjM3OzcuMTsxLjU1MjsxLjM3MTsyLjkzMDsyLjc1NjsyLjA2MjsxLjk2MTs4Ljc0NDs4LjA1NDstMC41Oy0wLjc7NzAuMjs3LjIyOzAuOTI7MTEuNTk7MTkyOzE2OTswOzEuMzk7OC4xMjs5LjU4OzguMjE7Ni4xMTs3LjI5OzkuNDE7OC41OzM5LjM7MTEuODsyMzsyMzY7OC4yOzQuOTszMy4wOzg2LjMyOzs1NDs7MjYuMjsyNi4yOzU4LjE7OTc7MDswLjQ2OzAuNTM7NDgKQk9UOy0xLjQzOy0xLjYyOy0wLjQ4Oy0wLjUyOzEuMzg7MS40MzsxMDAuMDsxMDAuMDs5LjkwOzkuOTA7MTQuNjE7MTguNDg7Mi42MDsyLjYwOzEuMDsxLjA7Mi41OzIuNTsyLjA7Mi4wOzIuMDsyLjA7MC4zMzswLjMzOzAuNjI7MC42NzswLjYxOzAuODU7NS44OzQuNDg2OzIuOTA3OzkuOTg5OzkuOTIyOzkuNjc2OzguODI0Ozs7Ozs2OC44OzcuMDk7MC44ODsxMS4xNTsxOTsyMjszOzAuNjI7Ny41Nzs5LjE3OzcuNTA7NS4xOTs2LjY3OzkuMzE7NS4wOzcuOTs3Ljc7Mjg7NjYzOzQzLjA7MjAuNDs2MC41OzQ2LjU0OzQ2LjU0O05BOzs7OzQxLjM7MjY3OzI7OztOQQpDQU47LTEuMDA7LTEuMDM7MS43MzsxLjgxOzIuNTI7Mi42Njs4OC40Ozg5Ljk7OC4xMDs3LjM3OzExLjU2OzEzLjE0OzMuMjU7My4xNzs1LjA7NS4wOzMuMDszLjA7NC4wOzQuMDszLjQ7My45OzAuNTI7MC41MjsxLjg2OzEuNTA7MS43MDsxLjk5OzguOTsxLjQzMDsxLjM0NDszLjM4MjszLjAzODsyLjAyMDsxLjk1Njs4LjY4Nzs4LjI4MDsxLjQ7MS40OzgwLjg7Ny45NTsxLjA0OzExLjU2OzE1NTsxNjk7MjsxLjUwOzkuMDc7OS4zMTs5LjUyOzcuNzg7OC43NTsxMC4wMDsxMy4zOzIyLjE7MTcuNDsxNjsyODk7OS40OzUuNTszMi42OzU5Ljg4OzU5Ljg4O05BOzQ1Ljg7MTguNzsxOC43OzY2LjQ7MTE3OzA7MC40NDswLjM0OzMxCkNSOy0wLjM3Oy0wLjM4Oy0wLjI4Oy0wLjEyOzIuNjc7Mi44MTs4NS44Ozg1LjI7My4wMDszLjAwOzE0LjM4OzE0Ljc3OzIuMjA7Mi4yMDsxLjA7MS4wOzEuMDsxLjA7My4wOzMuMDsyLjc7My40OzAuMzc7MC4zNzswLjM2OzAuNTU7MC41NjswLjYxOzUuMzsxLjY2NzsyLjYxNTsxOC4yODk7MTkuMjI5OzEzLjYwNjsxMy4xNDE7NS44ODA7NS41MzQ7Ozs2Ny4zOzcuNDU7MC43ODs5LjgzOzE5MjsyNjY7MTsxLjAwOzguMDQ7OS41ODs4LjIxOzYuMTE7Ni44ODs5LjQxOzEwLjU7MzguNjsxMi4wOzI5OzUwMTsyOC44OzE0LjI7NDkuODs3NC41Njs3NC41NjtOQTs7Ozs4Ni40OzIyODswOzs7TkEKREVOOzEuMzE7MS4zNTstMC4zNDstMC40Mjs0LjU3OzQuOTU7MjMuNjs1Ljc7My4yMzszLjY5OzEuNzE7MS42MDswLjc4OzAuODg7Mi4wOzIuMDsxLjI7MS4wOzIuMDsyLjA7Mi4wOzIuMDswLjQ2OzAuNDY7Mi4xMDsxLjY5OzEuODY7Mi4zMjs5LjM7MS41NDk7MS4yNzk7My40MTQ7My4yNzE7Mi4wODE7MS45NzE7Ni40MzY7NS45MDg7Mi43OzMuNTs3OC42OzcuNjk7MS4xNTsxMS42MTs5MDs4NDswOzEuNTk7OS41MjsxMC4wMDs5LjY0OzguODk7OS4zODs5LjcxOzMwLjc7MzguMDszNS4wOzM3OzIwOTs4LjE7NC4zOzI0Ljc7ODMuNTE7ODMuNTE7ODM7OzI0LjE7MjQuMjs2OS4yOzcxOzA7MC45NDswLjgxOzQ1CkZJTjsxLjU4OzEuNDg7LTAuODM7LTAuODM7NS4wNDs1LjA1OzEwLjA7MS40OzEuNTU7Mi42ODsyLjk2OzMuMzQ7MC44NTswLjY3OzIuMDsyLjA7MS4wOzEuMDszLjA7My4wOzEuMDsxLjA7MC4yODswLjI4OzIuMDc7MS42NjsxLjg5OzIuMzM7OS4yOzEuOTUxOzEuNTkwOzMuNDY2OzMuNDk5OzEuNzI4OzEuNTg4OzguNDM2OzEwLjgzOTs0LjU7My44Ozc0LjA7Ny41NTsxLjQxOzExLjg2OzQ7NjswOzEuNTc7OS4yMzsxMC4wMDs5Ljg4OzcuNTk7OC45Njs5LjcxOzMxLjU7NDAuMDszOC45OzU4OzI0ODs1LjY7My44OzI2Ljk7NzIuMTE7NzIuMTE7NTI7NTYuMDsyMy41OzIzLjU7NzQuNzs2MDswOzAuNjU7MC40NjszMwpGUkE7LTAuODY7LTAuODk7LTAuMjI7MC4wMjszLjI2OzIuOTQ7NTQuODs1MC44OzguMDA7OC4wMDsyMC44ODsxOS41NjsyLjkwOzIuNzU7MS4zOzEuNTszLjA7My4wOzEuNzsyLjA7Mi40OzMuMDswLjM1OzAuMzU7MS41OTsxLjEyOzEuNDA7MS4zOTs2Ljg7MS4zMjU7MS4wNDg7My4zMjY7My4yNTk7MS43MjU7MS42Njg7OS44MjQ7MTAuMDgxOy0yLjc7LTMuMDs2NC42OzcuMzI7MC42NjsxMC41Mjs3MTM7NzM0OzQ7MS4yMjs3Ljk3OzkuNTg7Ny4zODs2LjQ4OzcuNTA7OC45Mjs2Ljk7MTguOTsxNC4zOzQ3OzI2MDs5LjE7NS42OzMyLjc7NjYuMDg7NjYuMDg7NDc7MzYuMTszMC40OzMwLjc7NzguMjs5NjswOzAuNjA7MC40NzsxOQpHRVI7MC43ODswLjYzOzIuNDE7Mi4zMzszLjA5OzMuMzA7MzcuODs0My40OzMuODA7NC45MjsyLjY3OzIuNTU7MC44ODswLjg4OzUuMDs1LjA7NC4wOzQuMDszLjU7My41OzQuMDs0LjA7MC42OTswLjY5OzEuNjU7MS40NTsxLjYyOzEuODY7Ny45OzEuNTU5OzEuMjI3OzsxLjg5ODsxLjkzMDsxLjQyNzs7OC41MjE7LTEuMjstMS43OzcxLjg7Ny40NjswLjk4OzExLjUxOzYwNTszNDc7MDsxLjQwOzguNjc7OS41ODs4LjMzOzcuNTk7OC41NDs5LjMxOzIwLjU7MzIuODsxNS44OzMzOzI0MDs2Ljk7NC4zOzI4LjM7NzQuNjA7NzQuNjA7Njc7MzcuMzsyOC4xOzI4Ljg7NzMuMjs4NTswOzAuNDI7MC4zNjsyNgpHUkU7LTAuNjQ7LTAuNTU7LTAuNzQ7LTAuNzc7Mi4yNzsyLjMyOzk4LjE7OTcuNzs0LjQ1OzMuNjk7Ny44ODs2LjY0OzMuMTI7My4xMjsxLjA7MS4wOzEuMDsxLjA7Mi4wOzIuMDsyLjA7Mi4wOzAuMzg7MC4zODswLjc5OzAuODY7MC44NDswLjUxOzMuNTsxLjUyNTsyLjIyOTsxMC43ODU7MTEuMDA5OzYuNDM5OzYuNDY3OzguNjM2OzkuNDc1Oy01Ljk7LTYuMjs2MC4zOzYuOTU7MC41Mzs5Ljg5OzQ3MDs0NzU7MTswLjk4OzguMDY7OS41ODs3LjE0OzYuNjc7Ny41MDs5LjQxOzYuNzsxNy4zOzAuMDsxMjszMTc7MTAuMjs2LjI7MzQuMzs4NS40Mzs4NS40MzsyODs7Ozs2MC45OzEwMjswOzswLjE3OzQKSUNFOzAuNTM7MC41NTstMS4wMDstMS4wOTszLjcyOzQuMDE7NDYuMzs0Ny44OzMuMjA7My4yODszLjg1OzIuNDg7Mi4yMDsyLjE3OzEuMDsxLjA7MS40OzEuMjsxLjA7MS4wOzIuMDsyLjA7MC4zNDswLjM0OzEuODY7MS4zMjsxLjgxOzIuMTM7OC41Ozs7Ozs7Ozs7MC4zOzIuOTs2OC4yOzcuMjY7MS4zNjsxMS45Mjs5OzA7MDsxLjUwOzkuNjc7MTAuMDA7OS42NDs4Ljg5OzEwLjAwOzkuODE7MjAuNjs0Mi45OzEwLjA7MzY7Mjc5Ozs7Ozg4LjE0Ozg4LjE0O05BOzsxOC4xOzE5LjM7OTMuNTs2MDswOzs7TkEKSU5EOzAuNjU7MC42MzsxLjE0OzEuMDg7NC44MDs1LjI1OzMwLjU7MzIuMDszLjMzOzMuNjk7OS42MDs4LjUxOzIuMTU7Mi4xNTs0LjU7NC41OzMuMDszLjA7My4wOzMuMDs0LjA7NC4wOzAuMzQ7MC4zNDstMC4wNTstMC4yNDswLjE2Oy0wLjM2OzMuMzs0LjI3NDs0Ljc1OTs3Ljk2OTs3LjQ3Mjs3LjQ2Mzs2Ljg3Mjs7Oy0zLjQ7LTIuNTs1NC42OzYuNTE7LTAuOTg7Ny40NDs0OTIwOzM1NzI7NDA3OzAuMzc7Ny41OTs5LjU4OzguMzM7NS4xOTs1LjQyOzkuNDE7NS4wOzEwLjg7NC44OzEwOzc0ODs4LjY7NS42OzM2Ljg7NjIuNDc7NjIuNDc7TkE7NDIuMzs7OzQ4LjM7MzI7Mjs7O05BCklSRTswLjE3OzAuMzg7LTAuNDI7LTAuNDY7Mi44OTsyLjk1OzQ5LjU7MzEuMDs0LjE2OzIuOTU7My45Mzs0LjE3OzIuNTU7Mi40MjsxLjA7MS4wOzIuMDsyLjA7Mi4wOzIuMDsyLjA7Mi4wOzAuNDE7MC40MTsxLjYyOzEuNjU7MS42MDsxLjU3OzguMDszLjc0NDszLjk1Mjs0LjQ3Nzs0LjM2MzsyLjcwNDsyLjg4NjsxMC44Njc7OC40NTU7MC42OzEuMTs3OC43OzcuNzQ7MS4xOTsxMS40Mzs5MTs4ODswOzEuMzg7OC45NDs5LjU4OzguNTc7Ny43ODs4Ljc1OzEwLjAwOzcuODsxMy45OzIwLjA7MjE7MzQ0OzkuNDs1LjY7MzQuMzs3Mi41Njs3Mi41Njs3MDs7MTcuMjsxNy4yOzY3LjE7OTk7MDswLjE2OzAuNDI7NzAKSVNSOzEuNTM7MS4zODstMC45MDstMC44MTs1LjE4OzUuNjU7MTQuMDsxOC42OzEuNDY7MS4xMzsyLjYwOzMuNzY7MS4xNTsxLjUwOzMuMDszLjA7MS4wOzEuMDsxLjA7MS4wOzEuMDsxLjA7MC40MTswLjQ2OzEuMDg7MS4wMjswLjk1OzEuMDU7Ni4xOzEuODU5OzEuOTExOzQ0Ljc2Mzs0NC42OTQ7Ni4wNjY7Ni40NjM7Ny45Nzk7OC43NDY7LTIuNzstMi42OzY4LjU7Ni42NzstMS4wNzs2LjU4OzIzNzk7MjEzNzswOzAuNjY7Ny40MTs4Ljg5OzcuMjE7OC4xNTs3LjUwOzUuMjk7Ni43OzE5LjI7MTAuMDsxMjszMzI7MTMuNDs3Ljk7MzkuMjs3OC45Mzs3OC45MztOQTs7Ozs2Mi40OzMyNTsxOzs7TkEKSVRBOzEuMTI7MS4xMzstMC4zOTstMC4xNjs0Ljg0OzUuMzY7MTEuNzs4LjM7MS40OTsyLjAxOzMuNjE7NC44MjsyLjQyOzIuMDg7MS4zOzEuNTszLjA7My4wOzIuMDsyLjA7Mi4xOzIuNTswLjI4OzAuMzM7MC43MjswLjkxOzAuNjM7MC40ODszLjk7MS4yMTM7NjA4OzUuMzM0OzUuNzc2OzMuMDI0OzMuMjMyOzkuNjM4OzkuNTYwOy0yLjM7LTIuNjs2MC4zOzYuOTA7MC42NzsxMC44ODs2OTI7NDk0OzA7MS4wMjs3Ljg1OzkuNDQ7Ni41NTs2LjMwOzguMTM7OC44MjsxMi45OzIxLjM7NC44OzI0OzI1MTsxMS42OzYuNTszNi4wOzg3Ljg2Ozg3Ljg2OzE5OzI0LjU7MjQuODsyNi4xOzczLjE7MTEzOzA7MC4zMTswLjI5OzE1CkpBTTstMS40OTstMS41NjstMC40MDstMC40MzsxLjY3OzEuNjU7MTAwLjA7MTAwLjA7OS42NDs5LjgzOzE1LjY2OzE1LjQxOzMuMDA7My4wMDsxLjA7MS4wOzIuMDsyLjA7My4wOzMuMDsyLjA7Mi4wOzAuMzA7MC4zMDswLjEyOzAuMzA7LTAuNDQ7LTAuMzY7My4zOzEuMTA0Ozg1ODsxNy44NTE7MTguOTE2OzE5LjMxNzsxOS4xMjE7MTYuODA2OzEzLjgxNjs7LTIuNDs2NS43OzcuMTk7LTAuMjM7OS4yNzsyNTA7MzI1OzI7MC41OTs3LjI1OzkuMTc7Ni45MTs1LjAwOzYuMjU7OC45Mjs1LjA7MTMuMzsxMy4zOzExOzYzODsxNy4zOzkuODs0NS41OzUwLjU3OzUwLjU3O05BOzs7OzU4LjA7MTc0OzI7OztOQQpKUE47MC42MDswLjcxOzAuMTc7MC4xNTszLjYyOzMuNjY7NDAuMTsxNC4xOzMuMzc7Mi40Njs3LjAwOzEwLjUwOzEuNDg7MS4zODsyLjA7Mi4wOzMuMDszLjA7NC4wOzQuMDsyLjA7Mi4wOzAuMjU7MC4yNTsxLjIyOzAuOTU7MS4zMTsxLjE4OzcuODsxLjg1NDs2OTQ7OTMzOzIwNTszNDE7LTQ3MjszLjQ0NDszLjkzNzs7OzcyLjg7Ny40NjsxLjAxOzExLjcxOzE5NjsyMDk7MjE7MC45Njs4LjE2OzkuMDM7OC4wOTs1LjkzOzguMzM7OS40MTsxLjQ7MTEuMzswLjA7MTI7MjczOzQuNTszLjQ7MjQuOTs2My4zMDs2My4zMDtOQTszNy4wOzE5Ljg7MjAuMzs3Mi41OzU5OzI7MC4zMTswLjI4OzI4CktPUjstMS4yMjstMS4yOTstMC4wNzstMC4xMDsyLjg1OzIuODU7ODYuMDs4Ni4wOzguMDA7OC4wMDsyMS45NzsyMS45NzsyLjkwOzIuOTA7MS41OzEuNTsxLjA7MS4wOzQuMDs0LjA7My4wOzMuMDswLjI3OzAuMjc7MC45NDswLjcxOzAuODg7MC40NTs1LjQ7OzQuNDAxOzs7NC4yMDk7NC4zNjI7OzMuNDk4OzIuMDsxLjI7NjkuODs3LjI4OzAuMjM7MTAuNDY7TkE7NjcyOzU7MC42Njs4LjAwOzkuNDQ7Ny41MDs3LjIyOzcuNTA7OC4zMzsyLjA7MTQuNzs0LjI7NTszMTA7Ny44OzQuNzszMS42OzcwLjM2OzcwLjM2O05BOzI5LjU7OC4wOzguNjs1Ny4wOzk4OzE7OztOQQpMVVg7MC42MTswLjM4Oy0wLjg4Oy0wLjg5OzMuNDg7My43ODs0NS40OzUwLjA7NS44Nzs3LjM3OzMuNDM7NC4xNDswLjg4OzAuODg7MS4wOzEuMDsxLjA7MS4wOzMuMDszLjA7MS4wOzEuMDswLjMzOzAuMzM7MS44NTsxLjY4OzEuNzk7MS45MDs4LjU7Ozs7Ozs7OzsyLjI7MC44Ozc2LjI7Ny42MDsxLjQyOzEyLjAwOzk7MDswOzEuNDk7OS4wMzsxMC4wMDs5LjI5OzcuNDE7OC43NTs5LjcxOzEzLjM7MjAuMDsyNy4zOzE0OzMxODs7Ozs4OC41NDs7Nzc7OzIyLjA7MjIuMTs2Ny44OzEzOTswOzAuMjE7MC44MjtOQQpNQUw7LTAuODM7LTAuNzU7LTAuMzM7LTAuMzY7MS45OTsyLjAwOzEwMC4wOzEwMC4wOzguODU7Ny4zNzsyLjA3OzEuNjU7My4wMDszLjAwOzEuMDsxLjA7MS4wOzEuMDszLjA7My4wOzIuMDsyLjA7MC40NDswLjQ0OzAuOTM7MS4xMDsxLjM1OzAuODQ7NS42Ozs7Ozs7Ozs7Oy00LjU7NjUuNzs3LjM0OzEuMzA7MTEuMDg7NjM7MDsyOzEuMjQ7OC4zNTs5LjE3OzguMjE7NS45Mzs4Ljc1OzkuNzE7Mi45OzguNzswLjA7MTU7Mzk1Ozs7Ozk0Ljk1Ozk0Ljk1O05BOzs7Ozc2LjM7MTQwOzA7OztOQQpNQVU7MC40MjswLjQyOy0wLjEzOy0wLjE3OzIuODU7Mi45MDsxNS4zOzEwLjY7Mi4zOTsyLjExOzE1LjYxOzE2LjU3OzEuMzA7MS4zMDsxLjA7MS4wOzEuMDsxLjA7My4wOzMuMDszLjA7My4wOzAuNDA7MC40MDswLjYwOzAuNTU7MC45NTswLjUyOzUuNDs0LjAzMjszLjQ3MDs3LjA3OTs3LjI4MTs2LjQzNTs2LjAxNzs7Ny40NjE7Ozs3Ni4yOzcuODI7MC44Nzs7MTM7NjswOzAuODg7OC4wNDs5LjE3OzguMjE7NS4wMDs4LjEzOzkuNzE7Ny4xOzE4Ljg7NC4wOzEwOzQ2Njs7Ozs4Mi4wNDs4Mi4wNDtOQTs7Ozs4MC42OzE2NjswOzs7TkEKTkVUOzEuMzQ7MS4xNzswLjMwOzAuMjg7NC44Nzs0Ljg2OzI2Ljg7MzkuNzsyLjkxOzIuNjg7MS4yMTsxLjA4OzAuOTg7MS4wMDszLjA7My4wOzMuMDszLjA7My4wOzMuMDsxLjA7MS4wOzAuNDg7MC40ODsxLjg5OzEuNzE7MS43MjsyLjA4OzguODsxLjcyMjsxLjc0MzsyLjM5ODsyLjEyNDsyLjI3NjsyLjI2OTs7NC41Nzk7LTAuMzstMC43Ozc0Ljc7Ny41MzsxLjEwOzExLjc0OzExMjs1MzswOzEuNTc7OS4zOTs5LjU4OzkuMDU7OS4yNjs5LjM4OzkuNzE7MjEuMzs0MC43OzI4LjY7MzM7MTc0OzkuMjs1LjE7MzAuOTs3OC4zMjs3OC4zMjs3MTszMC4xOzE5LjM7MTkuNzs2Ni40Ozk0OzA7MC45MjswLjgyOzU1Ck5PUjswLjgwOzEuMDk7LTAuNjY7LTAuNjc7My42NDs0LjExOzU1LjM7MzYuNjs0LjA0OzIuOTU7NC41MzszLjc5OzAuMzg7MC4zODsyLjA7Mi4wOzEuNTsxLjU7My4wOzMuMDsyLjA7Mi4wOzAuMTc7MC4xNzsxLjkyOzEuMzA7MS44ODsyLjA0OzguNjsyLjEzMzsyLjExNjs0LjA2Mjs0LjUyOTsyLjE2NzszLjYyMDszLjc3ODs0LjEzMTsxNC42OzE0LjQ7NzAuMzs3LjQwOzEuMjU7MTEuODg7MzA7MzE7MDsxLjU3OzkuNjg7MTAuMDA7OS42NDsxMC4wMDs4Ljc1OzEwLjAwOzM1Ljg7MzkuNjs0Mi4xOzU2OzIzNDs2LjE7My45OzI1Ljg7NzkuNjk7NzkuNjk7ODI7NzQuMTsxOS45OzIwLjc7ODEuMTs3MTswOzEuMTc7MC45NDs1NQpOWjstMC40NzstMC4xNzstMS42NzstMS42NTsyLjI4OzIuNjY7ODEuNDs2MC4wOzQuNTQ7My4yODs5LjI1OzkuMTE7Mi42ODsyLjcxOzEuMDsxLjA7MS4xOzEuMDsxLjA7MS4wOzEuMDsxLjA7MC4yMTswLjI0OzEuNzk7MS42OTsxLjgyOzIuMjY7OS4zOzEuMjg3OzEuNDQ5OzUuMTY4OzQuOTcxOzIuMjIzOzIuMzA0Ozs2LjM2Nzs7My43OzgyLjM7OC4yNzsxLjE5OzExLjgyOzI5OzM4OzA7MS41ODs5LjE1OzEwLjAwOzguOTM7OC43MDs4LjEzOzEwLjAwOzE0LjQ7MzMuNjs4Ljc7MzI7MzIwOzEyLjU7Ni44OzM2LjI7ODAuNDY7ODAuNDY7TkE7OzE4LjQ7MTguNDs3My40OzIwMzswOzAuMjM7MC4yNzsyNwpQT1I7MC4yMjswLjA0Oy0wLjYxOy0wLjYzOzMuMTM7Mi44NTs1My40OzU1LjQ7My4yNjszLjY5OzQuNDM7NC44NTsyLjYyOzIuNjI7MS4wOzEuMDsxLjA7MS4wOzMuMDszLjA7Mi4wOzIuMDswLjMyOzAuMzI7MS4xMTsxLjEzOzEuMTY7MS4yMjs2LjA7Mi4wNDc7MS40NTk7OC40NTM7OC43NTM7My43OTI7NC4xNjY7Ni40NTM7Ni4xOTc7LTMuMzstMy42OzY0LjA7Ny4xMDsxLjAxOzExLjE2OzczOzIyOzA7MS4zMjs4LjA4OzkuNTg7Ny45Nzs1LjkzOzcuNTA7OS40MTs3LjY7MjcuNDsxMi41OzEzOzMxMDsxNS4wOzguMDszOC41Ozc0LjkwOzc0LjkwOzQwOzsyMy45OzI0LjM7NzMuMDsxMTI7MDswLjI0OzAuMjE7OQpTUEE7LTAuNjI7LTAuNjM7MC40NzswLjQyOzIuNjY7Mi42MTs2OS4zOzcxLjY7OC4yNjs3LjM3OzcuMjg7Ni41MzszLjA0OzMuMDQ7My4wOzMuMDszLjA7My4wOzMuMDszLjA7My4wOzMuMDswLjI5OzAuMjk7MS40MDsxLjIyOzEuMjA7MS4yMzs2LjE7MS45ODk7MS42ODg7NS40NzA7NS43NTA7My40MjI7My44MTU7MTYuMjkwOzE1LjQzMjswLjU7MS4yOzcwLjI7Ny4yNjswLjI3OzguODA7MTY3MjsxNTAzOzEzOzEuMTk7OC4zMjs5LjU4OzcuOTg7Ni4zMDs4LjMzOzkuNDE7MTQuNjszNi42OzE4Ljg7NDQ7MjgwOzEwLjM7Ni4wOzM0Ljc7NzcuMjE7NzcuMjE7NDE7NDguMTsyMS4yOzIxLjI7NzAuNjsxNTk7MDswLjIwOzAuMjc7MjUKU1dFOzAuNzk7MC44NzstMS4wMzstMS4wOTszLjQ3OzMuODI7NDguMTs0Mi42OzUuNjE7NC45MjsyLjA0OzEuOTU7MC4zNTswLjQyOzIuMDsyLjA7MS43OzEuMDsxLjU7Mi4wOzEuMDsxLjA7MC4yOTswLjI5OzEuOTY7MS41MDsxLjgxOzIuMTc7OS4yOzEuNjQwOzEuNDkzOzMuOTE1OzQuMDYxOzEuOTY4OzIuMTgyOzUuNjE4OzcuMTQ1Ozs7NzEuOTs3LjI4OzEuMjU7MTEuMzg7NTg7NTA7MDsxLjU1OzkuNzU7OS44Njs5Ljg4OzkuNjM7OS4zODsxMC4wMDszOC40OzQ1LjA7NDcuNjs0ODsyMTI7Ni4yOzQuMDsyNS4wOzgyLjM4OzgyLjM4OzU1OzYxLjU7MjcuMzsyNy41Ozg2LjA7Nzg7MDswLjkxOzAuOTQ7NjMKU1dJOzEuNzI7MS42NzsxLjQ2OzEuNTk7NS4yMDs1LjUwOzQuMDsxLjc7MS4wMDsxLjAwOzIuNTU7My4wODswLjg4OzAuODg7NS4wOzUuMDs0LjA7NC4wOzQuMDs0LjA7MS4wOzEuMDswLjYxOzAuNjg7MS45NzsxLjU2OzEuODQ7Mi4wNjs4Ljc7OTEwOzU0NTsyLjEyNTsyLjA1OTsxLjQ1MDsxLjI3NDs7My40NjU7MC40Oy0wLjE7ODEuOTs4LjA4OzEuMjU7MTIuMDA7MzQ7MjU7MDsxLjUyOzkuMDk7OS41ODs5LjI5OzcuNzg7OS4xNzs5LjYxOzE0LjA7MjkuMDsxNC4zOzQzOzIyODs5LjA7NS41OzMzLjc7MzguMjk7MzguMjk7TkE7NjEuMzs7Ozg5LjE7Nzk7MDswLjMyOzAuNDQ7NDQKVFJJOy0xLjAxOy0wLjc5Oy0wLjI0Oy0wLjM0OzEuODc7MS44ODs5NC4zOzkwLjc7Ni45NTs0LjIxOzExLjMzOzExLjY3OzMuMDA7My4wMDsxLjM7MS41OzIuMDsyLjA7My4wOzMuMDsyLjA7Mi4wOzAuMzU7MC4zMDswLjMwOzAuNjg7MC4wOTswLjExOzMuNjsxLjYxNTs0LjIwOTs3Ljc1Mjs1Ljc1Mjs2LjAwMTs1LjUyMzsxMy45MzQ7MTIuMzA4OzsyLjU7NjYuNTs3LjEwOzAuMDQ7OC44MjsxMzY7MTg0OzIzOzAuNjE7Ny4xODs5LjQ0OzYuOTE7Ni4xMTs1LjQyOzguMDQ7MTYuNzsyOC42OzE1Ljg7MzY7NDczOzEyLjk7Ny42OzM4Ljk7NzEuMDA7NzEuMDA7TkE7MzIuMTs7OzU0LjI7Mjc2OzI7OztOQQpVSzstMS4wOTstMS40ODstMS4wNjstMS4xMjsyLjE2OzIuMjc7OTcuMzs5OS44OzguMTI7OS44MzsxMS43MDsxNi4wMDszLjAyOzMuMDg7MS4yOzEuNDsyLjU7Mi41OzEuMDsxLjA7MS4wOzEuMDswLjMxOzAuMjg7MS43NjsxLjY5OzEuNjU7MS45MDs3LjY7MS45NjA7MS42NDI7NC4xMTk7NC4wMzI7Mi44MjE7Mi43NDM7OzYuNjYxOy0yLjE7LTMuMDs3NC41OzcuODE7MC42MjsxMC4wMDsxOTk4OzEzMDM7NTU7MS4zMzs4LjEzOzkuNTg7OC4zMzs1LjM3OzguMzQ7OS4wMjs2LjM7MjIuMDs4Ljc7MjM7MzU1OzEzLjg7Ny4yOzM2LjA7NjcuOTI7NjcuOTI7NDY7MzMuMzsyMi45OzIzLjc7NzQuMjsxNTI7MDswLjI3OzAuNDc7MTcKVVJVOzAuMzk7MC4zMTstMC43OTstMC44NDs0LjQwOzQuNDA7ODAuMzs4MC4zOzQuMDA7NC4wMDs2LjA1OzYuMDU7MS43MDsxLjcwOzEuMDsxLjA7My4wOzMuMDsxLjA7MS4wOzIuNTsyLjU7MC4xOTswLjE5OzAuNTE7MC40NjswLjU3OzAuOTQ7Ni45OzsyLjczMjs7OzI0LjMxMzsyMy4wMjA7OzExLjE5ODstMi41Oy0yLjE7NzAuMDs2LjkzOzAuNzc7OC44MDtOQTszMjU7MDswLjk2OzguMDU7MTAuMDA7OC4zMzs0LjgxOzcuMjk7OS44MTs2LjE7MTUuMjs1Ljk7Mjk7NTA4OzE3Ljk7MTAuMjs0NC45Ozk0LjUxOzs1Mjs2MC45Ozs7NTkuMTsyNjE7MDs7O05BClVTOy0wLjY3Oy0wLjYzOzIuMjU7Mi4xODsyLjM5OzIuMzc7ODAuNDs3OC45OzQuMDA7NC4wMDsxNC4yODsxMy4zNTszLjAyOzIuODg7NS4wOzUuMDs0LjA7NC4wOzQuMDs0LjA7NC4wOzQuMDswLjU2OzAuNTY7MS42NDsxLjUxOzEuNTQ7MS41Mzs3LjE7MS43MzE7MS40Mzk7My4zNzA7Mi45Mzk7Mi42NDk7Mi4yNDk7Ni4xNTk7NS42NTM7Oy0yLjg7NzcuODs3Ljk2OzAuNTA7MTAuOTk7MjY5OzI4ODsyODsxLjI1OzguMjE7OC44OTs3Ljg2OzcuMjI7OC41NDs4LjUzOzYuNjsxNi45OzIwLjA7NDQ7NDAwOzE1Ljk7OC40OzQwLjg7NTEuMzA7NTEuMzA7TkE7MzUuNTsxOC40OzE4Ljg7NjMuNTs3NDM7MjswLjIxOzAuMjI7NQo=&#39;).then(res =&gt; res.blob()).then(blob =&gt; {&#10;      const downloadURL = window.URL.createObjectURL(blob);&#10;      const a = document.createElement(&#39;a&#39;);&#10;      document.body.appendChild(a);&#10;      a.href = downloadURL;&#10;      a.download = &#39;Lijphart_Data_recode.csv&#39;; a.click();&#10;      window.URL.revokeObjectURL(downloadURL);&#10;      document.body.removeChild(a);&#10;    });">
+<button class="btn btn-primary" has_icon="TRUE"><i class="fa fa-save"></i> Download Lijphart Datensatz</button>
+</a>
+<p>“Patterns of Democracy” ist ein Klassiker der Demokratieforschung und
+untersucht zwei Typen von Demokratien, die Mehrheitsdemokratie mit dem
+klassischen Beispiel Großbritannien und die Konsensdemokratie mit dem
+klassischen Beispiel Deutschland. Der vorliegende Datensatz beinhaltet
+alle Variablen, die Lijphart verwendet, um die latenten Konzepte
+Mehrheits- und Konsensdemokratie zu messen. Die Beobachtungseinheiten
+sind, anders als beim GLES, nicht Befragte, sondern Demokratien.
+Ebenfalls anders als der GLES-Datensatz, liegt der Lijphart-Datensatz im
+CSV-Format vor, d.h. alle Werte stehen in einer Zeile hintereinander,
+jeweils durch ein Komma oder Semikolon getrennt (CSV steht für
+comma-separated values).</p>
+</div>
+</div>
+<div id="ein-erster-blick-in-die-datensätze" class="section level1">
+<h1>3. Ein erster Blick in die Datensätze</h1>
+<p>Nachdem uns nun beide Datensätze zur Verfügung stehen, möchten wir
+einen Überlick über die darin enthaltenen Variablen bekommen. Eine
+einfache Möglichkeit dazu ist die Funktion <code>str()</code>
+(“structure”), die den Objekttyp sowie einen Überblick über die
+Variablen und enthaltenen Werte zeigt.</p>
+<pre class="r"><code>str(gles)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    2112 obs. of  602 variables:
+##  $ study       : Factor w/ 1 level &quot;ZA6801&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ version     : chr  &quot;4-0-1 (2019-02-26)&quot; &quot;4-0-1 (2019-02-26)&quot; &quot;4-0-1 (2019-02-26)&quot; &quot;4-0-1 (2019-02-26)&quot; ...
+##  $ doi         : chr  &quot;doi:10.4232/1.13235&quot; &quot;doi:10.4232/1.13235&quot; &quot;doi:10.4232/1.13235&quot; &quot;doi:10.4232/1.13235&quot; ...
+##  $ year        : Factor w/ 1 level &quot;2017&quot;: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ field       : chr  &quot;2017-09-25 bis 2017-11-30&quot; &quot;2017-09-25 bis 2017-11-30&quot; &quot;2017-09-25 bis 2017-11-30&quot; &quot;2017-09-25 bis 2017-11-30&quot; ...
+##  $ glescomp    : Factor w/ 9 levels &quot;Komponente 1: Vor- und Nachwahl-Querschnitt&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ survey      : Factor w/ 3 levels &quot;Vorwahl-Querschnitt&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ lfdn        : num  1 2 3 4 5 6 7 8 9 10 ...
+##  $ intnum      : num  63 63 63 63 63 63 63 63 63 63 ...
+##  $ welle       : Factor w/ 2 levels &quot;Basisbearbeitung&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ intdate     : num  1.37e+10 1.37e+10 1.37e+10 1.37e+10 1.37e+10 ...
+##  $ beginn      : chr  &quot;2017/11/18 1506:15&quot; &quot;2017/10/04 1652:52&quot; &quot;2017/10/05 1446:27&quot; &quot;2017/10/02 1058:37&quot; ...
+##  $ ende        : chr  &quot;2017/11/18 1642:12&quot; &quot;2017/10/04 1820:12&quot; &quot;2017/10/05 1650:28&quot; &quot;2017/10/02 1224:38&quot; ...
+##  $ intdauer_ges: num  95.9 87.3 124 86 75.2 ...
+##  $ bula        : Factor w/ 16 levels &quot;Schleswig-Holstein&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...
+##  $ ostwest     : Factor w/ 2 levels &quot;Ostdeutschland&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ ostwest2    : Factor w/ 2 levels &quot;Ostdeutschland&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
+##  $ vpoint      : num  2858 2858 2858 2858 2858 ...
+##  $ wahlkreis   : Factor w/ 299 levels &quot;1 Flensburg / Schleswig&quot;,..: 9 9 9 9 9 9 9 9 9 9 ...
+##  $ w_ow        : num  1.2 1.2 1.2 1.2 1.2 ...
+##  $ w_ipfges    : num  0.977 0.655 0.636 0.551 0.931 ...
+##  $ w_ipfost    : num  NA NA NA NA NA NA NA NA NA NA ...
+##  $ w_ipfwes    : num  0.834 0.55 0.554 0.463 0.806 ...
+##  $ q1          : Factor w/ 2 levels &quot;maennlich&quot;,&quot;weiblich&quot;: 1 1 2 1 2 1 2 1 2 2 ...
+##  $ q2b         : Factor w/ 12 levels &quot;Januar&quot;,&quot;Februar&quot;,..: 6 4 1 10 5 4 3 1 4 11 ...
+##  $ q2c         : Factor w/ 79 levels &quot;1922&quot;,&quot;1923&quot;,..: 38 42 31 17 79 37 29 54 52 76 ...
+##  $ q2d         : Factor w/ 2 levels &quot;nicht wahlberechtigt&quot;,..: 2 2 2 2 1 2 2 2 2 2 ...
+##  $ q3_c1       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: 100 188 59 177 195 144 58 236 195 261 ...
+##  $ q3_c2       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA 190 NA NA 193 141 NA NA 196 NA ...
+##  $ q3_c3       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA 187 NA NA 107 NA NA NA NA NA ...
+##  $ q3_c4       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+##  $ q3_c5       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+##  $ q4_c1       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: 159 200 54 72 87 261 180 71 170 195 ...
+##  $ q4_c2       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: 156 NA NA NA 82 NA NA NA 171 NA ...
+##  $ q4_c3       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+##  $ q4_c4       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+##  $ q4_c5       : Factor w/ 302 levels &quot;POLITISCHE PROZESSE (POLITICS-THEMEN)&quot;,..: NA NA NA NA NA NA NA NA NA NA ...
+##  $ q5a         : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 2 4 54 1 1 6 4 5 42 4 ...
+##  $ q5b         : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 2 4 54 1 1 6 4 5 42 4 ...
+##  $ q6a         : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 6 4 53 1 1 54 4 5 NA 2 ...
+##  $ q6b         : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 6 4 53 1 1 54 4 5 NA 2 ...
+##  $ q7          : Factor w/ 4 levels &quot;sehr aufmerksam&quot;,..: 3 2 1 1 2 1 1 1 3 2 ...
+##  $ q8a         : Factor w/ 5 levels &quot;stimme voll und ganz zu&quot;,..: 2 3 1 1 3 1 3 3 1 1 ...
+##  $ q8b         : Factor w/ 5 levels &quot;stimme voll und ganz zu&quot;,..: 3 3 4 3 3 4 5 3 3 4 ...
+##  $ q8c         : Factor w/ 5 levels &quot;stimme voll und ganz zu&quot;,..: 2 3 1 1 4 3 2 3 4 1 ...
+##  $ q8d         : Factor w/ 5 levels &quot;stimme voll und ganz zu&quot;,..: 3 5 5 4 4 5 5 5 3 3 ...
+##  $ q8e         : Factor w/ 5 levels &quot;stimme voll und ganz zu&quot;,..: 3 4 2 2 3 5 2 5 1 3 ...
+##  $ q9a         : Factor w/ 4 levels &quot;sehr wichtig&quot;,..: 3 4 4 3 1 4 4 4 4 4 ...
+##  $ q9b         : Factor w/ 4 levels &quot;sehr wichtig&quot;,..: 3 4 4 3 3 4 4 4 4 3 ...
+##  $ q9c         : Factor w/ 4 levels &quot;sehr wichtig&quot;,..: 1 1 1 2 1 1 2 2 1 1 ...
+##  $ q9d         : Factor w/ 4 levels &quot;sehr wichtig&quot;,..: 4 4 4 2 3 3 2 4 2 2 ...
+##  $ q10         : Factor w/ 4 levels &quot;sehr verbreitet&quot;,..: 1 3 2 4 3 3 1 3 1 2 ...
+##  $ q11         : Factor w/ 4 levels &quot;sehr gute Arbeit geleistet&quot;,..: 2 2 2 2 2 3 2 3 2 2 ...
+##  $ q12a        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 2 2 3 2 2 1 2 3 1 2 ...
+##  $ q12b        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 1 1 3 2 3 1 1 1 1 1 ...
+##  $ q12c        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 3 3 3 1 4 3 3 NA 4 2 ...
+##  $ q12d        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 3 5 3 2 2 3 2 2 1 3 ...
+##  $ q12e        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 1 1 3 2 1 1 2 3 1 3 ...
+##  $ q12f        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 2 4 3 2 3 3 3 4 2 3 ...
+##  $ q12g        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 1 2 3 1 2 2 2 2 1 2 ...
+##  $ q12h        : Factor w/ 5 levels &quot;viel hoeher als heute&quot;,..: 1 2 3 2 2 2 2 NA 4 2 ...
+##  $ q13         : Factor w/ 5 levels &quot;sehr gut&quot;,&quot;gut&quot;,..: 2 2 2 1 2 2 2 3 4 2 ...
+##  $ q14         : Factor w/ 5 levels &quot;wesentlich besser geworden&quot;,..: 4 2 4 2 4 3 2 3 5 3 ...
+##  $ q15         : Factor w/ 5 levels &quot;sehr stark&quot;,&quot;stark&quot;,..: 3 2 5 2 3 5 3 3 3 2 ...
+##  $ q16         : Factor w/ 5 levels &quot;wesentlich besser&quot;,..: 4 3 4 2 4 3 3 4 5 2 ...
+##  $ q17         : Factor w/ 2 levels &quot;ja, habe gewaehlt&quot;,..: 1 1 1 1 NA 1 1 1 1 2 ...
+##  $ q18         : Factor w/ 3 levels &quot;per Briefwahl&quot;,..: 3 2 3 3 NA 1 3 3 3 NA ...
+##  $ q19aa       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 1 4 1 NA NA 4 4 5 NA NA ...
+##  $ q19ab       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 1 4 1 NA NA 4 4 5 NA NA ...
+##  $ q19ba       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 1 6 1 NA NA 6 4 5 NA NA ...
+##  $ q19bb       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: 1 6 1 NA NA 6 4 5 NA NA ...
+##  $ q20         : Factor w/ 2 levels &quot;ja, ich haette gewaehlt&quot;,..: NA NA NA NA 1 NA NA NA NA NA ...
+##  $ q21aa       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA NA NA NA 1 NA NA NA NA NA ...
+##  $ q21ab       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA NA NA NA 1 NA NA NA NA NA ...
+##  $ q21ba       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA NA NA NA 1 NA NA NA NA NA ...
+##  $ q21bb       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA NA NA NA 1 NA NA NA NA NA ...
+##  $ q22         : Factor w/ 5 levels &quot;stand schon seit langem fest&quot;,..: 2 2 3 NA NA 1 1 3 NA NA ...
+##  $ q23         : Factor w/ 2 levels &quot;ja&quot;,&quot;nein&quot;: 1 1 1 1 NA 1 1 1 1 NA ...
+##  $ q24         : Factor w/ 2 levels &quot;ja, habe gewaehlt&quot;,..: 2 1 1 1 NA 1 1 1 1 NA ...
+##  $ q25aa       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA 4 4 NA NA 4 4 5 4 NA ...
+##  $ q25ab       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA 4 4 NA NA 4 4 5 4 NA ...
+##  $ q25ba       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA 4 1 NA NA 6 4 5 4 NA ...
+##  $ q25bb       : Factor w/ 55 levels &quot;CDU/CSU&quot;,&quot;CDU&quot;,..: NA 4 1 NA NA 6 4 5 4 NA ...
+##  $ q26         : Factor w/ 5 levels &quot;1 Es macht keinen Unterschied, wer an der Regierung ist.&quot;,..: 3 2 3 5 4 5 5 4 3 4 ...
+##  $ q27         : Factor w/ 5 levels &quot;1 Es macht keinen Unterschied, was man waehlt.&quot;,..: 1 5 5 5 5 5 5 4 3 5 ...
+##  $ q28a        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 10 8 9 11 11 4 5 3 7 10 ...
+##  $ q28b        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 10 6 9 11 11 3 3 4 5 8 ...
+##  $ q28c        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 5 9 5 8 10 7 10 3 7 9 ...
+##  $ q28d        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 3 6 6 2 8 6 7 4 6 6 ...
+##  $ q28e        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 8 9 7 9 9 9 9 2 6 8 ...
+##  $ q28f        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 10 6 6 9 11 5 4 7 6 6 ...
+##  $ q28g        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von dieser Partei&quot;,..: 1 1 1 1 3 1 1 2 8 1 ...
+##  $ q29a        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 9 8 10 10 11 4 5 3 3 9 ...
+##  $ q29b        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 5 8 6 7 5 9 10 6 6 6 ...
+##  $ q29c        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 5 7 7 4 8 5 8 7 5 NA ...
+##  $ q29d        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 6 8 6 9 7 10 8 6 6 NA ...
+##  $ q29e        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 9 NA 7 10 11 4 5 8 8 NA ...
+##  $ q29f        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 8 1 5 4 2 1 1 1 6 NA ...
+##  $ q29g        : Factor w/ 11 levels &quot;-5 halte ueberhaupt nichts von diesem Politiker&quot;,..: 8 7 7 10 11 3 3 7 6 NA ...
+##   [list output truncated]
+##  - attr(*, &quot;variable.labels&quot;)= Named chr [1:602] &quot;Studiennummer&quot; &quot;GESIS Archiv Version&quot; &quot;Digital Object Identifier&quot; &quot;Erhebungsjahr&quot; ...
+##   ..- attr(*, &quot;names&quot;)= chr [1:602] &quot;study&quot; &quot;version&quot; &quot;doi&quot; &quot;year&quot; ...
+##  - attr(*, &quot;codepage&quot;)= int 65001</code></pre>
+<p><code>gles</code> liegt als Dataframe vor und enthält 2112
+Beobachtungen (Zeilen) und 602 Variablen (Spalten). Variablen sind
+<code>study</code>, <code>version</code>, <code>doi</code>, usw., wobei
+das Dollarzeichen, wie bei Dataframes üblich, Variablen kennzeichnet.
+Die ersten Variablen enthalten Informationen zur Durchführung des
+Interviews. Die Bezeichnung der meisten ist recht technisch. Die
+Variablen liegen als numerische und character-Vektoren sowie als
+Faktoren vor. Die Objektklassen lassen sich in Dataframes zusammenführen
+(s. Sitzung 2).</p>
+<pre class="r"><code>str(lijphart)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    36 obs. of  74 variables:
+##  $ Country                  : chr  &quot;ARG&quot; &quot;AUL&quot; &quot;AUT&quot; &quot;BAH&quot; ...
+##  $ exe_part4510             : chr  &quot;-0.93&quot; &quot;-0.73&quot; &quot;0.43&quot; &quot;-1.50&quot; ...
+##  $ exe_part8110             : chr  &quot;-1.01&quot; &quot;-0.65&quot; &quot;0.64&quot; &quot;-1.33&quot; ...
+##  $ fed_unit4510             : chr  &quot;1.38&quot; &quot;1.63&quot; &quot;1.07&quot; &quot;-0.15&quot; ...
+##  $ fed_unit8110             : chr  &quot;1.34&quot; &quot;1.58&quot; &quot;0.97&quot; &quot;-0.18&quot; ...
+##  $ enpp4510                 : chr  &quot;3.15&quot; &quot;2.22&quot; &quot;2.68&quot; &quot;1.69&quot; ...
+##  $ enpp8110                 : chr  &quot;3.15&quot; &quot;2.19&quot; &quot;3.23&quot; &quot;1.74&quot; ...
+##  $ minwin_one_part4510      : chr  &quot;82.4&quot; &quot;80.7&quot; &quot;43.3&quot; &quot;100.0&quot; ...
+##  $ minwin_one_part8110      : chr  &quot;82.4&quot; &quot;86.5&quot; &quot;47.4&quot; &quot;100.0&quot; ...
+##  $ exe_dom4510              : chr  &quot;8.00&quot; &quot;9.10&quot; &quot;8.07&quot; &quot;9.44&quot; ...
+##  $ exe_dom8110              : chr  &quot;8.00&quot; &quot;7.37&quot; &quot;5.90&quot; &quot;7.37&quot; ...
+##  $ disprop4510              : chr  &quot;17.98&quot; &quot;9.44&quot; &quot;2.51&quot; &quot;16.48&quot; ...
+##  $ disprop8110              : chr  &quot;17.98&quot; &quot;10.07&quot; &quot;2.02&quot; &quot;15.90&quot; ...
+##  $ inter_gr_plural4510      : chr  &quot;2.70&quot; &quot;2.12&quot; &quot;0.38&quot; &quot;3.00&quot; ...
+##  $ inter_gr_plural8110      : chr  &quot;2.70&quot; &quot;1.88&quot; &quot;0.38&quot; &quot;3.00&quot; ...
+##  $ federal4510              : chr  &quot;4.5&quot; &quot;5.0&quot; &quot;4.5&quot; &quot;1.0&quot; ...
+##  $ federal8110              : chr  &quot;4.5&quot; &quot;5.0&quot; &quot;4.5&quot; &quot;1.0&quot; ...
+##  $ bicam4510                : chr  &quot;4.0&quot; &quot;4.0&quot; &quot;2.0&quot; &quot;2.0&quot; ...
+##  $ bicam8110                : chr  &quot;4.0&quot; &quot;4.0&quot; &quot;2.0&quot; &quot;2.0&quot; ...
+##  $ const_rigid4510          : chr  &quot;4.0&quot; &quot;4.0&quot; &quot;3.0&quot; &quot;3.0&quot; ...
+##  $ const_rigid8110          : chr  &quot;4.0&quot; &quot;4.0&quot; &quot;3.0&quot; &quot;3.0&quot; ...
+##  $ judic_rev4510            : chr  &quot;2.7&quot; &quot;3.0&quot; &quot;3.0&quot; &quot;2.0&quot; ...
+##  $ judic_rev8110            : chr  &quot;2.7&quot; &quot;3.0&quot; &quot;3.0&quot; &quot;2.0&quot; ...
+##  $ cen_bank_indep4594       : chr  &quot;0.39&quot; &quot;0.42&quot; &quot;0.55&quot; &quot;0.41&quot; ...
+##  $ cen_bank_indep8194       : chr  &quot;0.39&quot; &quot;0.42&quot; &quot;0.53&quot; &quot;0.41&quot; ...
+##  $ gov_effectiv9609         : chr  &quot;-0.08&quot; &quot;1.76&quot; &quot;1.80&quot; &quot;1.14&quot; ...
+##  $ regu_quality9609         : chr  &quot;-0.42&quot; &quot;1.56&quot; &quot;1.51&quot; &quot;1.01&quot; ...
+##  $ rule_of_law9609          : chr  &quot;-0.48&quot; &quot;1.72&quot; &quot;1.83&quot; &quot;1.16&quot; ...
+##  $ ctrl_corrupt9609         : chr  &quot;-0.38&quot; &quot;1.91&quot; &quot;1.95&quot; &quot;1.28&quot; ...
+##  $ corrupt_perc10           : chr  &quot;2.9&quot; &quot;8.7&quot; &quot;7.9&quot; &quot;&quot; ...
+##  $ gdp_growth8109           : chr  &quot;&quot; &quot;1.880&quot; &quot;1.732&quot; &quot;&quot; ...
+##  $ gdp_growth9109           : chr  &quot;3.210&quot; &quot;1.906&quot; &quot;1.613&quot; &quot;&quot; ...
+##  $ consum_price8109         : chr  &quot;&quot; &quot;4.507&quot; &quot;2.623&quot; &quot;&quot; ...
+##  $ gdp_deflat8109           : chr  &quot;&quot; &quot;4.607&quot; &quot;2.382&quot; &quot;&quot; ...
+##  $ consum_price9109         : chr  &quot;15.849&quot; &quot;2.601&quot; &quot;2.145&quot; &quot;&quot; ...
+##  $ gdp_deflat9109           : chr  &quot;13.745&quot; &quot;2.774&quot; &quot;1.692&quot; &quot;&quot; ...
+##  $ unempl8109               : chr  &quot;&quot; &quot;7.331&quot; &quot;3.912&quot; &quot;&quot; ...
+##  $ unempl9109               : chr  &quot;12.531&quot; &quot;7.155&quot; &quot;4.097&quot; &quot;&quot; ...
+##  $ budget_balanc0008        : chr  &quot;&quot; &quot;1.2&quot; &quot;-1.8&quot; &quot;&quot; ...
+##  $ budget_balanc0307        : chr  &quot;&quot; &quot;1.2&quot; &quot;-2.2&quot; &quot;-1.8&quot; ...
+##  $ heri_free0910            : chr  &quot;51.7&quot; &quot;82.5&quot; &quot;71.9&quot; &quot;68.0&quot; ...
+##  $ fras_free08              : chr  &quot;5.99&quot; &quot;7.90&quot; &quot;7.61&quot; &quot;7.21&quot; ...
+##  $ pol_stab9609             : chr  &quot;-0.09&quot; &quot;1.01&quot; &quot;1.15&quot; &quot;0.89&quot; ...
+##  $ confl_risk9004           : chr  &quot;10.23&quot; &quot;11.36&quot; &quot;11.79&quot; &quot;10.83&quot; ...
+##  $ domes_conflict_weight8109: int  NA 62 103 0 17 192 19 155 192 90 ...
+##  $ domes_conflict_weight9009: int  934 34 125 0 25 169 22 169 266 84 ...
+##  $ deaths_domes_terror8510  : int  5 0 0 2 2 0 3 2 1 0 ...
+##  $ voice_account9609        : chr  &quot;0.28&quot; &quot;1.42&quot; &quot;1.37&quot; &quot;1.09&quot; ...
+##  $ eiu_democ0610            : chr  &quot;6.70&quot; &quot;9.13&quot; &quot;8.56&quot; &quot;&quot; ...
+##  $ elec_plural0610          : chr  &quot;8.75&quot; &quot;10.00&quot; &quot;9.58&quot; &quot;&quot; ...
+##  $ gov_funct0610            : chr  &quot;5.24&quot; &quot;8.93&quot; &quot;7.98&quot; &quot;&quot; ...
+##  $ pol_part0610             : chr  &quot;5.56&quot; &quot;7.78&quot; &quot;7.78&quot; &quot;&quot; ...
+##  $ pol_cult0610             : chr  &quot;5.84&quot; &quot;8.96&quot; &quot;8.34&quot; &quot;&quot; ...
+##  $ civ_lib0610              : chr  &quot;8.14&quot; &quot;10.00&quot; &quot;9.12&quot; &quot;&quot; ...
+##  $ women_parl_rep90         : chr  &quot;6.3&quot; &quot;6.1&quot; &quot;11.5&quot; &quot;4.1&quot; ...
+##  $ women_parl_rep10         : chr  &quot;38.5&quot; &quot;24.7&quot; &quot;27.9&quot; &quot;12.2&quot; ...
+##  $ women_cab_rep95          : chr  &quot;0.0&quot; &quot;5.9&quot; &quot;23.5&quot; &quot;27.3&quot; ...
+##  $ women_cab_rep08          : int  23 24 38 8 28 23 28 16 29 37 ...
+##  $ gender_ineq08            : int  534 296 300 NA 448 236 663 289 501 209 ...
+##  $ X10_10_ratio00           : chr  &quot;31.8&quot; &quot;12.5&quot; &quot;6.9&quot; &quot;&quot; ...
+##  $ X20_20_ratio00           : chr  &quot;16.3&quot; &quot;7.0&quot; &quot;4.4&quot; &quot;&quot; ...
+##  $ gini_ineq00              : chr  &quot;51.3&quot; &quot;35.2&quot; &quot;29.1&quot; &quot;&quot; ...
+##  $ turnout8110              : chr  &quot;78.43&quot; &quot;82.87&quot; &quot;78.23&quot; &quot;67.16&quot; ...
+##  $ non_mand_turnout8110     : chr  &quot;&quot; &quot;&quot; &quot;78.23&quot; &quot;67.16&quot; ...
+##  $ satis_democ9596          : int  35 NA 63 NA NA 54 NA NA NA 83 ...
+##  $ satis_democ0507          : chr  &quot;45.1&quot; &quot;51.5&quot; &quot;&quot; &quot;&quot; ...
+##  $ soc_expend05             : chr  &quot;&quot; &quot;18.5&quot; &quot;24.9&quot; &quot;&quot; ...
+##  $ mand_soc_expend05        : chr  &quot;&quot; &quot;19.5&quot; &quot;25.5&quot; &quot;&quot; ...
+##  $ envir_perform10          : chr  &quot;61.0&quot; &quot;65.7&quot; &quot;78.1&quot; &quot;&quot; ...
+##  $ incarceration10          : int  151 133 103 376 326 97 267 117 228 71 ...
+##  $ death_pen10              : int  0 0 0 2 2 0 2 0 0 0 ...
+##  $ foreign_aid90            : chr  &quot;&quot; &quot;0.34&quot; &quot;0.11&quot; &quot;&quot; ...
+##  $ foreign_aid05            : chr  &quot;&quot; &quot;0.25&quot; &quot;0.52&quot; &quot;&quot; ...
+##  $ aid_vers_def05           : int  NA 14 58 NA NA 48 NA 31 NA 45 ...</code></pre>
+<p>Das Objekt <code>lijphart</code> ist ebenfalls ein Dataframe und
+beinhaltet 36 Beobachtungen und 74 Variablen (<code>Country</code>,
+<code>exe_part4510</code>, <code>exe_part8110</code>, usw.). Die
+Variablen sind hauptsächlich character-Vektoren sowie integer-Vektoren
+(ganze Zahlen). Mit <code>View()</code> können wir die Datensätze als
+Tabelle ansehen. Dabei ist zu beachten, dass man gerade bei größeren
+Datensätzen nur langsam durch den Datensatz scrollen kann. Wenn wir
+stattdessen nur einen Eindruck der Variablen und der ersten enthaltenen
+Werte bekommen möchten, bieten sich die Funktionen <code>head()</code>
+und <code>tail()</code> an, die jeweils die ersten und letzten sechs
+Zeilen des Datensatzes zeigen.</p>
+<pre class="r"><code># head(gles)
+# tail(gles)
+
+head(lijphart)</code></pre>
+<table>
+<colgroup>
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Country</th>
+<th align="left">exe_part4510</th>
+<th align="left">exe_part8110</th>
+<th align="left">fed_unit4510</th>
+<th align="left">fed_unit8110</th>
+<th align="left">enpp4510</th>
+<th align="left">enpp8110</th>
+<th align="left">minwin_one_part4510</th>
+<th align="left">minwin_one_part8110</th>
+<th align="left">exe_dom4510</th>
+<th align="left">exe_dom8110</th>
+<th align="left">disprop4510</th>
+<th align="left">disprop8110</th>
+<th align="left">inter_gr_plural4510</th>
+<th align="left">inter_gr_plural8110</th>
+<th align="left">federal4510</th>
+<th align="left">federal8110</th>
+<th align="left">bicam4510</th>
+<th align="left">bicam8110</th>
+<th align="left">const_rigid4510</th>
+<th align="left">const_rigid8110</th>
+<th align="left">judic_rev4510</th>
+<th align="left">judic_rev8110</th>
+<th align="left">cen_bank_indep4594</th>
+<th align="left">cen_bank_indep8194</th>
+<th align="left">gov_effectiv9609</th>
+<th align="left">regu_quality9609</th>
+<th align="left">rule_of_law9609</th>
+<th align="left">ctrl_corrupt9609</th>
+<th align="left">corrupt_perc10</th>
+<th align="left">gdp_growth8109</th>
+<th align="left">gdp_growth9109</th>
+<th align="left">consum_price8109</th>
+<th align="left">gdp_deflat8109</th>
+<th align="left">consum_price9109</th>
+<th align="left">gdp_deflat9109</th>
+<th align="left">unempl8109</th>
+<th align="left">unempl9109</th>
+<th align="left">budget_balanc0008</th>
+<th align="left">budget_balanc0307</th>
+<th align="left">heri_free0910</th>
+<th align="left">fras_free08</th>
+<th align="left">pol_stab9609</th>
+<th align="left">confl_risk9004</th>
+<th align="right">domes_conflict_weight8109</th>
+<th align="right">domes_conflict_weight9009</th>
+<th align="right">deaths_domes_terror8510</th>
+<th align="left">voice_account9609</th>
+<th align="left">eiu_democ0610</th>
+<th align="left">elec_plural0610</th>
+<th align="left">gov_funct0610</th>
+<th align="left">pol_part0610</th>
+<th align="left">pol_cult0610</th>
+<th align="left">civ_lib0610</th>
+<th align="left">women_parl_rep90</th>
+<th align="left">women_parl_rep10</th>
+<th align="left">women_cab_rep95</th>
+<th align="right">women_cab_rep08</th>
+<th align="right">gender_ineq08</th>
+<th align="left">X10_10_ratio00</th>
+<th align="left">X20_20_ratio00</th>
+<th align="left">gini_ineq00</th>
+<th align="left">turnout8110</th>
+<th align="left">non_mand_turnout8110</th>
+<th align="right">satis_democ9596</th>
+<th align="left">satis_democ0507</th>
+<th align="left">soc_expend05</th>
+<th align="left">mand_soc_expend05</th>
+<th align="left">envir_perform10</th>
+<th align="right">incarceration10</th>
+<th align="right">death_pen10</th>
+<th align="left">foreign_aid90</th>
+<th align="left">foreign_aid05</th>
+<th align="right">aid_vers_def05</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">ARG</td>
+<td align="left">-0.93</td>
+<td align="left">-1.01</td>
+<td align="left">1.38</td>
+<td align="left">1.34</td>
+<td align="left">3.15</td>
+<td align="left">3.15</td>
+<td align="left">82.4</td>
+<td align="left">82.4</td>
+<td align="left">8.00</td>
+<td align="left">8.00</td>
+<td align="left">17.98</td>
+<td align="left">17.98</td>
+<td align="left">2.70</td>
+<td align="left">2.70</td>
+<td align="left">4.5</td>
+<td align="left">4.5</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">2.7</td>
+<td align="left">2.7</td>
+<td align="left">0.39</td>
+<td align="left">0.39</td>
+<td align="left">-0.08</td>
+<td align="left">-0.42</td>
+<td align="left">-0.48</td>
+<td align="left">-0.38</td>
+<td align="left">2.9</td>
+<td align="left"></td>
+<td align="left">3.210</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">15.849</td>
+<td align="left">13.745</td>
+<td align="left"></td>
+<td align="left">12.531</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">51.7</td>
+<td align="left">5.99</td>
+<td align="left">-0.09</td>
+<td align="left">10.23</td>
+<td align="right">NA</td>
+<td align="right">934</td>
+<td align="right">5</td>
+<td align="left">0.28</td>
+<td align="left">6.70</td>
+<td align="left">8.75</td>
+<td align="left">5.24</td>
+<td align="left">5.56</td>
+<td align="left">5.84</td>
+<td align="left">8.14</td>
+<td align="left">6.3</td>
+<td align="left">38.5</td>
+<td align="left">0.0</td>
+<td align="right">23</td>
+<td align="right">534</td>
+<td align="left">31.8</td>
+<td align="left">16.3</td>
+<td align="left">51.3</td>
+<td align="left">78.43</td>
+<td align="left"></td>
+<td align="right">35</td>
+<td align="left">45.1</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">61.0</td>
+<td align="right">151</td>
+<td align="right">0</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">AUL</td>
+<td align="left">-0.73</td>
+<td align="left">-0.65</td>
+<td align="left">1.63</td>
+<td align="left">1.58</td>
+<td align="left">2.22</td>
+<td align="left">2.19</td>
+<td align="left">80.7</td>
+<td align="left">86.5</td>
+<td align="left">9.10</td>
+<td align="left">7.37</td>
+<td align="left">9.44</td>
+<td align="left">10.07</td>
+<td align="left">2.12</td>
+<td align="left">1.88</td>
+<td align="left">5.0</td>
+<td align="left">5.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">0.42</td>
+<td align="left">0.42</td>
+<td align="left">1.76</td>
+<td align="left">1.56</td>
+<td align="left">1.72</td>
+<td align="left">1.91</td>
+<td align="left">8.7</td>
+<td align="left">1.880</td>
+<td align="left">1.906</td>
+<td align="left">4.507</td>
+<td align="left">4.607</td>
+<td align="left">2.601</td>
+<td align="left">2.774</td>
+<td align="left">7.331</td>
+<td align="left">7.155</td>
+<td align="left">1.2</td>
+<td align="left">1.2</td>
+<td align="left">82.5</td>
+<td align="left">7.90</td>
+<td align="left">1.01</td>
+<td align="left">11.36</td>
+<td align="right">62</td>
+<td align="right">34</td>
+<td align="right">0</td>
+<td align="left">1.42</td>
+<td align="left">9.13</td>
+<td align="left">10.00</td>
+<td align="left">8.93</td>
+<td align="left">7.78</td>
+<td align="left">8.96</td>
+<td align="left">10.00</td>
+<td align="left">6.1</td>
+<td align="left">24.7</td>
+<td align="left">5.9</td>
+<td align="right">24</td>
+<td align="right">296</td>
+<td align="left">12.5</td>
+<td align="left">7.0</td>
+<td align="left">35.2</td>
+<td align="left">82.87</td>
+<td align="left"></td>
+<td align="right">NA</td>
+<td align="left">51.5</td>
+<td align="left">18.5</td>
+<td align="left">19.5</td>
+<td align="left">65.7</td>
+<td align="right">133</td>
+<td align="right">0</td>
+<td align="left">0.34</td>
+<td align="left">0.25</td>
+<td align="right">14</td>
+</tr>
+<tr class="odd">
+<td align="left">AUT</td>
+<td align="left">0.43</td>
+<td align="left">0.64</td>
+<td align="left">1.07</td>
+<td align="left">0.97</td>
+<td align="left">2.68</td>
+<td align="left">3.23</td>
+<td align="left">43.3</td>
+<td align="left">47.4</td>
+<td align="left">8.07</td>
+<td align="left">5.90</td>
+<td align="left">2.51</td>
+<td align="left">2.02</td>
+<td align="left">0.38</td>
+<td align="left">0.38</td>
+<td align="left">4.5</td>
+<td align="left">4.5</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">0.55</td>
+<td align="left">0.53</td>
+<td align="left">1.80</td>
+<td align="left">1.51</td>
+<td align="left">1.83</td>
+<td align="left">1.95</td>
+<td align="left">7.9</td>
+<td align="left">1.732</td>
+<td align="left">1.613</td>
+<td align="left">2.623</td>
+<td align="left">2.382</td>
+<td align="left">2.145</td>
+<td align="left">1.692</td>
+<td align="left">3.912</td>
+<td align="left">4.097</td>
+<td align="left">-1.8</td>
+<td align="left">-2.2</td>
+<td align="left">71.9</td>
+<td align="left">7.61</td>
+<td align="left">1.15</td>
+<td align="left">11.79</td>
+<td align="right">103</td>
+<td align="right">125</td>
+<td align="right">0</td>
+<td align="left">1.37</td>
+<td align="left">8.56</td>
+<td align="left">9.58</td>
+<td align="left">7.98</td>
+<td align="left">7.78</td>
+<td align="left">8.34</td>
+<td align="left">9.12</td>
+<td align="left">11.5</td>
+<td align="left">27.9</td>
+<td align="left">23.5</td>
+<td align="right">38</td>
+<td align="right">300</td>
+<td align="left">6.9</td>
+<td align="left">4.4</td>
+<td align="left">29.1</td>
+<td align="left">78.23</td>
+<td align="left">78.23</td>
+<td align="right">63</td>
+<td align="left"></td>
+<td align="left">24.9</td>
+<td align="left">25.5</td>
+<td align="left">78.1</td>
+<td align="right">103</td>
+<td align="right">0</td>
+<td align="left">0.11</td>
+<td align="left">0.52</td>
+<td align="right">58</td>
+</tr>
+<tr class="even">
+<td align="left">BAH</td>
+<td align="left">-1.50</td>
+<td align="left">-1.33</td>
+<td align="left">-0.15</td>
+<td align="left">-0.18</td>
+<td align="left">1.69</td>
+<td align="left">1.74</td>
+<td align="left">100.0</td>
+<td align="left">100.0</td>
+<td align="left">9.44</td>
+<td align="left">7.37</td>
+<td align="left">16.48</td>
+<td align="left">15.90</td>
+<td align="left">3.00</td>
+<td align="left">3.00</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">0.41</td>
+<td align="left">0.41</td>
+<td align="left">1.14</td>
+<td align="left">1.01</td>
+<td align="left">1.16</td>
+<td align="left">1.28</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">-1.8</td>
+<td align="left">68.0</td>
+<td align="left">7.21</td>
+<td align="left">0.89</td>
+<td align="left">10.83</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">2</td>
+<td align="left">1.09</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">4.1</td>
+<td align="left">12.2</td>
+<td align="left">27.3</td>
+<td align="right">8</td>
+<td align="right">NA</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">67.16</td>
+<td align="left">67.16</td>
+<td align="right">NA</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">376</td>
+<td align="right">2</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">NA</td>
+</tr>
+<tr class="odd">
+<td align="left">BAR</td>
+<td align="left">-1.28</td>
+<td align="left">-1.20</td>
+<td align="left">-0.49</td>
+<td align="left">-0.53</td>
+<td align="left">1.68</td>
+<td align="left">1.62</td>
+<td align="left">100.0</td>
+<td align="left">100.0</td>
+<td align="left">8.87</td>
+<td align="left">7.37</td>
+<td align="left">17.27</td>
+<td align="left">18.72</td>
+<td align="left">2.20</td>
+<td align="left">2.00</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">0.38</td>
+<td align="left">0.38</td>
+<td align="left">1.36</td>
+<td align="left">0.98</td>
+<td align="left">1.12</td>
+<td align="left">1.32</td>
+<td align="left">7.8</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">68.5</td>
+<td align="left">6.35</td>
+<td align="left">1.05</td>
+<td align="left"></td>
+<td align="right">17</td>
+<td align="right">25</td>
+<td align="right">2</td>
+<td align="left">1.21</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">3.7</td>
+<td align="left">10.0</td>
+<td align="left">27.3</td>
+<td align="right">28</td>
+<td align="right">448</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">71.35</td>
+<td align="left">71.35</td>
+<td align="right">NA</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">326</td>
+<td align="right">2</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">BEL</td>
+<td align="left">1.14</td>
+<td align="left">1.10</td>
+<td align="left">0.10</td>
+<td align="left">0.44</td>
+<td align="left">4.72</td>
+<td align="left">6.13</td>
+<td align="left">37.3</td>
+<td align="left">36.3</td>
+<td align="left">2.57</td>
+<td align="left">4.21</td>
+<td align="left">3.35</td>
+<td align="left">3.75</td>
+<td align="left">1.15</td>
+<td align="left">1.33</td>
+<td align="left">3.5</td>
+<td align="left">4.2</td>
+<td align="left">2.8</td>
+<td align="left">2.5</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">1.8</td>
+<td align="left">2.7</td>
+<td align="left">0.27</td>
+<td align="left">0.30</td>
+<td align="left">1.68</td>
+<td align="left">1.24</td>
+<td align="left">1.31</td>
+<td align="left">1.37</td>
+<td align="left">7.1</td>
+<td align="left">1.552</td>
+<td align="left">1.371</td>
+<td align="left">2.930</td>
+<td align="left">2.756</td>
+<td align="left">2.062</td>
+<td align="left">1.961</td>
+<td align="left">8.744</td>
+<td align="left">8.054</td>
+<td align="left">-0.5</td>
+<td align="left">-0.7</td>
+<td align="left">70.2</td>
+<td align="left">7.22</td>
+<td align="left">0.92</td>
+<td align="left">11.59</td>
+<td align="right">192</td>
+<td align="right">169</td>
+<td align="right">0</td>
+<td align="left">1.39</td>
+<td align="left">8.12</td>
+<td align="left">9.58</td>
+<td align="left">8.21</td>
+<td align="left">6.11</td>
+<td align="left">7.29</td>
+<td align="left">9.41</td>
+<td align="left">8.5</td>
+<td align="left">39.3</td>
+<td align="left">11.8</td>
+<td align="right">23</td>
+<td align="right">236</td>
+<td align="left">8.2</td>
+<td align="left">4.9</td>
+<td align="left">33.0</td>
+<td align="left">86.32</td>
+<td align="left"></td>
+<td align="right">54</td>
+<td align="left"></td>
+<td align="left">26.2</td>
+<td align="left">26.2</td>
+<td align="left">58.1</td>
+<td align="right">97</td>
+<td align="right">0</td>
+<td align="left">0.46</td>
+<td align="left">0.53</td>
+<td align="right">48</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>tail(lijphart)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left">Country</th>
+<th align="left">exe_part4510</th>
+<th align="left">exe_part8110</th>
+<th align="left">fed_unit4510</th>
+<th align="left">fed_unit8110</th>
+<th align="left">enpp4510</th>
+<th align="left">enpp8110</th>
+<th align="left">minwin_one_part4510</th>
+<th align="left">minwin_one_part8110</th>
+<th align="left">exe_dom4510</th>
+<th align="left">exe_dom8110</th>
+<th align="left">disprop4510</th>
+<th align="left">disprop8110</th>
+<th align="left">inter_gr_plural4510</th>
+<th align="left">inter_gr_plural8110</th>
+<th align="left">federal4510</th>
+<th align="left">federal8110</th>
+<th align="left">bicam4510</th>
+<th align="left">bicam8110</th>
+<th align="left">const_rigid4510</th>
+<th align="left">const_rigid8110</th>
+<th align="left">judic_rev4510</th>
+<th align="left">judic_rev8110</th>
+<th align="left">cen_bank_indep4594</th>
+<th align="left">cen_bank_indep8194</th>
+<th align="left">gov_effectiv9609</th>
+<th align="left">regu_quality9609</th>
+<th align="left">rule_of_law9609</th>
+<th align="left">ctrl_corrupt9609</th>
+<th align="left">corrupt_perc10</th>
+<th align="left">gdp_growth8109</th>
+<th align="left">gdp_growth9109</th>
+<th align="left">consum_price8109</th>
+<th align="left">gdp_deflat8109</th>
+<th align="left">consum_price9109</th>
+<th align="left">gdp_deflat9109</th>
+<th align="left">unempl8109</th>
+<th align="left">unempl9109</th>
+<th align="left">budget_balanc0008</th>
+<th align="left">budget_balanc0307</th>
+<th align="left">heri_free0910</th>
+<th align="left">fras_free08</th>
+<th align="left">pol_stab9609</th>
+<th align="left">confl_risk9004</th>
+<th align="right">domes_conflict_weight8109</th>
+<th align="right">domes_conflict_weight9009</th>
+<th align="right">deaths_domes_terror8510</th>
+<th align="left">voice_account9609</th>
+<th align="left">eiu_democ0610</th>
+<th align="left">elec_plural0610</th>
+<th align="left">gov_funct0610</th>
+<th align="left">pol_part0610</th>
+<th align="left">pol_cult0610</th>
+<th align="left">civ_lib0610</th>
+<th align="left">women_parl_rep90</th>
+<th align="left">women_parl_rep10</th>
+<th align="left">women_cab_rep95</th>
+<th align="right">women_cab_rep08</th>
+<th align="right">gender_ineq08</th>
+<th align="left">X10_10_ratio00</th>
+<th align="left">X20_20_ratio00</th>
+<th align="left">gini_ineq00</th>
+<th align="left">turnout8110</th>
+<th align="left">non_mand_turnout8110</th>
+<th align="right">satis_democ9596</th>
+<th align="left">satis_democ0507</th>
+<th align="left">soc_expend05</th>
+<th align="left">mand_soc_expend05</th>
+<th align="left">envir_perform10</th>
+<th align="right">incarceration10</th>
+<th align="right">death_pen10</th>
+<th align="left">foreign_aid90</th>
+<th align="left">foreign_aid05</th>
+<th align="right">aid_vers_def05</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">31</td>
+<td align="left">SWE</td>
+<td align="left">0.79</td>
+<td align="left">0.87</td>
+<td align="left">-1.03</td>
+<td align="left">-1.09</td>
+<td align="left">3.47</td>
+<td align="left">3.82</td>
+<td align="left">48.1</td>
+<td align="left">42.6</td>
+<td align="left">5.61</td>
+<td align="left">4.92</td>
+<td align="left">2.04</td>
+<td align="left">1.95</td>
+<td align="left">0.35</td>
+<td align="left">0.42</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">1.7</td>
+<td align="left">1.0</td>
+<td align="left">1.5</td>
+<td align="left">2.0</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">0.29</td>
+<td align="left">0.29</td>
+<td align="left">1.96</td>
+<td align="left">1.50</td>
+<td align="left">1.81</td>
+<td align="left">2.17</td>
+<td align="left">9.2</td>
+<td align="left">1.640</td>
+<td align="left">1.493</td>
+<td align="left">3.915</td>
+<td align="left">4.061</td>
+<td align="left">1.968</td>
+<td align="left">2.182</td>
+<td align="left">5.618</td>
+<td align="left">7.145</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">71.9</td>
+<td align="left">7.28</td>
+<td align="left">1.25</td>
+<td align="left">11.38</td>
+<td align="right">58</td>
+<td align="right">50</td>
+<td align="right">0</td>
+<td align="left">1.55</td>
+<td align="left">9.75</td>
+<td align="left">9.86</td>
+<td align="left">9.88</td>
+<td align="left">9.63</td>
+<td align="left">9.38</td>
+<td align="left">10.00</td>
+<td align="left">38.4</td>
+<td align="left">45.0</td>
+<td align="left">47.6</td>
+<td align="right">48</td>
+<td align="right">212</td>
+<td align="left">6.2</td>
+<td align="left">4.0</td>
+<td align="left">25.0</td>
+<td align="left">82.38</td>
+<td align="left">82.38</td>
+<td align="right">55</td>
+<td align="left">61.5</td>
+<td align="left">27.3</td>
+<td align="left">27.5</td>
+<td align="left">86.0</td>
+<td align="right">78</td>
+<td align="right">0</td>
+<td align="left">0.91</td>
+<td align="left">0.94</td>
+<td align="right">63</td>
+</tr>
+<tr class="even">
+<td align="left">32</td>
+<td align="left">SWI</td>
+<td align="left">1.72</td>
+<td align="left">1.67</td>
+<td align="left">1.46</td>
+<td align="left">1.59</td>
+<td align="left">5.20</td>
+<td align="left">5.50</td>
+<td align="left">4.0</td>
+<td align="left">1.7</td>
+<td align="left">1.00</td>
+<td align="left">1.00</td>
+<td align="left">2.55</td>
+<td align="left">3.08</td>
+<td align="left">0.88</td>
+<td align="left">0.88</td>
+<td align="left">5.0</td>
+<td align="left">5.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">0.61</td>
+<td align="left">0.68</td>
+<td align="left">1.97</td>
+<td align="left">1.56</td>
+<td align="left">1.84</td>
+<td align="left">2.06</td>
+<td align="left">8.7</td>
+<td align="left">910</td>
+<td align="left">545</td>
+<td align="left">2.125</td>
+<td align="left">2.059</td>
+<td align="left">1.450</td>
+<td align="left">1.274</td>
+<td align="left"></td>
+<td align="left">3.465</td>
+<td align="left">0.4</td>
+<td align="left">-0.1</td>
+<td align="left">81.9</td>
+<td align="left">8.08</td>
+<td align="left">1.25</td>
+<td align="left">12.00</td>
+<td align="right">34</td>
+<td align="right">25</td>
+<td align="right">0</td>
+<td align="left">1.52</td>
+<td align="left">9.09</td>
+<td align="left">9.58</td>
+<td align="left">9.29</td>
+<td align="left">7.78</td>
+<td align="left">9.17</td>
+<td align="left">9.61</td>
+<td align="left">14.0</td>
+<td align="left">29.0</td>
+<td align="left">14.3</td>
+<td align="right">43</td>
+<td align="right">228</td>
+<td align="left">9.0</td>
+<td align="left">5.5</td>
+<td align="left">33.7</td>
+<td align="left">38.29</td>
+<td align="left">38.29</td>
+<td align="right">NA</td>
+<td align="left">61.3</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">89.1</td>
+<td align="right">79</td>
+<td align="right">0</td>
+<td align="left">0.32</td>
+<td align="left">0.44</td>
+<td align="right">44</td>
+</tr>
+<tr class="odd">
+<td align="left">33</td>
+<td align="left">TRI</td>
+<td align="left">-1.01</td>
+<td align="left">-0.79</td>
+<td align="left">-0.24</td>
+<td align="left">-0.34</td>
+<td align="left">1.87</td>
+<td align="left">1.88</td>
+<td align="left">94.3</td>
+<td align="left">90.7</td>
+<td align="left">6.95</td>
+<td align="left">4.21</td>
+<td align="left">11.33</td>
+<td align="left">11.67</td>
+<td align="left">3.00</td>
+<td align="left">3.00</td>
+<td align="left">1.3</td>
+<td align="left">1.5</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">2.0</td>
+<td align="left">2.0</td>
+<td align="left">0.35</td>
+<td align="left">0.30</td>
+<td align="left">0.30</td>
+<td align="left">0.68</td>
+<td align="left">0.09</td>
+<td align="left">0.11</td>
+<td align="left">3.6</td>
+<td align="left">1.615</td>
+<td align="left">4.209</td>
+<td align="left">7.752</td>
+<td align="left">5.752</td>
+<td align="left">6.001</td>
+<td align="left">5.523</td>
+<td align="left">13.934</td>
+<td align="left">12.308</td>
+<td align="left"></td>
+<td align="left">2.5</td>
+<td align="left">66.5</td>
+<td align="left">7.10</td>
+<td align="left">0.04</td>
+<td align="left">8.82</td>
+<td align="right">136</td>
+<td align="right">184</td>
+<td align="right">23</td>
+<td align="left">0.61</td>
+<td align="left">7.18</td>
+<td align="left">9.44</td>
+<td align="left">6.91</td>
+<td align="left">6.11</td>
+<td align="left">5.42</td>
+<td align="left">8.04</td>
+<td align="left">16.7</td>
+<td align="left">28.6</td>
+<td align="left">15.8</td>
+<td align="right">36</td>
+<td align="right">473</td>
+<td align="left">12.9</td>
+<td align="left">7.6</td>
+<td align="left">38.9</td>
+<td align="left">71.00</td>
+<td align="left">71.00</td>
+<td align="right">NA</td>
+<td align="left">32.1</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">54.2</td>
+<td align="right">276</td>
+<td align="right">2</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">34</td>
+<td align="left">UK</td>
+<td align="left">-1.09</td>
+<td align="left">-1.48</td>
+<td align="left">-1.06</td>
+<td align="left">-1.12</td>
+<td align="left">2.16</td>
+<td align="left">2.27</td>
+<td align="left">97.3</td>
+<td align="left">99.8</td>
+<td align="left">8.12</td>
+<td align="left">9.83</td>
+<td align="left">11.70</td>
+<td align="left">16.00</td>
+<td align="left">3.02</td>
+<td align="left">3.08</td>
+<td align="left">1.2</td>
+<td align="left">1.4</td>
+<td align="left">2.5</td>
+<td align="left">2.5</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">0.31</td>
+<td align="left">0.28</td>
+<td align="left">1.76</td>
+<td align="left">1.69</td>
+<td align="left">1.65</td>
+<td align="left">1.90</td>
+<td align="left">7.6</td>
+<td align="left">1.960</td>
+<td align="left">1.642</td>
+<td align="left">4.119</td>
+<td align="left">4.032</td>
+<td align="left">2.821</td>
+<td align="left">2.743</td>
+<td align="left"></td>
+<td align="left">6.661</td>
+<td align="left">-2.1</td>
+<td align="left">-3.0</td>
+<td align="left">74.5</td>
+<td align="left">7.81</td>
+<td align="left">0.62</td>
+<td align="left">10.00</td>
+<td align="right">1998</td>
+<td align="right">1303</td>
+<td align="right">55</td>
+<td align="left">1.33</td>
+<td align="left">8.13</td>
+<td align="left">9.58</td>
+<td align="left">8.33</td>
+<td align="left">5.37</td>
+<td align="left">8.34</td>
+<td align="left">9.02</td>
+<td align="left">6.3</td>
+<td align="left">22.0</td>
+<td align="left">8.7</td>
+<td align="right">23</td>
+<td align="right">355</td>
+<td align="left">13.8</td>
+<td align="left">7.2</td>
+<td align="left">36.0</td>
+<td align="left">67.92</td>
+<td align="left">67.92</td>
+<td align="right">46</td>
+<td align="left">33.3</td>
+<td align="left">22.9</td>
+<td align="left">23.7</td>
+<td align="left">74.2</td>
+<td align="right">152</td>
+<td align="right">0</td>
+<td align="left">0.27</td>
+<td align="left">0.47</td>
+<td align="right">17</td>
+</tr>
+<tr class="odd">
+<td align="left">35</td>
+<td align="left">URU</td>
+<td align="left">0.39</td>
+<td align="left">0.31</td>
+<td align="left">-0.79</td>
+<td align="left">-0.84</td>
+<td align="left">4.40</td>
+<td align="left">4.40</td>
+<td align="left">80.3</td>
+<td align="left">80.3</td>
+<td align="left">4.00</td>
+<td align="left">4.00</td>
+<td align="left">6.05</td>
+<td align="left">6.05</td>
+<td align="left">1.70</td>
+<td align="left">1.70</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">3.0</td>
+<td align="left">3.0</td>
+<td align="left">1.0</td>
+<td align="left">1.0</td>
+<td align="left">2.5</td>
+<td align="left">2.5</td>
+<td align="left">0.19</td>
+<td align="left">0.19</td>
+<td align="left">0.51</td>
+<td align="left">0.46</td>
+<td align="left">0.57</td>
+<td align="left">0.94</td>
+<td align="left">6.9</td>
+<td align="left"></td>
+<td align="left">2.732</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">24.313</td>
+<td align="left">23.020</td>
+<td align="left"></td>
+<td align="left">11.198</td>
+<td align="left">-2.5</td>
+<td align="left">-2.1</td>
+<td align="left">70.0</td>
+<td align="left">6.93</td>
+<td align="left">0.77</td>
+<td align="left">8.80</td>
+<td align="right">NA</td>
+<td align="right">325</td>
+<td align="right">0</td>
+<td align="left">0.96</td>
+<td align="left">8.05</td>
+<td align="left">10.00</td>
+<td align="left">8.33</td>
+<td align="left">4.81</td>
+<td align="left">7.29</td>
+<td align="left">9.81</td>
+<td align="left">6.1</td>
+<td align="left">15.2</td>
+<td align="left">5.9</td>
+<td align="right">29</td>
+<td align="right">508</td>
+<td align="left">17.9</td>
+<td align="left">10.2</td>
+<td align="left">44.9</td>
+<td align="left">94.51</td>
+<td align="left"></td>
+<td align="right">52</td>
+<td align="left">60.9</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="left">59.1</td>
+<td align="right">261</td>
+<td align="right">0</td>
+<td align="left"></td>
+<td align="left"></td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">36</td>
+<td align="left">US</td>
+<td align="left">-0.67</td>
+<td align="left">-0.63</td>
+<td align="left">2.25</td>
+<td align="left">2.18</td>
+<td align="left">2.39</td>
+<td align="left">2.37</td>
+<td align="left">80.4</td>
+<td align="left">78.9</td>
+<td align="left">4.00</td>
+<td align="left">4.00</td>
+<td align="left">14.28</td>
+<td align="left">13.35</td>
+<td align="left">3.02</td>
+<td align="left">2.88</td>
+<td align="left">5.0</td>
+<td align="left">5.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">4.0</td>
+<td align="left">0.56</td>
+<td align="left">0.56</td>
+<td align="left">1.64</td>
+<td align="left">1.51</td>
+<td align="left">1.54</td>
+<td align="left">1.53</td>
+<td align="left">7.1</td>
+<td align="left">1.731</td>
+<td align="left">1.439</td>
+<td align="left">3.370</td>
+<td align="left">2.939</td>
+<td align="left">2.649</td>
+<td align="left">2.249</td>
+<td align="left">6.159</td>
+<td align="left">5.653</td>
+<td align="left"></td>
+<td align="left">-2.8</td>
+<td align="left">77.8</td>
+<td align="left">7.96</td>
+<td align="left">0.50</td>
+<td align="left">10.99</td>
+<td align="right">269</td>
+<td align="right">288</td>
+<td align="right">28</td>
+<td align="left">1.25</td>
+<td align="left">8.21</td>
+<td align="left">8.89</td>
+<td align="left">7.86</td>
+<td align="left">7.22</td>
+<td align="left">8.54</td>
+<td align="left">8.53</td>
+<td align="left">6.6</td>
+<td align="left">16.9</td>
+<td align="left">20.0</td>
+<td align="right">44</td>
+<td align="right">400</td>
+<td align="left">15.9</td>
+<td align="left">8.4</td>
+<td align="left">40.8</td>
+<td align="left">51.30</td>
+<td align="left">51.30</td>
+<td align="right">NA</td>
+<td align="left">35.5</td>
+<td align="left">18.4</td>
+<td align="left">18.8</td>
+<td align="left">63.5</td>
+<td align="right">743</td>
+<td align="right">2</td>
+<td align="left">0.21</td>
+<td align="left">0.22</td>
+<td align="right">5</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="variablen-der-gles" class="section level1">
+<h1>4. Variablen der <code>gles</code></h1>
+<p>Anhand der Wahlforschungsdaten der GLES wollen wir im weiteren
+Verlauf des Kurses die Wahlentscheidung der Befragten mittels
+sozio-demografischer Größen und politischer Einstellungen erklären.
+Dabei interessiert uns insbesondere, wie die Wahlentscheidung zugunsten
+der AfD erklärt werden kann. Außerdem werden wir versuchen, die
+Selbsteinstufung der Befragten entlang einer Links-Rechts-Achse zu
+erklären. Wir benötigen die folgenden Variablen: das Alter der
+Befragten, deren Geschlecht, Einkommen, Wohnort, subjektive
+Links-Rechts-Einstufung und die Angabe, ob sie bei der Bundestagswahl
+2017 ihre Zweitstimme für die AfD abgegeben haben. Im Folgenden werden
+wir uns die Variablen jeweils einmal in der Form anschauen, in der sie
+im Datensatz vorkommen. Danach werden wir sie zu unseren Zwecken
+verändern, wobei wir lediglich den Datensatz im Arbeitsspeicher
+verändern und nicht den Datensatz auf der Festplatte. Deshalb ist es
+hilfreich, alle vorgenommenen Operationen als Skripte zu schreiben, weil
+man so alle Arbeitsschritte sofort wieder vornehmen kann und immer
+nachvollziehen kann, woran bereits gearbeitet wurde.</p>
+<div id="alter" class="section level2">
+<h2>4.1 Alter</h2>
+<p>Wir beginnen mit den unabhängigen Variablen. Das Alter der Befragten
+könnte einen Einfluss auf die Wahlentscheidung und die Position entlang
+einer gedachten Links-Rechts-Achse haben. Tatsächlich wurden die
+Befragten nicht nach ihrem Alter gefragt, sondern nach ihrem
+Geburtsdatum (s. Fragebogen, S. 11). Das Geburtsjahr liegt in der
+Variable <code>q2c</code> als Faktor vor.</p>
+<pre class="r"><code>class(gles$q2c)</code></pre>
+<pre><code>## [1] &quot;factor&quot;</code></pre>
+<pre class="r"><code>table(gles$q2c)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">1922</th>
+<th align="right">1923</th>
+<th align="right">1924</th>
+<th align="right">1925</th>
+<th align="right">1927</th>
+<th align="right">1928</th>
+<th align="right">1929</th>
+<th align="right">1930</th>
+<th align="right">1931</th>
+<th align="right">1932</th>
+<th align="right">1933</th>
+<th align="right">1934</th>
+<th align="right">1935</th>
+<th align="right">1936</th>
+<th align="right">1937</th>
+<th align="right">1938</th>
+<th align="right">1939</th>
+<th align="right">1940</th>
+<th align="right">1941</th>
+<th align="right">1942</th>
+<th align="right">1943</th>
+<th align="right">1944</th>
+<th align="right">1945</th>
+<th align="right">1946</th>
+<th align="right">1947</th>
+<th align="right">1948</th>
+<th align="right">1949</th>
+<th align="right">1950</th>
+<th align="right">1951</th>
+<th align="right">1952</th>
+<th align="right">1953</th>
+<th align="right">1954</th>
+<th align="right">1955</th>
+<th align="right">1956</th>
+<th align="right">1957</th>
+<th align="right">1958</th>
+<th align="right">1959</th>
+<th align="right">1960</th>
+<th align="right">1961</th>
+<th align="right">1962</th>
+<th align="right">1963</th>
+<th align="right">1964</th>
+<th align="right">1965</th>
+<th align="right">1966</th>
+<th align="right">1967</th>
+<th align="right">1968</th>
+<th align="right">1969</th>
+<th align="right">1970</th>
+<th align="right">1971</th>
+<th align="right">1972</th>
+<th align="right">1973</th>
+<th align="right">1974</th>
+<th align="right">1975</th>
+<th align="right">1976</th>
+<th align="right">1977</th>
+<th align="right">1978</th>
+<th align="right">1979</th>
+<th align="right">1980</th>
+<th align="right">1981</th>
+<th align="right">1982</th>
+<th align="right">1983</th>
+<th align="right">1984</th>
+<th align="right">1985</th>
+<th align="right">1986</th>
+<th align="right">1987</th>
+<th align="right">1988</th>
+<th align="right">1989</th>
+<th align="right">1990</th>
+<th align="right">1991</th>
+<th align="right">1992</th>
+<th align="right">1993</th>
+<th align="right">1994</th>
+<th align="right">1995</th>
+<th align="right">1996</th>
+<th align="right">1997</th>
+<th align="right">1998</th>
+<th align="right">1999</th>
+<th align="right">2000</th>
+<th align="right">2001</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="right">10</td>
+<td align="right">7</td>
+<td align="right">13</td>
+<td align="right">20</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">25</td>
+<td align="right">29</td>
+<td align="right">35</td>
+<td align="right">36</td>
+<td align="right">19</td>
+<td align="right">24</td>
+<td align="right">26</td>
+<td align="right">17</td>
+<td align="right">23</td>
+<td align="right">24</td>
+<td align="right">31</td>
+<td align="right">36</td>
+<td align="right">31</td>
+<td align="right">24</td>
+<td align="right">50</td>
+<td align="right">35</td>
+<td align="right">36</td>
+<td align="right">32</td>
+<td align="right">30</td>
+<td align="right">22</td>
+<td align="right">38</td>
+<td align="right">45</td>
+<td align="right">44</td>
+<td align="right">32</td>
+<td align="right">48</td>
+<td align="right">41</td>
+<td align="right">41</td>
+<td align="right">47</td>
+<td align="right">34</td>
+<td align="right">36</td>
+<td align="right">41</td>
+<td align="right">37</td>
+<td align="right">30</td>
+<td align="right">38</td>
+<td align="right">31</td>
+<td align="right">32</td>
+<td align="right">31</td>
+<td align="right">29</td>
+<td align="right">21</td>
+<td align="right">27</td>
+<td align="right">35</td>
+<td align="right">22</td>
+<td align="right">33</td>
+<td align="right">24</td>
+<td align="right">23</td>
+<td align="right">26</td>
+<td align="right">32</td>
+<td align="right">27</td>
+<td align="right">23</td>
+<td align="right">33</td>
+<td align="right">41</td>
+<td align="right">37</td>
+<td align="right">22</td>
+<td align="right">27</td>
+<td align="right">25</td>
+<td align="right">19</td>
+<td align="right">18</td>
+<td align="right">29</td>
+<td align="right">25</td>
+<td align="right">27</td>
+<td align="right">28</td>
+<td align="right">32</td>
+<td align="right">48</td>
+<td align="right">22</td>
+</tr>
+</tbody>
+</table>
+<p>Wir berechnen das Alter, indem wir das Geburtsjahr der Befragten von
+dem Jahr der Befragung subtrahieren. Dazu müssen wir die Variable
+zunächst in einen numerischen Vektor umwandeln. Wenn man jedoch Faktoren
+direkt in numerische Vektoren umwandelt, werden die zugrunde liegenden
+Levels der Faktoren herangezogen und als numerische Werte
+interpretiert.</p>
+<pre class="r"><code>head(as.numeric(gles$q2c)) </code></pre>
+<pre><code>## [1] 38 42 31 17 79 37</code></pre>
+<p>Deshalb müssen wir den Faktor q2c zunächst zu einem character-Vektor
+und danach zu einem numerischen Vektor umwandeln. Dazu verwenden wir die
+Umwandlungsfunktion <code>as.numeric(as.character())</code>. Die
+numerischen Geburtsjahre speichern wir als <code>q2c_num</code>.
+Schließlich führen wir die Subtraktion durch. Das so berechnete Alter
+speichern wir in einer neuen Variable <code>alter</code>, die wir an den
+Datensatz anfügen.</p>
+<pre class="r"><code>q2c_num &lt;- as.numeric(as.character(gles$q2c))
+gles$alter &lt;- 2017 - q2c_num # Warnung &quot;NA&#39;s introduced by coercion&quot; weil eine Person mit &quot;keine Angabe&quot; antwortete und das numerisch nicht interpretierbar ist
+class(gles$alter)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>table(gles$alter)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">16</th>
+<th align="right">17</th>
+<th align="right">18</th>
+<th align="right">19</th>
+<th align="right">20</th>
+<th align="right">21</th>
+<th align="right">22</th>
+<th align="right">23</th>
+<th align="right">24</th>
+<th align="right">25</th>
+<th align="right">26</th>
+<th align="right">27</th>
+<th align="right">28</th>
+<th align="right">29</th>
+<th align="right">30</th>
+<th align="right">31</th>
+<th align="right">32</th>
+<th align="right">33</th>
+<th align="right">34</th>
+<th align="right">35</th>
+<th align="right">36</th>
+<th align="right">37</th>
+<th align="right">38</th>
+<th align="right">39</th>
+<th align="right">40</th>
+<th align="right">41</th>
+<th align="right">42</th>
+<th align="right">43</th>
+<th align="right">44</th>
+<th align="right">45</th>
+<th align="right">46</th>
+<th align="right">47</th>
+<th align="right">48</th>
+<th align="right">49</th>
+<th align="right">50</th>
+<th align="right">51</th>
+<th align="right">52</th>
+<th align="right">53</th>
+<th align="right">54</th>
+<th align="right">55</th>
+<th align="right">56</th>
+<th align="right">57</th>
+<th align="right">58</th>
+<th align="right">59</th>
+<th align="right">60</th>
+<th align="right">61</th>
+<th align="right">62</th>
+<th align="right">63</th>
+<th align="right">64</th>
+<th align="right">65</th>
+<th align="right">66</th>
+<th align="right">67</th>
+<th align="right">68</th>
+<th align="right">69</th>
+<th align="right">70</th>
+<th align="right">71</th>
+<th align="right">72</th>
+<th align="right">73</th>
+<th align="right">74</th>
+<th align="right">75</th>
+<th align="right">76</th>
+<th align="right">77</th>
+<th align="right">78</th>
+<th align="right">79</th>
+<th align="right">80</th>
+<th align="right">81</th>
+<th align="right">82</th>
+<th align="right">83</th>
+<th align="right">84</th>
+<th align="right">85</th>
+<th align="right">86</th>
+<th align="right">87</th>
+<th align="right">88</th>
+<th align="right">89</th>
+<th align="right">90</th>
+<th align="right">92</th>
+<th align="right">93</th>
+<th align="right">94</th>
+<th align="right">95</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">22</td>
+<td align="right">48</td>
+<td align="right">32</td>
+<td align="right">28</td>
+<td align="right">27</td>
+<td align="right">25</td>
+<td align="right">29</td>
+<td align="right">18</td>
+<td align="right">19</td>
+<td align="right">25</td>
+<td align="right">27</td>
+<td align="right">22</td>
+<td align="right">37</td>
+<td align="right">41</td>
+<td align="right">33</td>
+<td align="right">23</td>
+<td align="right">27</td>
+<td align="right">32</td>
+<td align="right">26</td>
+<td align="right">23</td>
+<td align="right">24</td>
+<td align="right">33</td>
+<td align="right">22</td>
+<td align="right">35</td>
+<td align="right">27</td>
+<td align="right">21</td>
+<td align="right">29</td>
+<td align="right">31</td>
+<td align="right">32</td>
+<td align="right">31</td>
+<td align="right">38</td>
+<td align="right">30</td>
+<td align="right">37</td>
+<td align="right">41</td>
+<td align="right">36</td>
+<td align="right">34</td>
+<td align="right">47</td>
+<td align="right">41</td>
+<td align="right">41</td>
+<td align="right">48</td>
+<td align="right">32</td>
+<td align="right">44</td>
+<td align="right">45</td>
+<td align="right">38</td>
+<td align="right">22</td>
+<td align="right">30</td>
+<td align="right">32</td>
+<td align="right">36</td>
+<td align="right">35</td>
+<td align="right">50</td>
+<td align="right">24</td>
+<td align="right">31</td>
+<td align="right">36</td>
+<td align="right">31</td>
+<td align="right">24</td>
+<td align="right">23</td>
+<td align="right">17</td>
+<td align="right">26</td>
+<td align="right">24</td>
+<td align="right">19</td>
+<td align="right">36</td>
+<td align="right">35</td>
+<td align="right">29</td>
+<td align="right">25</td>
+<td align="right">22</td>
+<td align="right">22</td>
+<td align="right">20</td>
+<td align="right">13</td>
+<td align="right">7</td>
+<td align="right">10</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="right">8</td>
+<td align="right">4</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(gles$alter)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+<th align="right">NA’s</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">16</td>
+<td align="right">34</td>
+<td align="right">51</td>
+<td align="right">50.15396</td>
+<td align="right">65</td>
+<td align="right">95</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>View(gles$alter)</code></pre>
+<p>Wie <code>summary()</code> zeigt, sind Personen zwischen 16 und 95
+Jahren befragt worden. Der Median liegt bei 51 Jahren und das
+arithmetische Mittel bei 50,15 Jahren. Bei einer Person liegt keine
+Information über das Alter vor (<code>NA</code>), diese Person hat die
+Angabe verweigert. <code>table()</code> zeigt, wie viele Personen mit
+einem bestimmten Alter im Datensatz enthalten sind, also z.B. 22
+16-Jährige, 48 17-Jährige, usw. Mit <code>View()</code> können wir die
+Variable inspizieren.</p>
+</div>
+<div id="geschlecht" class="section level2">
+<h2>4.2 Geschlecht</h2>
+<p>Womöglich hat das Geschlecht der Befragten einen Einfluss. Die
+Variable Geschlecht ist direkt erfasst worden und liegt als Faktor vor.
+Wir vergeben lediglich einen aussagekräftigen Variablennamen.</p>
+<pre class="r"><code>names(gles)[names(gles) == &quot;q1&quot;] &lt;- &quot;geschlecht&quot;
+table(gles$geschlecht)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">maennlich</th>
+<th align="right">weiblich</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1097</td>
+<td align="right">1015</td>
+</tr>
+</tbody>
+</table>
+<p>Wie die Funktion <code>table()</code> zeigt, sind Männer in unserem
+Sample leicht überrepräsentiert.</p>
+</div>
+<div id="haushaltseinkommen" class="section level2">
+<h2>4.3 Haushaltseinkommen</h2>
+<p>Auch die wirtschaftliche Situation der Befragten könnte eine Rolle
+spielen. Das Haushaltseinkommen der Befragten ist in Kategorien
+abgefragt worden (s. Fragebogen, S. 206).</p>
+<pre class="r"><code>table(gles$q192)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="4%" />
+<col width="7%" />
+<col width="7%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">unter 500 Euro</th>
+<th align="right">500 bis unter 750 Euro</th>
+<th align="right">750 bis unter 1000 Euro</th>
+<th align="right">1000 bis unter 1250 Euro</th>
+<th align="right">1250 bis unter 1500 Euro</th>
+<th align="right">1500 bis unter 2000 Euro</th>
+<th align="right">2000 bis unter 2500 Euro</th>
+<th align="right">2500 bis unter 3000 Euro</th>
+<th align="right">3000 bis unter 4000 Euro</th>
+<th align="right">4000 bis unter 5000 Euro</th>
+<th align="right">5000 bis unter 7500 Euro</th>
+<th align="right">7500 bis unter 10000 Euro</th>
+<th align="right">10000 Euro und mehr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">19</td>
+<td align="right">33</td>
+<td align="right">62</td>
+<td align="right">85</td>
+<td align="right">111</td>
+<td align="right">231</td>
+<td align="right">262</td>
+<td align="right">250</td>
+<td align="right">310</td>
+<td align="right">189</td>
+<td align="right">161</td>
+<td align="right">38</td>
+<td align="right">18</td>
+</tr>
+</tbody>
+</table>
+<p>Da die Kategorien sehr kleinteilig sind, wollen wir sie neu
+einteilen. Die sieben neuen Kategorien lauten wie folgt: weniger als
+1000 Euro, 1000 bis 1999 Euro, 2000 bis 2999 Euro, 3000 bis 3999 Euro,
+4000 bis 4999 Euro, 5000 bis 7499 Euro und 7500 Euro und mehr.</p>
+<p>Zur Indizierung verwenden wir wieder eckige Klammern, diesmal
+allerdings in Kombination mit dem logischen Oder |. Der nachfolgende
+Code sagt folgendes aus: Wenn <code>q192</code> die Ausprägung “unter
+500 Euro” oder “500 bis unter 750 Euro” oder “750 bis unter 1000 Euro”
+aufweist, dann ordne der Variable <code>einkommen_cat</code> “weniger
+als 1000 Euro” zu. Für die weiteren Kategorien geschieht dies analog.
+Machen Sie sich bewusst, dass der Inhalt der eckigen Klammern jeweils
+einen logischen Vektor mit den Werten <code>TRUE</code> und
+<code>FALSE</code> ausgibt. Wenn <code>TRUE</code>, dann wird
+<code>einkommen_cat</code> der Wert rechts von <code>&lt;-</code>
+zugewiesen.</p>
+<p>Führen Sie zu diese Codezeile zunächst einzeln aus und lassen Sie
+sich <code>View(gles$einkommen_cat)</code> ausgeben:</p>
+<pre class="r"><code>gles$einkommen_cat[gles$q192 == &quot;unter 500 Euro&quot; |
+                     gles$q192 == &quot;500 bis unter 750 Euro&quot; |
+                     gles$q192 == &quot;750 bis unter 1000 Euro&quot;] &lt;- &quot;weniger als 1000&quot;</code></pre>
+<pre class="r"><code>View(gles$einkommen_cat)</code></pre>
+<p>Sie sehen, dass einkommen_cat für die meisten Beobachtungen einen
+fehlenden Wert, <code>NA</code> (“not available”), enthält. Das sind
+Personen, deren Haushaltseinkommen 1000 Euro und mehr beträgt. Wenn Sie
+nun schrittweise die folgenden Codezeilen ausführen, verschwinden die
+<code>NA</code>s nach und nach.</p>
+<pre class="r"><code>gles$einkommen_cat[gles$q192 == &quot;1000 bis unter 1250 Euro&quot; |
+                     gles$q192 == &quot;1250 bis unter 1500 Euro&quot; |
+                     gles$q192 == &quot;1500 bis unter 2000 Euro&quot;] &lt;- &quot;1000 bis 1999&quot;
+gles$einkommen_cat[gles$q192 == &quot;2000 bis unter 2500 Euro&quot; |
+                     gles$q192 == &quot;2500 bis unter 3000 Euro&quot;] &lt;- &quot;2000 bis 2999&quot;
+gles$einkommen_cat[gles$q192 == &quot;3000 bis unter 4000 Euro&quot;] &lt;- &quot;3000 bis 3999&quot;
+gles$einkommen_cat[gles$q192 == &quot;4000 bis unter 5000 Euro&quot;] &lt;- &quot;4000 bis 4999&quot;
+gles$einkommen_cat[gles$q192 == &quot;5000 bis unter 7500 Euro&quot;] &lt;- &quot;5000 bis 7499&quot;
+gles$einkommen_cat[gles$q192 == &quot;7500 bis unter 10000 Euro&quot; |
+                     gles$q192 == &quot;10000 Euro und mehr&quot;] &lt;- &quot;7500 und mehr&quot;</code></pre>
+<p>Wenn Sie alle Zeilen ausgeführt haben, werden immer noch einige
+<code>NA</code>s übrigbleiben. Das sind die Personen, die die Aussage
+verweigert haben, die ihr Haushaltseinkommen nicht kannten, oder deren
+Haushaltseinkommen aus anderen Gründen nicht vorlag. Die Variable sieht
+folgendermaßen aus:</p>
+<pre class="r"><code>table(gles$einkommen_cat)</code></pre>
+<table>
+<colgroup>
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">1000 bis 1999</th>
+<th align="right">2000 bis 2999</th>
+<th align="right">3000 bis 3999</th>
+<th align="right">4000 bis 4999</th>
+<th align="right">5000 bis 7499</th>
+<th align="right">7500 und mehr</th>
+<th align="right">weniger als 1000</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">427</td>
+<td align="right">512</td>
+<td align="right">310</td>
+<td align="right">189</td>
+<td align="right">161</td>
+<td align="right">56</td>
+<td align="right">114</td>
+</tr>
+</tbody>
+</table>
+<p>Dabei fällt auf, dass die niedrigste Kategorie “weniger als 1000” im
+Output als letzte erscheint. Um die richtige Ordnung herzustellen,
+wandeln wir <code>einkommen_cat</code> in einen Faktor um und ordnen die
+Levels händisch.</p>
+<pre class="r"><code>gles$einkommen_cat &lt;- factor(gles$einkommen_cat,
+                                levels = c(&quot;weniger als 1000&quot;,
+                                           &quot;1000 bis 1999&quot;,
+                                           &quot;2000 bis 2999&quot;,
+                                           &quot;3000 bis 3999&quot;,
+                                           &quot;4000 bis 4999&quot;,
+                                           &quot;5000 bis 7499&quot;,
+                                           &quot;7500 und mehr&quot;))
+
+table(gles$einkommen_cat)</code></pre>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">weniger als 1000</th>
+<th align="right">1000 bis 1999</th>
+<th align="right">2000 bis 2999</th>
+<th align="right">3000 bis 3999</th>
+<th align="right">4000 bis 4999</th>
+<th align="right">5000 bis 7499</th>
+<th align="right">7500 und mehr</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">114</td>
+<td align="right">427</td>
+<td align="right">512</td>
+<td align="right">310</td>
+<td align="right">189</td>
+<td align="right">161</td>
+<td align="right">56</td>
+</tr>
+</tbody>
+</table>
+<p>Wir können das Haushaltseinkommen auch als kontinuierliche Variable
+behandeln, da es in der vorliegenden Kodierweise sieben Ausprägungen
+aufweist. Dazu verändern wir die eben erstellte Variable wie folgt:</p>
+<pre class="r"><code>gles$einkommen_num[gles$einkommen_cat == &quot;weniger als 1000&quot;] &lt;- 1
+gles$einkommen_num[gles$einkommen_cat == &quot;1000 bis 1999&quot;] &lt;- 2
+gles$einkommen_num[gles$einkommen_cat == &quot;2000 bis 2999&quot;] &lt;- 3
+gles$einkommen_num[gles$einkommen_cat == &quot;3000 bis 3999&quot;] &lt;- 4
+gles$einkommen_num[gles$einkommen_cat == &quot;4000 bis 4999&quot;] &lt;- 5
+gles$einkommen_num[gles$einkommen_cat == &quot;5000 bis 7499&quot;] &lt;- 6
+gles$einkommen_num[gles$einkommen_cat == &quot;7500 und mehr&quot;] &lt;- 7
+table(gles$einkommen_num)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">1</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">114</td>
+<td align="right">427</td>
+<td align="right">512</td>
+<td align="right">310</td>
+<td align="right">189</td>
+<td align="right">161</td>
+<td align="right">56</td>
+</tr>
+</tbody>
+</table>
+<p>Wie Sie sehen, entsprechen sich die Kategorien von
+<code>einkommen_cat</code> und <code>einkommen_num</code> in Bezug auf
+die Fallzahl pro Kategorie.</p>
+</div>
+<div id="wohnort" class="section level2">
+<h2>4.4 Wohnort</h2>
+<p>Außerdem könnte der Wohnort der Befragten einen Einfluss auf die
+politische Position oder die Wahlentscheidung haben. In diesem Fall sind
+die vorliegenden Kategorien ausreichend. Allerdings sind die Labels
+recht unhandlich, weshalb wir sie umbenennen.</p>
+<pre class="r"><code>table(gles$q197)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="26%" />
+<col width="29%" />
+<col width="32%" />
+<col width="10%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">laendliche Gegend oder Dorf</th>
+<th align="right">kleine oder mittelgrosse Stadt</th>
+<th align="right">Vorstadt/ Vorort einer Grossstadt</th>
+<th align="right">Grossstadt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">766</td>
+<td align="right">762</td>
+<td align="right">147</td>
+<td align="right">437</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>gles$wohnort[gles$q197 == &quot;Grossstadt&quot;] &lt;- &quot;Großstadt&quot;
+gles$wohnort[gles$q197 == &quot;kleine oder mittelgrosse Stadt&quot;] &lt;- &quot;Kleinstadt&quot;
+gles$wohnort[gles$q197 == &quot;laendliche Gegend oder Dorf&quot;] &lt;- &quot;Land&quot;
+gles$wohnort[gles$q197 == &quot;Vorstadt/ Vorort einer Grossstadt&quot;] &lt;- &quot;Vorstadt&quot;
+table(gles$wohnort)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Großstadt</th>
+<th align="right">Kleinstadt</th>
+<th align="right">Land</th>
+<th align="right">Vorstadt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">437</td>
+<td align="right">762</td>
+<td align="right">766</td>
+<td align="right">147</td>
+</tr>
+</tbody>
+</table>
+<p>Da lediglich die Kategorienamen und nicht die Datenstruktur angepasst
+wurden, hat sich am Zuschnitt der Kategorien nichts geändert.</p>
+</div>
+<div id="links-rechts-selbsteinstufung" class="section level2">
+<h2>4.5 Links-Rechts-Selbsteinstufung</h2>
+<p>Schließlich kommen wir zu den abhängigen Variablen unserer Analysen.
+Bei der Links-Rechts-Selbsteinstufung wurden die Befragten aufgefordert,
+ihre Position anhand einer 11-stufigen Links-Rechts-Skala einzuschätzen.
+Wir schauen uns mit <code>table()</code> zunächst wieder an, wie sich
+die Befragten einordnen.</p>
+<pre class="r"><code>table(gles$q32)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">1 links</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+<th align="right">8</th>
+<th align="right">9</th>
+<th align="right">10</th>
+<th align="right">11 rechts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">53</td>
+<td align="right">105</td>
+<td align="right">263</td>
+<td align="right">249</td>
+<td align="right">354</td>
+<td align="right">552</td>
+<td align="right">184</td>
+<td align="right">118</td>
+<td align="right">50</td>
+<td align="right">13</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+<p>Auch in diesem Fall belassen wir die Kategorisierung zunächst in
+ihrer Ursprungsform, wandeln die Variable jedoch in einen numerischen
+Vektor um und kodieren die als Strings enthaltenden Ausprägungen zu
+numerisch interpretierbaren Zahlen.</p>
+<pre class="r"><code>gles$LiRe &lt;- as.character(gles$q32)
+gles$LiRe[gles$LiRe == &quot;1 links&quot;] &lt;- &quot;1&quot;
+gles$LiRe[gles$LiRe == &quot;11 rechts&quot;] &lt;- &quot;11&quot;
+gles$LiRe &lt;- as.numeric(gles$LiRe)</code></pre>
+<p>Auch hier muss der Faktor <code>q32</code> zunächst in einen
+character-Vektor umgewandelt werden (dabei wird er als neues Objekt LiRe
+gespeichert), damit man ihn sinnvoll umkodieren und schließlich in einen
+numerischen Vektor umwandeln kann. Die Links-Rechts-Selbsteinstufung
+wollen wir des Weiteren etwas aggregieren, sodass mehrere Kategorien
+zusammengefasst werden. Die Kategorien eins und zwei sollen in der neuen
+Kategorie “links”, die Kategorien drei und vier in der Kategorie
+“moderat links”, die Kategorien fünf, sechs und sieben in der Kategorie
+“mittig”, die Kategorien acht und neun in der Kategorie “moderat rechts”
+und die Kategorien 10 und 11 in der Kategorie “rechts” zusammengefasst
+werden. Wir erstellen die aggregierte Variable ausgehend von der eben
+gebildeten Variable LiRe und verwenden die Vergleichsoperatoren
+<code>&gt;=</code> (größer-gleich) und <code>&lt;=</code>
+(kleiner-gleich).</p>
+<pre class="r"><code>gles$LiRe_cat[gles$LiRe &gt;= 1 &amp;
+                gles$LiRe &lt;= 2] &lt;- &quot;links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 3 &amp;
+                gles$LiRe &lt;= 4] &lt;- &quot;moderat links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 5 &amp;
+                gles$LiRe &lt;= 7] &lt;- &quot;mittig&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 8 &amp;
+                gles$LiRe &lt;= 9] &lt;- &quot;moderat rechts&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 10 &amp;
+                gles$LiRe &lt;= 11] &lt;- &quot;rechts&quot;
+table(gles$LiRe_cat)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">links</th>
+<th align="right">mittig</th>
+<th align="right">moderat links</th>
+<th align="right">moderat rechts</th>
+<th align="right">rechts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">158</td>
+<td align="right">1090</td>
+<td align="right">512</td>
+<td align="right">168</td>
+<td align="right">36</td>
+</tr>
+</tbody>
+</table>
+<p>Durch die Aggregierung hat die neue Variable weniger Kategorien,
+jedoch mehr Fälle pro Kategorie. Allerdings sind die Kategorien wie beim
+kategorialen Haushaltseinkommen durcheinandergeraten. Wir stellen die
+richtige Ordnung her, indem wir sie zu einem Faktor umwandeln und die
+Levels händisch ordnen.</p>
+<pre class="r"><code>gles$LiRe_cat &lt;- factor(gles$LiRe_cat,
+                                levels = c(&quot;links&quot;,
+                                           &quot;moderat links&quot;,
+                                           &quot;mittig&quot;,
+                                           &quot;moderat rechts&quot;,
+                                           &quot;rechts&quot;))
+
+table(gles$LiRe_cat)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">links</th>
+<th align="right">moderat links</th>
+<th align="right">mittig</th>
+<th align="right">moderat rechts</th>
+<th align="right">rechts</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">158</td>
+<td align="right">512</td>
+<td align="right">1090</td>
+<td align="right">168</td>
+<td align="right">36</td>
+</tr>
+</tbody>
+</table>
+<p>Mit LiRe und LiRe_cat stehen uns nun zwei abhängige Variablen zur
+Verfügung, anhand derer wir die Links-Rechts-Selbsteinstufung der
+Befragten messen können.</p>
+</div>
+<div id="afd-wahl" class="section level2">
+<h2>4.6 AfD-Wahl</h2>
+<p>Schließlich benötigen wir eine Variable, die eine Aussage darüber
+trifft, ob eine befragte Person die AfD gewählt hat. Bei solchen
+Variablen, die eine Aussage darüber treffen, ob etwas zutrifft oder
+nicht, sprechen wir von dichotomen Variablen. Dichotome Variablen
+enthalten den Wert 1, wenn etwas zutrifft und den Wert 0, wenn etwas
+nicht zutrifft. Die dichotome abhängige Variable zur AfD-Wahl bilden wir
+aus der Variable <code>q19ba</code>, welche die berichtete
+Wahlentscheidung der Befragten enthält.</p>
+<pre class="r"><code>table(gles$q19ba)</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="2%" />
+<col width="0%" />
+<col width="1%" />
+<col width="0%" />
+<col width="2%" />
+<col width="2%" />
+<col width="3%" />
+<col width="1%" />
+<col width="3%" />
+<col width="1%" />
+<col width="7%" />
+<col width="0%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="3%" />
+<col width="0%" />
+<col width="3%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="0%" />
+<col width="1%" />
+<col width="1%" />
+<col width="1%" />
+<col width="4%" />
+<col width="2%" />
+<col width="0%" />
+<col width="2%" />
+<col width="3%" />
+<col width="0%" />
+<col width="2%" />
+<col width="0%" />
+<col width="0%" />
+<col width="0%" />
+<col width="1%" />
+<col width="3%" />
+<col width="3%" />
+<col width="2%" />
+<col width="3%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">CDU/CSU</th>
+<th align="right">CDU</th>
+<th align="right">CSU</th>
+<th align="right">SPD</th>
+<th align="right">FDP</th>
+<th align="right">GRUENE</th>
+<th align="right">DIE LINKE</th>
+<th align="right">BP</th>
+<th align="right">BüSo</th>
+<th align="right">DDP</th>
+<th align="right">Die GRAUEN</th>
+<th align="right">Die PARTEI</th>
+<th align="right">DIE VIOLETTEN</th>
+<th align="right">FAMILIE</th>
+<th align="right">Freie Waehler</th>
+<th align="right">GRAUE</th>
+<th align="right">Grundeinkommen - Volksentscheide</th>
+<th align="right">KPD</th>
+<th align="right">MLPD</th>
+<th align="right">NPD</th>
+<th align="right">NSDAP</th>
+<th align="right">oedp</th>
+<th align="right">PBC</th>
+<th align="right">PIRATEN</th>
+<th align="right">Pro DM</th>
+<th align="right">RENTNER</th>
+<th align="right">REP</th>
+<th align="right">RRP</th>
+<th align="right">SED</th>
+<th align="right">Tierschutzpartei</th>
+<th align="right">UDP</th>
+<th align="right">Volksabstimmung</th>
+<th align="right">ZENTRUM</th>
+<th align="right">UBP</th>
+<th align="right">LDPD</th>
+<th align="right">DBD</th>
+<th align="right">DNVP</th>
+<th align="right">GB/BHE</th>
+<th align="right">NDPD</th>
+<th align="right">PARTEI DER VERNUNFT</th>
+<th align="right">Bergpartei</th>
+<th align="right">AfD</th>
+<th align="right">DIE RECHTE</th>
+<th align="right">AD-Demokraten NRW</th>
+<th align="right">BGE</th>
+<th align="right">V-Partei3</th>
+<th align="right">MG</th>
+<th align="right">DM</th>
+<th align="right">DiB</th>
+<th align="right">Sonstige</th>
+<th align="right">andere Partei</th>
+<th align="right">Einzelkandidat</th>
+<th align="right">keine Partei</th>
+<th align="right">alle Parteien</th>
+<th align="right">mit mehreren Parteien</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">504</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">338</td>
+<td align="right">200</td>
+<td align="right">225</td>
+<td align="right">188</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">162</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">73</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>View(gles$q19ba)</code></pre>
+<p>Wie zu erkennen ist, sind viele Kategorien nicht besetzt. Uns
+interessiert nun lediglich, ob eine Person die AfD gewählt hat oder
+nicht. Entsprechend wird in der neuen Variable AfD.Wahl Personen, welche
+die AfD gewählt haben, eine 1 zugewiesen, während Personen, die eine
+andere Partei gewählt haben, eine 0 zugewiesen wird. Wir verwenden
+<code>==</code> (gleich) und <code>!=</code> (ungleich).</p>
+<pre class="r"><code>gles$AfD.Wahl[gles$q19ba == &quot;AfD&quot;] &lt;- 1
+gles$AfD.Wahl[gles$q19ba != &quot;AfD&quot;] &lt;- 0</code></pre>
+<p>Die neue Variable beinhaltet jetzt ausschließlich Einsen und Nullen.
+Wenn in <code>q19ba</code> keine Information über die Wahlentscheidung
+vorliegt (<code>NA</code>), erhält auch die neue gebildete Variable ein
+<code>NA</code>.</p>
+<pre class="r"><code>table(gles$AfD.Wahl)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">0</th>
+<th align="right">1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1528</td>
+<td align="right">162</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>View(gles$AfD.Wahl)</code></pre>
+</div>
+</div>
+<div id="variablen-in-patterns-of-democracy" class="section level1">
+<h1>5. Variablen in Patterns of Democracy</h1>
+<p>Die Variablen des Datensatzes zu “Patterns of Democracy” werden im
+weiteren Verlauf des Kurses in der bereits vorliegenden Form verwendet.
+Allerdings liegen sie als character-Vektoren vor und müssen zu
+numerischen Vektoren umgewandelt werden. Das sei hier beispielhaft für
+die Variable <code>enpp4510</code> dargestellt, welche die Effective
+Number of Parliamentary Parties in den Jahren 1945 bis 2010 für alle
+Länder enthält.</p>
+<pre class="r"><code>class(lijphart$enpp4510)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code>table(lijphart$enpp4510)</code></pre>
+<table>
+<colgroup>
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+<col width="2%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">1.38</th>
+<th align="right">1.67</th>
+<th align="right">1.68</th>
+<th align="right">1.69</th>
+<th align="right">1.87</th>
+<th align="right">1.99</th>
+<th align="right">2.16</th>
+<th align="right">2.22</th>
+<th align="right">2.27</th>
+<th align="right">2.28</th>
+<th align="right">2.39</th>
+<th align="right">2.52</th>
+<th align="right">2.66</th>
+<th align="right">2.67</th>
+<th align="right">2.68</th>
+<th align="right">2.85</th>
+<th align="right">2.89</th>
+<th align="right">3.09</th>
+<th align="right">3.13</th>
+<th align="right">3.15</th>
+<th align="right">3.26</th>
+<th align="right">3.47</th>
+<th align="right">3.48</th>
+<th align="right">3.62</th>
+<th align="right">3.64</th>
+<th align="right">3.72</th>
+<th align="right">4.40</th>
+<th align="right">4.57</th>
+<th align="right">4.72</th>
+<th align="right">4.80</th>
+<th align="right">4.84</th>
+<th align="right">4.87</th>
+<th align="right">5.04</th>
+<th align="right">5.18</th>
+<th align="right">5.20</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>summary(lijphart$enpp4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Length</th>
+<th align="left">Class</th>
+<th align="left">Mode</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">36</td>
+<td align="left">character</td>
+<td align="left">character</td>
+</tr>
+</tbody>
+</table>
+<p>Wie der Output der Funktionen <code>table()</code> und
+<code>summary()</code> zeigen, ist die Variable in dieser Form nicht
+sinnvoll zu interpretieren. Wir wandeln sie entsprechend um:</p>
+<pre class="r"><code>lijphart$enpp4510 &lt;- as.numeric(lijphart$enpp4510)
+summary(lijphart$enpp4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1.38</td>
+<td align="right">2.2775</td>
+<td align="right">2.99</td>
+<td align="right">3.191667</td>
+<td align="right">3.89</td>
+<td align="right">5.2</td>
+</tr>
+</tbody>
+</table>
+<p>Anders als beim GLES überschreiben wir hier die Ursprungsvariable und
+bilden also keine neue Variable. Das hat damit zu tun, dass die Variable
+eigentlich numerisch sein müsste, wir sie also “reparieren”, statt sie
+für unsere Zwecke anzupassen. So gehen wir mit allen Variablen vor, die
+wir im Kurs verwenden werden. Für den Gallagher-Index zur Messung der
+Disproportionalität von Wahlsystemen:</p>
+<pre class="r"><code>lijphart$disprop4510 &lt;- as.numeric(lijphart$disprop4510)
+summary(lijphart$disprop4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1.21</td>
+<td align="right">3.2525</td>
+<td align="right">7.14</td>
+<td align="right">8.546111</td>
+<td align="right">14.305</td>
+<td align="right">21.97</td>
+</tr>
+</tbody>
+</table>
+<p>Für den Bikameralismus-Index:</p>
+<pre class="r"><code>lijphart$bicam4510 &lt;- as.numeric(lijphart$bicam4510)
+summary(lijphart$bicam4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">1.075</td>
+<td align="right">2</td>
+<td align="right">2.213889</td>
+<td align="right">3</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+<p>Für den Anteil von Minimal-Winning-Koalition mit einer Partei, der
+zur Messung des Kabinettstyps herangezogen wird:</p>
+<pre class="r"><code>lijphart$minwin_one_part4510 &lt;- as.numeric(lijphart$minwin_one_part4510)
+summary(lijphart$minwin_one_part4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">4</td>
+<td align="right">37.675</td>
+<td align="right">55.05</td>
+<td align="right">60.32222</td>
+<td align="right">86.6</td>
+<td align="right">100</td>
+</tr>
+</tbody>
+</table>
+<p>Sowie für die Kabinettsdauer, mithilfe derer die Exekutivdominanz
+operationalisiert wird:</p>
+<pre class="r"><code>lijphart$exe_dom4510 &lt;- as.numeric(lijphart$exe_dom4510)
+summary(lijphart$exe_dom4510)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">3.2225</td>
+<td align="right">4.305</td>
+<td align="right">5.348056</td>
+<td align="right">8.0775</td>
+<td align="right">9.9</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="umgang-mit-fehlenden-werten-nas" class="section level1">
+<h1>6. Umgang mit fehlenden Werten (<code>NA</code>s)</h1>
+<p>Beim Umkodieren der Variable, die das Haushaltseinkommen der
+Befragten misst, sind uns bereits Fälle begegnet, für die kein Wert
+vorlag. Es gibt viele Gründe, warum Daten fehlen können, so z.B.
+technische Fehler, Befragungsteilnehmende, welche die Antwort auf
+bestimmte Fragen verweigern, usw. Für <code>R</code> stellen fehlende
+Werte ein Problem dar, weil dadurch einige Funktionen nicht ausgeführt
+werden können oder fehlerhafte Werte ausgeben. In seltenen Fällen kann
+es auch sinnvoll sein, fehlende Werte durch Verfahren wie Imputationen
+zu schätzen. Für unsere Zwecke genügt es aber, <code>NA</code>s zu
+löschen. Der einfachste Weg besteht darin, einen Subset des bestehenden
+Datensatzes zu erstellen, in dem alle NAs entfernt werden. Das
+definieren wir über die Funktion <code>na.omit()</code>. In unserem
+Beispiel mit dem Datensatz von gles würden kaum Fälle dadurch verloren
+gehen.</p>
+<pre class="r"><code>gles_clean &lt;- na.omit(gles)</code></pre>
+<p>In der Forschungspraxis sind fehlende Werte nicht zwingend mit
+<code>NA</code> gekennzeichnet, sondern teilweise auch mit 99 oder -99
+zu. Diese Werte erkennt <code>R</code> aber als zulässig an und sie
+werden fälschlicherweise für die Analyse verwendet. Um dies zu
+verhindern, müssen wir die entsprechenden Werte zu <code>NA</code>s
+transformieren. Für die Variable Einkommen beispielhaft:</p>
+<pre class="r"><code>gles$einkommen_cat [gles$einkommen_cat == 99] &lt;- NA
+gles$einkommen_cat [gles$einkommen_cat == -99] &lt;- NA</code></pre>
+<p>Für die inhaltliche Interpretation ist es wichtig, zu bedenken, dass
+hinter fehlenden Antworten, insbesondere bei bestimmten Fragen, oft
+relevante Gründe liegen könnten, die bei der Forschung berücksichtigt
+werden sollten.</p>
+</div>
+<div id="übungsaufgaben" class="section level1">
+<h1>7. Übungsaufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Suchen Sie im GLES-Fragebogen nach einer geeigneten Variable zur
+Messung der schulischen Bildung der Befragten. Diese sollte Information
+über die Schulabschlüsse der Befragten enthalten.</li>
+<li>Bilden Sie eine Variable schulab mit den folgenden Kategorien:
+Hochschulreife, Fachhochschulreife, Realschule, Hauptschule, kein
+Abschluss. Stellen Sie sicher, dass bei Befragten, die einen anderen
+oder noch keinen Schulabschluss haben, ein NA vercodet wurde.</li>
+<li>Bilden Sie aus einkommen_num eine Variable
+<code>einkommen_cat1</code>, die vier Kategorien hat: “weniger als
+2000”, “2000 bis unter 4000”, “4000 bis unter 7500”, “7500 und mehr”.
+Nutzen Sie die Vergleichsoperatoren <code>&gt;</code>,
+<code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code> sowie den
+logischen Operator <code>&amp;</code>.</li>
+<li>Erstellen Sie aus Basis der Variable <code>alter</code> eine neue
+Variable <code>alter65</code>, bei der Werte über 65 als <code>NA</code>
+kodiert werden.</li>
+</ol>
+</div>
+<div id="datensätze-quellen" class="section level1">
+<h1>8. Datensätze Quellen</h1>
+<p>GLES (2019). Nachwahl-Querschnitt (GLES 2017). GESIS Datenarchiv,
+Köln. ZA6801 Datenfile Version 4.0.1, <a
+href="https://doi.org/10.4232/1.13235"
+class="uri">https://doi.org/10.4232/1.13235</a>.</p>
+<p>Lijphart, Arend (2012): Patterns of Democracy. Government Forms and
+Performance in Thirty-Six Countries. 2nd Edition. New Haven/London: Yale
+University Press.</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

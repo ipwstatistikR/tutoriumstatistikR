@@ -1,0 +1,1941 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 2: Faktoren und Objekte</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit
+<code>R</code>. Sitzung 2: Faktoren und Objekte</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Nachdem in der letzten Sitzung eine Einführung in <code>R</code> als
+statistisches Datenanalyseprogramm gegeben wurde, wollen wir uns ab
+dieser Sitzung auf die Arbeit mit Datensätzen konzentrieren. Bevor wir
+uns in Sitzung 3 mit den Datensätzen dieses Kurses beschäftigen, wollen
+wir uns in dieser Sitzung einen Überblick über die zweidimensionalen
+Objektklassen Matrix und Dataframe verschaffen. Dataframes sind ein
+wichtiges Objekt in <code>R</code>, da fast alle Datensätze in diesem
+Format vorliegen. Außerdem lernen wir mit den Faktoren eine weitere
+eindimensionale Objektklasse kennen.</p>
+</div>
+<div id="matrizen" class="section level1">
+<h1>2. Matrizen</h1>
+<p>Matrizen sind Vektoren mit zwei Dimensionen. Im Gegensatz dazu haben
+Vektoren nur eine Dimension. Daten in Form von Matrizen sind wie in
+einer klassischen Tabelle in Zeilen und Spalten angeordnet. Dies hat zur
+Folge, dass innerhalb einer Matrix jede Zeile und jede Spalte gleich
+lang sein muss. Wäre eine Spalte oder Zeile länger oder kürzer, würde
+dies zu leeren Zellen innerhalb der Matrix führen. Dies würde
+<code>R</code> bei bestimmten Berechnungen stören. Im Allgemeinen
+verhalten sich Matrizen wie Vektoren. Dies bezieht sich insbesondere
+darauf, dass sie immer nur eine Klasse von Objekten enthalten können.
+Die Elemente einer Matrix können also z.B. entweder nur Zeichenvektoren
+oder nur Zahlenvektoren sein, aber niemals beides gleichzeitig.</p>
+<div id="eine-matrix-erstellen" class="section level2">
+<h2>2.1 Eine Matrix erstellen</h2>
+<p>Wir bilden eine Matrix in <code>R</code> so:</p>
+<pre class="r"><code>m &lt;- matrix(data = 1:6, nrow = 2, ncol = 3)
+m</code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">3</td>
+<td align="right">5</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">4</td>
+<td align="right">6</td>
+</tr>
+</tbody>
+</table>
+<p>Die Funktion <code>matrix()</code> enthält die Argumente
+<code>data</code>, das die Daten in der Matrix angibt, <code>nrow</code>
+(für “number of rows”), das die Anzahl der Zeilen angibt, und
+<code>ncol</code> (für “number of columns”), das die Anzahl der Spalten
+angibt. Die Matrix wird spaltenweise mit den angegebenen Werten gefüllt:
+1 und 2 in der ersten Spalte, 3 und 4 in der zweiten Spalte und 5 und 6
+in der dritten Spalte. Die Art und Weise, wie <code>R</code> beim Füllen
+der Matrix vorgeht, kann durch das Argument <code>byrow</code> bestimmt
+werden, dessen default, also die Voreinstellung <code>FALSE</code> ist.
+Wir setzen <code>byrow</code> auf <code>TRUE</code>. Nun füllt
+<code>R</code> die Matrix zeilenweise mit Werten, so dass 1, 2 und 3 in
+der ersten Zeile und 4, 5 und 6 in der zweiten Zeile stehen.</p>
+<pre class="r"><code>m &lt;- matrix(1:6, nrow = 2, byrow = TRUE)
+m</code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">3</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">5</td>
+<td align="right">6</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="zusammenbinden-von-vektoren" class="section level2">
+<h2>2.2 Zusammenbinden von Vektoren</h2>
+<p>Eine weitere Möglichkeit, Matrizen zu erstellen, ist das
+Zusammenbinden von Vektoren. Dazu verwendet man entweder
+<code>cbind()</code> (“column bind”) zum Verbinden von Spalten oder
+<code>rbind()</code> (“row bind”) zum Verbinden von Zeilen. Wichtig ist,
+dass die zu verbindenden Vektoren vom gleichen Typ sind.</p>
+<pre class="r"><code>x &lt;- 6:9               
+y &lt;- 20:23             
+cbind(x, y)             </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">x</th>
+<th align="right">y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rbind(x, y)             </code></pre>
+<table>
+<tbody>
+<tr class="odd">
+<td align="left">x</td>
+<td align="right">6</td>
+<td align="right">7</td>
+<td align="right">8</td>
+<td align="right">9</td>
+</tr>
+<tr class="even">
+<td align="left">y</td>
+<td align="right">20</td>
+<td align="right">21</td>
+<td align="right">22</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+<p>Wie in der Ausgabe zu sehen ist, bleiben die Namen der Vektoren
+<code>x</code> und <code>y</code> als Zeilen- bzw. Spaltennamen in der
+Matrix erhalten. Mit <code>rownames()</code> und <code>colnames()</code>
+können wir die Zeilen- und Spaltennamen ändern. Dies wird empfohlen,
+damit Objekte für Sie und andere verständlich bleiben.</p>
+<pre class="r"><code>z &lt;- cbind(x, y)        
+colnames(z) &lt;- c(&quot;einstellig&quot;, &quot;zweistellig&quot;)   
+z                       </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">einstellig</th>
+<th align="right">zweistellig</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">6</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="right">7</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="right">8</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">9</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>rownames(z) &lt;- c(&quot;erste&quot;, &quot;zweite&quot;, &quot;dritte&quot;, &quot;vierte&quot;) 
+z                       </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">einstellig</th>
+<th align="right">zweistellig</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">erste</td>
+<td align="right">6</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="left">zweite</td>
+<td align="right">7</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="left">dritte</td>
+<td align="right">8</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="left">vierte</td>
+<td align="right">9</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="dataframes" class="section level1">
+<h1>3. Dataframes</h1>
+<p>Dataframes sind die übliche Form, in der tabellarische Daten in
+<code>R</code> gespeichert werden. Dies macht sie zu einem der
+wichtigsten Objekttypen in <code>R</code>. Dataframes können einerseits
+mit Funktionen zum Laden von externen Datensätzen erstellt werden. Dies
+wird Thema der nächsten Sitzung sein. Zum anderen können Dataframes auch
+direkt mit der Funktion <code>data.frame()</code> erzeugt werden. Dies
+funktioniert ähnlich wie die Bildung von Matrizen und wird hier kurz
+vorgestellt.</p>
+<div id="dataframes-manuell-erstellen" class="section level2">
+<h2>3.1 Dataframes manuell erstellen</h2>
+<p>Auch bei Dataframes müssen alle Zeilen und Spalten gleich lang sein.
+Im Gegensatz zu Matrizen ist es jedoch möglich, Elemente verschiedener
+Klassen miteinander zu kombinieren. Dies ist vor allem bei komplexeren
+Analysen von Vorteil. Dataframes können manuell erstellt werden, indem
+man in der Funktion <code>data.frame()</code> die Spalten, die sie
+zusammenfassen, also unsere Variablen, nacheinander mit Namen und Inhalt
+in Klammern angibt. In diesem Beispiel für die Variablen <code>x</code>
+und <code>y</code>:</p>
+<pre class="r"><code>df &lt;- data.frame(x = 1:4, y = c(TRUE, TRUE, FALSE, FALSE))
+df</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">x</th>
+<th align="left">y</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">TRUE</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">FALSE</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">FALSE</td>
+</tr>
+</tbody>
+</table>
+<p>Wenn wir <code>df</code> ausgeben lassen, zeigt die Ausgabe die
+Variablennamen <code>x</code> und <code>y</code> oben und eine
+automatische Nummerierung der Spalten links. In einem etwas größeren
+Beispiel haben wir einen Auszug aus fiktiven Daten eines Experiments.
+Dieser Datensatz enthält Informationen über eine Identifikationsnummer
+<code>identifikation</code> und darüber, ob es sich um die
+Experimentalgruppe oder die Kontrollgruppe (<code>bedingung</code>)
+handelt. Darüber hinaus liegen die soziodemographischen Variablen
+<code>geschlecht</code> und <code>alter</code> sowie die Ergebnisse des
+Experiments zu zwei verschiedenen Zeitpunkten (<code>wert_t1</code> und
+<code>wert_t2</code>) vor. Alle Daten liegen für sechs Teilnehmende
+vor.</p>
+<pre class="r"><code>df &lt;- data.frame(identifikation = 1:6,
+                 bedingung = c(&quot;E&quot;, &quot;E&quot;, &quot;C&quot;, &quot;C&quot;, &quot;C&quot;, &quot;E&quot;),
+                 geschlecht = c(&quot;M&quot;, &quot;M&quot;, &quot;W&quot;, &quot;M&quot;, &quot;W&quot;, &quot;W&quot;),
+                 alter = c(17,  19,  22,  18,  16,  21),
+                 wert_t1 = c(8.0, 6.0, 7.5, 6.8, 8.0, 6.4),
+                 wert_t2 = c(8.3, 6.4, 7.7, 6.3, 7.5, 6.4))
+df</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">identifikation</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Nun wird der große Vorteil von Dataframes deutlich: Sie ermöglichen
+es, Informationen unterschiedlicher Klassen zu kombinieren. Für jede
+Beobachtung ist also jede Form von Information verfügbar, die benötigt
+wird. In einer Matrix wäre dies nicht möglich.</p>
+</div>
+<div id="dataframes-in-matrizen-umwandeln" class="section level2">
+<h2>3.2 Dataframes in Matrizen umwandeln</h2>
+<p>Es gibt eine weitere Möglichkeit, Dataframes zu erstellen. Dazu
+benötigen wir eine Matrix, die dann in einen Dataframe umgewandelt wird.
+In diesem Beispiel wandeln wir die oben erstellte Matrix <code>z</code>
+in einen Dataframe um. Dazu verwenden wir die Funktion
+<code>as.data.frame()</code>.</p>
+<pre class="r"><code>dfz &lt;- as.data.frame(z) 
+dfz</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">einstellig</th>
+<th align="right">zweistellig</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">erste</td>
+<td align="right">6</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="left">zweite</td>
+<td align="right">7</td>
+<td align="right">21</td>
+</tr>
+<tr class="odd">
+<td align="left">dritte</td>
+<td align="right">8</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="left">vierte</td>
+<td align="right">9</td>
+<td align="right">23</td>
+</tr>
+</tbody>
+</table>
+<p><code>R</code> liefert auch Funktionen für den umgekehrten Weg.
+Allerdings werden alle enthaltenen Elemente mittels <em>implicit
+coercion</em> umgewandelt. Wird die Funktion <code>as.matrix()</code>
+verwendet, werden alle Eingaben in <em>characters</em> umgewandelt. Wird
+die Funktion <code>data.matrix()</code> verwendet, werden alle Einträge
+in numerische Werte konvertiert. Hier ist ein Beispiel für den letzteren
+Fall.</p>
+<pre class="r"><code>dfm &lt;- data.matrix(df) 
+dfm</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">identifikation</th>
+<th align="right">bedingung</th>
+<th align="right">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">1</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">1</td>
+<td align="right">2</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">2</td>
+<td align="right">2</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Wie wir sehen, kam es bei der Umwandlung in eine Matrix zu dem
+typischen Informationsverlust durch <em>implicit coercion</em>, da die
+Variablen <code>bedingung</code> und <code>geschlecht</code> in Zahlen
+umgewandelt wurden. Um einen Informationsverlust vorzubeugen, sind diese
+Funktionen zu vermeiden.</p>
+</div>
+<div id="variablen--und-zeilennamen-abfragen-und-verändern"
+class="section level2">
+<h2>3.3 Variablen- und Zeilennamen abfragen und verändern</h2>
+<p>Oft ist es nützlich, die in einem Datensatz enthaltenen Variablen zu
+untersuchen. Dies gilt insbesondere, wenn es sich um einen fremden
+Datensatz handelt. Die Namen der Variablen, das heißt der Spalten eines
+Datensatzes, können mit der Funktion <code>names()</code> abgefragt
+werden.</p>
+<pre class="r"><code>names(df)</code></pre>
+<pre><code>## [1] &quot;identifikation&quot; &quot;bedingung&quot;      &quot;geschlecht&quot;     &quot;alter&quot;          &quot;wert_t1&quot;        &quot;wert_t2&quot;</code></pre>
+<p>Mit <code>names()</code> können wir auch die Variablennamen ändern.
+Erscheint uns beispielsweise die Bezeichnung “identifikation” zu lang
+und wir einen kürzeren Variablennamen bevorzugen, so können wir diesen
+einfach anpassen. Dazu wird die erste Spalte des Dataframes
+<code>df</code> mit den eckigen Klammern <code>[]</code> ausgewählt und
+dann geändert.</p>
+<pre class="r"><code>names(df)[1] &lt;- &quot;id&quot; 
+df</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Achten Sie bei der Änderung von Variablennamen darauf, dass diese gut
+lesbar und für andere verständlich sind. Die Variablennamen sollten
+jedoch nicht zu lang sein, um unnötigen Schreibaufwand zu vermeiden.</p>
+</div>
+</div>
+<div id="zeilen-spalten-und-zellen-auswählen" class="section level1">
+<h1>4. Zeilen, Spalten und Zellen auswählen</h1>
+<p>Häufig benötigt man einen Datensatz nicht in seiner Gesamtheit,
+sondern möchte bestimmte Zeilen oder Spalten oder einzelne Zellen aus
+einer Matrix oder einem Dataframe auswählen. Innerhalb zweidimensionaler
+Objekte können einzelne Elemente auf verschiedene Arten ausgewählt
+werden.</p>
+<div id="auswählen-mithilfe-der-eckigen-klammern"
+class="section level2">
+<h2>4.1 Auswählen mithilfe der eckigen Klammern <code>[]</code></h2>
+<p>Mit einer Zahl vor dem Komma kann eine Zeile und mit einer Zahl nach
+dem Komma eine Spalte in <code>R</code> ausgewählt werden. Durch diese
+Identifikation von Zeilen und Spalten ist es möglich, Elemente innerhalb
+von zweidimensionalen Objekten auszugeben. Im Folgenden werden einige
+Beispiele für die Auswahl von Elementen gegeben. Diese werden anhand
+eines Dataframes gezeigt, können aber analog auch auf Matrizen
+angewendet werden.</p>
+<p>Dritte Spalte:</p>
+<pre class="r"><code>df[, 3] </code></pre>
+<pre><code>## [1] &quot;M&quot; &quot;M&quot; &quot;W&quot; &quot;M&quot; &quot;W&quot; &quot;W&quot;</code></pre>
+<p>Jede Spalte außer der ersten:</p>
+<pre class="r"><code>df[, -1] </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="even">
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Die vierte Zeile:</p>
+<pre class="r"><code>df[4, ]</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+</tbody>
+</table>
+<p>Die Zelle in der zweiten Reihe und vierten Spalte:</p>
+<pre class="r"><code>df[2, 5]  </code></pre>
+<pre><code>## [1] 6</code></pre>
+<p>Nur die Variablen Identifikation und Alter:</p>
+<pre class="r"><code>df[, c(1, 4)] </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="right">alter</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">21</td>
+</tr>
+</tbody>
+</table>
+<p>Die letzten drei Beobachtungen:</p>
+<pre class="r"><code>df[4:6, ]  </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="even">
+<td align="left">5</td>
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Wenn Zeilen- und Spaltennamen vorliegen, können wir genauso diese
+Namen zur Indizierung mithilfe der eckigen Klammern verwenden.</p>
+<pre class="r"><code>df[, c(&quot;bedingung&quot;, &quot;geschlecht&quot;)]  </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">E</td>
+<td align="left">M</td>
+</tr>
+<tr class="even">
+<td align="left">E</td>
+<td align="left">M</td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">W</td>
+</tr>
+<tr class="even">
+<td align="left">C</td>
+<td align="left">M</td>
+</tr>
+<tr class="odd">
+<td align="left">C</td>
+<td align="left">W</td>
+</tr>
+<tr class="even">
+<td align="left">E</td>
+<td align="left">W</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="auswählen-mithilfe-des-dollarzeichens" class="section level2">
+<h2>4.2. Auswählen mithilfe des Dollarzeichens <code>$</code></h2>
+<p>Für Dataframes empfiehlt sich die Verwendung des Dollarzeichens
+<code>$</code> als Alternative zur Auswahl durch Klammern. Es wird der
+Variablenname mit dem Dollarzeichen an den Datensatz angehängt. Für
+Matrizen funktioniert dieses Auswahlverfahren allerdings nicht.</p>
+<pre class="r"><code>df$alter</code></pre>
+<pre><code>## [1] 17 19 22 18 16 21</code></pre>
+<p>Die Verwendung des Dollarzeichens ist weniger fehleranfällig, da wir
+den Namen der ausgewählten Variablen explizit angeben müssen und der
+Code weniger komplex ist. <code>RStudio</code> hilft uns dabei, indem es
+automatisch Variablennamen vorschlägt. Außerdem wird unser Code durch
+die Angabe der Variablennamen übersichtlicher und verständlicher. Daher
+ist die Auswahl über das Dollarzeichen bei Dataframes vorzuziehen.</p>
+</div>
+<div id="auswählen-mit-logischen-vektoren-und-werten"
+class="section level2">
+<h2>4.3 Auswählen mit logischen Vektoren und Werten</h2>
+<p>Neben der Identifikation von Zeilen und Spalten können auch einzelne
+Werte innerhalb einer Spalte oder Variable ausgewählt werden. Oft ist es
+von Interesse, für welche Beobachtungen eine Variable einen bestimmten
+Wert annimmt. Wir können daher bei der Auswahl noch detaillierter
+vorgehen als oben gezeigt. Und zwar indem wir die Merkmalsausprägungen
+bei der Auswahl miteinbeziehen. Wenn uns beispielsweise interessiert,
+welche Teilnehmenden des Experiments der Kontrollgruppe angehören, gehen
+wir folgendermaßen vor.</p>
+<p>Wir bilden einen logischen Vektor, der eine Aussage darüber trifft,
+für welche Beobachtungen unter Bedingung ein <code>C</code> eingetragen
+wurde.</p>
+<pre class="r"><code>df$bedingung == &quot;C&quot;</code></pre>
+<pre><code>## [1] FALSE FALSE  TRUE  TRUE  TRUE FALSE</code></pre>
+<p>Ergebnis: Die Variable Bedingung nimmt in der ersten, zweiten und
+sechsten Zeile den Wert <code>C</code> an.</p>
+<p>Diesen logischen Vektor wenden wir auf den Datensatz <code>df</code>
+an indem wir ihn in die eckigen Klammern <em>vor</em> das Komma
+schreiben. Also dorthin, wo Information zu den Zeilen abgerufen wird.
+Die Anweisung an <code>R</code> lautet dann: Nenne mir die Zeilen, für
+die die Aussage, dass die Variable Bedingung gleich <code>C</code> ist,
+zutrifft.</p>
+<pre class="r"><code>df[df$bedingung == &quot;C&quot;, ]</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+</tbody>
+</table>
+<p>Genauso könnten uns nur die Probanden interessieren, die der
+Kontrollgruppe angehören und die einen <code>wert_t1</code> aufweisen,
+der größer als 6,0 ist. Wir formulieren also zwei Bedingungen, die wir
+mit einem logischem <code>&amp;</code> verknüpfen.</p>
+<pre class="r"><code>df[df$bedingung == &quot;C&quot; &amp; df$wert_t1 &gt; 6.0, ]</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3</td>
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="left">5</td>
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+</tbody>
+</table>
+<p>In diesen Beispielen beziehen wir die Identifikation der Zeilen, die
+ausgewählt werden sollen, auf den gesamten Datensatz, da <code>df</code>
+vor der eckigen Klammer steht. Wir können die Kennzeichnung aber auch
+nur auf einzelne Variablen beziehen. Dies erreichen wir, indem wir vor
+die eckigen Klammern zusätzlich einen Variablennamen schreiben. Wenn wir
+ein Element einer Variablen auswählen wollen, haben wir es wieder mit
+einem eindimensionalen Objekt zu tun. Deshalb gehen wir bei der Auswahl
+von Elementen innerhalb von Vektoren genauso vor wie in Sitzung 1. Das
+heißt, das Komma in der eckigen Klammer entfällt.</p>
+<pre class="r"><code>df$geschlecht[df$bedingung == &quot;C&quot;]</code></pre>
+<pre><code>## [1] &quot;W&quot; &quot;M&quot; &quot;W&quot;</code></pre>
+</div>
+</div>
+<div id="subsets-erstellen" class="section level1">
+<h1>5 Subsets erstellen</h1>
+<p>Die Auswahl von Zeilen, Spalten und Zellen kann nützlich sein, um
+Informationen über Variablen zu erhalten oder diese zu transformieren.
+Häufig möchten wir jedoch einen Datensatz nach bestimmten
+Auswahlkriterien einschränken. Zum Beispiel, wenn wir nur an einem
+bestimmten Satz von Variablen oder einem bestimmten
+Untersuchungszeitraum für unsere weitere Analyse interessiert sind. In
+diesem Fall ist es sinnvoll, einen Teildatensatz, ein Subset, zu
+erstellen. Dazu müssen wir zunächst die Elemente, die uns interessieren
+auswählen. Im nächsten Schritt müssen wir diese Elemente in einem neuen
+Objekt speichern. Die Auswahl der Elemente haben wir bereits behandelt.
+Wie wir in der ersten Sitzung gesehen haben, verwenden wir den Operator
+<code>&lt;-</code>, um ein Objekt zu speichern. Dies funktioniert
+genauso für Subsets.</p>
+<div id="subsets-bilden-mithilfe-logischer-vektoren"
+class="section level2">
+<h2>5.1 Subsets bilden mithilfe logischer Vektoren</h2>
+<p>Hier ein Beispiel für ein Subset, dass nur die Experimentalgruppe
+enthält:</p>
+<pre class="r"><code>subset &lt;- df[df$bedingung == &quot;E&quot;, ]
+subset</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">1</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="left">2</td>
+<td align="right">2</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p><code>subset</code> ist nun das Objekt, in dem der verkürzte
+Datensatz gespeichert wurde. Nun ein weiteres Beipsiel für einen
+Teildatensatz der nur die volljährigen Probanden beinhaltet:</p>
+<pre class="r"><code>subset &lt;- df[df$alter &gt;= 18, ]
+subset</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">2</td>
+<td align="right">2</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="even">
+<td align="left">3</td>
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="odd">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="even">
+<td align="left">6</td>
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Diese Subsets sind durch die inhaltliche Merkmalsausprägung der
+Variablen <code>bedingung</code> und <code>alter</code> bestimmt.
+Natürlich können wir auch einfach einzelne Spalten oder Zeilen
+auswählen. Generell ist der Ablauf identisch zur Auswahl von Elemente
+aus einem Dataframe. Der einzige Unterschied besteht darin, dass wir
+unser Subset in einem neuen Objekt speichern.</p>
+<p>Subset, das nur die Variable <code>alter</code> beinhaltet:</p>
+<pre class="r"><code>subset &lt;- df$alter 
+subset</code></pre>
+<pre><code>## [1] 17 19 22 18 16 21</code></pre>
+<p>Subset der vierten bis zur sechsten Zeile:</p>
+<pre class="r"><code>subset &lt;- df[4:6, ]    
+subset</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">4</td>
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="even">
+<td align="left">5</td>
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="odd">
+<td align="left">6</td>
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+<p>Subset der ersten und der dritten Spalte:</p>
+<pre class="r"><code>subset &lt;- df[, c(1, 3)] 
+subset</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">geschlecht</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">M</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">M</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">W</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">M</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">W</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">W</td>
+</tr>
+</tbody>
+</table>
+<p>Subset der Variablen <code>id</code>,
+<code>geschlecht´, und</code>alter`:</p>
+<pre class="r"><code>subset &lt;- df[, c(&quot;id&quot;, &quot;geschlecht&quot;, &quot;alter&quot;)]  
+subset</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">M</td>
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">M</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">W</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">M</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">W</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">W</td>
+<td align="right">21</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="subset" class="section level2">
+<h2>5.2 <code>subset()</code></h2>
+<p>Durch die Funktion <code>subset()</code> können wir uns das
+aufwendige Auswählen der Elemente mittels eckiger Klammern vereinfachen.
+<code>subset()</code> ermöglicht die Reduktion eines Datensatzes auf
+ausgewählte Zeilen mit dem Argument <code>subset</code> und auf
+bestimmte Spalten mit dem Argument <code>select</code>.</p>
+<p>Wir erstellen einen verkürzten Datensatz, der nur die Variable
+<code>alter</code> beinhaltet:</p>
+<pre class="r"><code>sub &lt;- subset(df, select = alter)
+sub</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">alter</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="right">21</td>
+</tr>
+</tbody>
+</table>
+<p>Es wird ein Subset aus den Variablen <code>id</code>,
+<code>geschlecht´ und</code>alter` erstellt:</p>
+<pre class="r"><code>sub &lt;- subset(df, select = c(id, geschlecht, alter))
+sub</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">M</td>
+<td align="right">17</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">M</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">W</td>
+<td align="right">22</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">M</td>
+<td align="right">18</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">W</td>
+<td align="right">16</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">W</td>
+<td align="right">21</td>
+</tr>
+</tbody>
+</table>
+<p>Hier wird ein neuer Datensatz erstellt, der nur minderjährige
+Teilnehmende enthält. Dabei können wir das Argument <code>subset</code>
+auch weglassen.</p>
+<pre class="r"><code>sub &lt;- subset(df, alter &lt; 18) 
+sub</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">1</td>
+<td align="right">1</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="left">5</td>
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8</td>
+<td align="right">7.5</td>
+</tr>
+</tbody>
+</table>
+<p>Das Argument <code>select</code> erfordert eine Indizierung der
+Variablen, während das Argument <code>subset</code> inhaltliche
+Information zu den Merkmalsausprägungen erfordert (z.B. “&gt;= 4”, “&lt;
+18”). Unabhängig davon, wie Sie ein Subset erstellen, beachten Sie, dass
+Sie ihr Subset niemals unter dem Namen des ursprünglichen Datensatzes
+speichern. Dadurch wird der ursprüngliche Datensatz mit dem Subset
+überschrieben, was unbedingt zu vermeiden ist.</p>
+</div>
+</div>
+<div id="faktoren" class="section level1">
+<h1>6. Faktoren</h1>
+<p>Abschließend möchten wir mit den Faktoren einen wichtigen
+eindimensionalen Objekttyp behandeln. Das Besondere an Faktoren ist,
+dass sie Labels verwenden. Mithilfe von beschreibenden Labels wird
+unsere Datenanalyse anschaulicher: Eine Variable, welche die Labels
+“klein”, “mittel” und “groß” verwendet, ist intuitiv verständlicher als
+eine Variable, die stattdessen nur die numerischen Werte 1, 2 und 3
+besitzt. Durch Faktoren erhalten wir eine Beschreibung zu unseren
+Daten.</p>
+<p>Wir erzeugen Faktoren mit der Funktion <code>factor()</code>. Unser
+Faktor <code>x</code> soll einmal den Wert “klein”, zweimal den Wert
+“mittel” und dreimal den Wert “groß” beinhalten. Wir verwenden
+<code>c()</code> und zählen die Werte des Faktors auf.</p>
+<pre class="r"><code>x &lt;- factor(c(&quot;klein&quot;, &quot;mittel&quot;, &quot;mittel&quot;, &quot;groß&quot;, &quot;groß&quot;, &quot;groß&quot;))
+x</code></pre>
+<pre><code>## [1] klein  mittel mittel groß   groß   groß  
+## Levels: groß klein mittel</code></pre>
+<p>Nachdem wir <code>x</code> ausgeben haben, sehen wir im Output, dass
+unsere Ausprägungen wie gewünscht erscheinen. Die Levels werden außerdem
+noch einmal ausgegeben. Das Besondere an den Faktoren ist, dass sich
+hinter den Labels (“klein”, “mittel” und “groß”) numerische Werte
+verbergen. Sie ermöglichen mathematische Operationen, die mit den Labels
+selbst nicht möglich wären. Die zugrundeliegenden numerischen Werte
+können wir uns mithilfe von <code>unclass(x)</code> ausgeben lassen.</p>
+<pre class="r"><code>unclass(x)</code></pre>
+<pre><code>## [1] 2 3 3 1 1 1
+## attr(,&quot;levels&quot;)
+## [1] &quot;groß&quot;   &quot;klein&quot;  &quot;mittel&quot;</code></pre>
+<pre class="r"><code>x</code></pre>
+<pre><code>## [1] klein  mittel mittel groß   groß   groß  
+## Levels: groß klein mittel</code></pre>
+<p>Vergleicht man die Ausgabe von <code>unclass(x)</code> und
+<code>x</code> vergleichen, so stellt man fest, dass “klein” den Wert 2,
+“mittel” den Wert 3 und “groß” den Wert 1 erhalten hat. Dies liegt
+daran, dass <code>R</code> sich bei der Zuweisung der Werte an der
+alphabetischen Reihenfolge orientiert. Demnach kommt zuerst G, dann M
+und dann K, was einer inhaltlich sinnvollen Ordnung unserer Levels
+widerspricht. Deshalb ordnen wir <code>x</code> nun so an, dass “klein”
+&lt; “mittel” &lt; “groß” ist. Dazu verwenden wir das Argument
+<code>levels =</code> innerhalb der Funktion <code>factor()</code> und
+geben dort mit der Funktion <code>c()</code> die Level in der richtigen
+Reihenfolge an.</p>
+<pre class="r"><code>x &lt;- factor(c(&quot;klein&quot;, &quot;mittel&quot;, &quot;mittel&quot;, &quot;groß&quot;, &quot;groß&quot;, &quot;groß&quot;),
+            levels = c(&quot;klein&quot;, &quot;mittel&quot;, &quot;groß&quot;))
+unclass(x)</code></pre>
+<pre><code>## [1] 1 2 2 3 3 3
+## attr(,&quot;levels&quot;)
+## [1] &quot;klein&quot;  &quot;mittel&quot; &quot;groß&quot;</code></pre>
+<pre class="r"><code>x</code></pre>
+<pre><code>## [1] klein  mittel mittel groß   groß   groß  
+## Levels: klein mittel groß</code></pre>
+<p>Jetzt sind Label und Wert sinnvoll zu geordnet. Da Dataframes
+Variablen unterschiedlicher Klassen enthalten können, können Variablen
+auch als Faktoren vorliegen. Mit <code>as.factor()</code> können wir
+Vektoren zu Faktoren umwandeln. Das gilt auch für Variablen in von
+Dataframes. Innerhalb des Dataframes <code>df</code> ist das nur für die
+<em>character</em>-Variablen <code>bedingung</code> und
+<code>geschlecht</code> sinnvoll, da deren Inhalt als Labels
+interpretiert werden kann.</p>
+<pre class="r"><code>df$geschlecht &lt;- as.factor(df$geschlecht)
+df$geschlecht</code></pre>
+<pre><code>## [1] M M W M W W
+## Levels: M W</code></pre>
+<pre class="r"><code>unclass(df$geschlecht)</code></pre>
+<pre><code>## [1] 1 1 2 1 2 2
+## attr(,&quot;levels&quot;)
+## [1] &quot;M&quot; &quot;W&quot;</code></pre>
+<pre class="r"><code>df</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">id</th>
+<th align="left">bedingung</th>
+<th align="left">geschlecht</th>
+<th align="right">alter</th>
+<th align="right">wert_t1</th>
+<th align="right">wert_t2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">17</td>
+<td align="right">8.0</td>
+<td align="right">8.3</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="left">E</td>
+<td align="left">M</td>
+<td align="right">19</td>
+<td align="right">6.0</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">22</td>
+<td align="right">7.5</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="left">C</td>
+<td align="left">M</td>
+<td align="right">18</td>
+<td align="right">6.8</td>
+<td align="right">6.3</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="left">C</td>
+<td align="left">W</td>
+<td align="right">16</td>
+<td align="right">8.0</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="left">E</td>
+<td align="left">W</td>
+<td align="right">21</td>
+<td align="right">6.4</td>
+<td align="right">6.4</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="aufgaben" class="section level1">
+<h1>7. Aufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Erstellen Sie zwei Matrizen, die beliebige zwölf Werte beinhalten:
+<ol style="list-style-type: lower-alpha">
+<li>mit drei Zeilen und Spalte für Spalte mit Werten versehen;</li>
+<li>mit zwei Spalten und Zeile für Zeile mit Werten versehen.</li>
+</ol></li>
+<li>Erstellen Sie einen character-Vektor “p”, der die Namen der im 20.
+Deutschen Bundestag vertretenen Parteien enthält. Information finden Sie
+hier: <a
+href="https://www.bundestag.de/resource/blob/196106/b4daa14a76f53a3d58892a6373259a9d/Kapitel_01_16_Stimmenanteil_-_Mandatsanteil-data.pdf"
+class="uri">https://www.bundestag.de/resource/blob/196106/b4daa14a76f53a3d58892a6373259a9d/Kapitel_01_16_Stimmenanteil_-_Mandatsanteil-data.pdf</a>
+<ol style="list-style-type: lower-alpha">
+<li>Ordnen Sie den Vektor nach dem Mandatsanteil der Parteien beginnend
+mit dem größten Anteil.</li>
+<li>Erstellen Sie außerdem einen numerischen Vektor “a”, der die
+Mandatsanteile (gerundet auf eine Nachkommastelle) der Parteien enthält.
+Orientieren Sie sich an der Ordnung von “p”.</li>
+<li>Erstellen Sie eine Matrix, indem Sie beide Vektoren als Spalten
+verbinden. Inspizieren Sie die erstellte Matrix.</li>
+</ol></li>
+<li>Wandeln Sie die unter 2. erstellte Matrix in einen Dataframe um.
+Prüfen Sie die Klasse der beiden Variablen des Dataframe. Wandeln Sie
+sie ggf. in ein angemessenes Datenformat um. Geben Sie beiden Variablen
+sinnvolle Namen.</li>
+<li>Erstellen Sie Subsets für die folgenden Koalitionen und speichern
+Sie sie in Objekten mit den angegbenen Namen:
+<ol style="list-style-type: lower-alpha">
+<li>CDU/CSU-SPD -&gt; “groko”</li>
+<li>CDU/CSU-FDP-Grüne -&gt; “jamaika”. Summieren Sie jeweils den
+Mandatsanteil der möglichen Koalitionen (Tipp: nutzen Sie
+<code>sum()</code>).</li>
+</ol></li>
+<li>Erstellen Sie einen Faktor mit den Kategorien “Handy”, “Tablet”,
+“Laptop”, “PC”. Handys sollen zweimal, Tablets viermal, Laptops dreimal
+und PCs fünfmal vorkommen.
+<ol style="list-style-type: lower-alpha">
+<li>Ordnen Sie den Faktor nach der Größe der Geräte von klein nach
+groß.</li>
+<li>Lassen Sie sich die <code>table()</code>und die
+<code>summary()</code> des Faktors ausgeben.</li>
+<li>Wandeln Sie den Faktor in einen numeric-Vektor um. Lassen Sie sich
+die <code>table()</code>und die <code>summary()</code> des Vektors
+ausgeben. Was hat sich im Output dieser Funktionen verändert?</li>
+</ol></li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

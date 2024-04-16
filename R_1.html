@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 1: Einführung und Grundlagen von R</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit
+<code>R</code>. Sitzung 1: Einführung und Grundlagen von
+<code>R</code></h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="herzlich-wilkommen" class="section level1">
+<h1>Herzlich Wilkommen!</h1>
+<p>Herzlich willkommen zur Einführung in die politikwissenschaftlichen
+Statistik mit <code>R</code>! In der ersten Sitzung werden wir:</p>
+<ol style="list-style-type: decimal">
+<li>das Programm kennenlernen</li>
+<li>lernen, wie man es installiert und bedient</li>
+<li>Objekte und Klassen erstellen und verändern</li>
+<li>Funktionen und Pakete herunterladen und anwenden.</li>
+</ol>
+</div>
+<div id="warum-r" class="section level1">
+<h1>1. Warum <code>R</code>?</h1>
+<p><code>R</code> ist eine Programmiersprache zur statistischen
+Datenanalyse, die in wissenschaftlichen Anwendungen weit verbreitet ist.
+Im Vergleich zu anderen Statistikprogrammen hat <code>R</code> den
+Vorteil, dass es sich um eine Programmiersprache handelt. Dadurch ist
+<code>R</code> sehr flexibel. Außerdem können spezielle Pakete
+programmiert werden, die für bestimmte Anwendungszwecke entworfen
+wurden. Diese Pakete stellen eine Ergänzung zu <code>R</code> dar. Sie
+werden daher immer nur dann geladen, wenn Sie die Pakete auch benötigen.
+Inzwischen liegen Pakate für vielfältige Verwendungszwecke vor. Damit
+unterscheidet sich <code>R</code> von herkömmlichen Statistikprogrammen
+mit einer festen Programmoberfläche wie zum Beispiel Stata. Diese
+herkömmlichen Statistikprogramme beinhalten immer nur begrenzte
+Anwendungsmöglichkeiten, die durch die Entwicklungsfirma vorgegeben
+sind. Zudem werden die Pakete nicht etwa von einer zentralen
+Software-Firma entwickelt, sondern von einer Vielzahl von Usern auf der
+ganzen Welt. Dadurch profitiert <code>R</code> von der
+Schwarmintelligenz. Die Qualitätssicherung obliegt der
+<code>R Core Group</code>, indem sie neue Pakete prüft und zulässt. Man
+kann sich auch einer Vielzahl von Hilfeforen wie <a
+href="https://stackoverflow.com/">stackoverflow</a> bedienen, welche
+Hilfestellung und Lösungen bereitgestellen. Eine Google-Suche kann
+ebenfalls häufig weiterhelfen.</p>
+<p>Ein weiterer Vorteil, nicht zuletzt für Studierende, ist, dass
+<code>R</code> als open source-Programm kostenlos zur Verfügung steht.
+Es kann über die Webseite des CRAN (Comprehensive R Archive Network, <a
+href="https://cran.r-project.org/"
+class="uri">https://cran.r-project.org/</a>) heruntergeladen werden.
+Mittlerweile steht mit <code>RStudio</code> außerdem ein professionelles
+Interface zur Verfügung, das die Bedienung deutlich vereinfacht und
+kostenlos ist.</p>
+<p>Allerdings kommen diese Vorteile nicht ohne einige Nachteile:
+<code>R</code>-Code kann auf den ersten Blick recht anspruchsvoll wirken
+und ist nicht sonderlich intuitiv. Außerdem ist <code>R</code>
+case-sensitive, das bedeutet, dass es zwischen Groß- und Kleinschreibung
+unterscheidet und somit keine Tippfehler verzeiht. Wenn etwas nicht
+exakt richtig geschrieben ist, kann es zu einer Fehlermeldung oder zu
+ungewollten oder unbemerkten Datenmanipulationen kommen. Das Erlernen
+von <code>R</code> ist durch eine steile Lernkurve gekennzeichnet. Aber
+keine Sorge, wenn Sie etwas nicht auf Anhieb verstehen. Geben Sie nicht
+auf, es wird besser!</p>
+<p>Ziel dieses Kurses ist, es Ihnen einen Einblick in <code>R</code> zu
+geben und Ihnen alle für das Studium der Politikwissenschaft relevanten
+Anwendungen der statistischen Datenanalyse zu vermitteln. Der Code, den
+Sie dabei kennenlernen, kann Ihnen bei Ihren Haus- und Abschlussarbeiten
+helfen. Es ist jedoch unerlässlich, dass Sie ein grundlegendes
+Verständnis des Codes und seiner Verwendung haben. Deshalb werden wir
+uns insbesondere zu Beginn auf das grundliegende Verständnis von
+<code>R</code>-Code konzentrieren.</p>
+</div>
+<div id="installation-und-grundlagen-der-bedienung"
+class="section level1">
+<h1>2. Installation und Grundlagen der Bedienung</h1>
+<p>Um <code>R</code> auf Ihrem Computer nutzen zu können, müssen Sie es
+herunterladen und installieren. Besuchen Sie dazu auf <a
+href="https://cran.r-project.org/"
+class="uri">https://cran.r-project.org/</a> und laden Sie die neuste
+Version für Ihr Betriebssystem (Windows, MacOS oder Linux) herunter.
+Wählen Sie dabei einen Standort, in Ihrer Nähe (z.B. die Universitäten
+Göttingen oder Münster, wenn Sie in Hannover sind). Nach der
+Installation können Sie <code>R</code> öffnen und verwenden. Probieren
+Sie es gerne einmal aus! Für eine optimale Nutzung von <code>R</code>
+empfiehlt es sich, <code>RStudio</code> zu installieren. Bitte besuchen
+Sie <a href="https://www.rstudio.com/products/rstudio/download/"
+class="uri">https://www.rstudio.com/products/rstudio/download/</a> und
+laden Sie die kostenlose Version herunter. Beachten Sie, dass Sie
+<code>R</code> zuerst und dann <code>RStudio</code> installieren
+sollten, da <code>RStudio</code> <code>R</code> voraussetzt.</p>
+<div id="die-console" class="section level2">
+<h2>2.1 Die <code>Console</code></h2>
+<p>Jetzt können wir <code>RStudio</code> öffnen. Dadurch wird
+<code>R</code> im Hintergrund ebenfalls geöffnet, allerdings mit einer
+vereinfachten Anwenderansicht. Code-Input kann in der
+<code>Console</code> ausgeführt werden, welche in <code>RStudio</code>
+gewöhnlich auf der linken Seite zu finden ist. Sie erkennen sie am
+Fenster unter dem roten Kreis auf dem Bild.</p>
+<p><br /> <img src="Screenshot_1.png" /> <br /></p>
+<p>Geben Sie als Beispiel in die <code>Console</code> ein und bestätigen
+Sie mit Enter.</p>
+<pre class="r"><code>Sys.time()</code></pre>
+<pre><code>## [1] &quot;2024-04-16 11:16:17 CEST&quot;</code></pre>
+<p>Mit diesem Befehl können Sie das Datum und die Uhrzeit des Systems
+abrufen. Wie Sie vielleicht bemerkt haben, ist die Funktion bewusst
+intuitiv gestaltet. Sie können daher versuchen, die Absicht hinter der
+Bezeichnung der Funktionen zu erahnen.</p>
+<p>Haben Sie bemerkt, dass <code>RStudio</code> Ihnen Code-Vorschläge
+gemacht hat? Wenn nicht, geben Sie erneut <code>Sys.</code> ein und
+schauen Sie, welche weiteren Informationen zum System Sie abrufen
+können. Wenn Sie nur Teile von Funktionen eingeben, versucht
+<code>RStudio</code> automatisch, diese zu vervollständigen. In der
+klassischen Version von <code>R</code> wäre uns das nicht möglich
+gewesen.</p>
+<p>Jetzt erstellen wir Objekte. Diese speichern Daten in <code>R</code>.
+Dabei können wir in <code>R</code> beliebig viele Objekte erstellen und
+sie fast beliebig benennen. Ein Objekte besteht aus mindestens einem
+Element oder ist leer und enthält kein Element, was allerdings einen
+Sonderfall darstellt. Elemente können in Form von zum Beispiel Zahlen
+oder Strings vorliegen. Strings sind Zeichen oder Zeichenfolgen, also
+Buchstaben oder Wörter. Bei der Zuweisung von Zahlen und Strings wird
+der <code>&lt;–</code>-Operator verwendet. Alles, was rechts von
+<code>&lt;-</code> steht, wird dem zugewiesen, was links davon steht.
+Geben Sie den Code in die Konsole ein und drücken Sie Enter. In diesem
+Beispiel weisen wir dem Objekt <code>x</code> das Element 1 zu.</p>
+<pre class="r"><code>x &lt;- 1</code></pre>
+<p>Um zu sehen, ob das geklappt hat, lassen wir uns das Objekt
+<code>x</code> ausgeben. Das bedeutet wir geben das <code>x</code> in
+die <code>Console</code> ein und schicken es mit Enter ab.</p>
+<pre class="r"><code>x</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>Wie gesagt, geht das nicht nur mit Zahlen, sondern auch mit Strings,
+also Buchstaben:</p>
+<pre class="r"><code>y &lt;- &quot;Hallo&quot;
+y</code></pre>
+<pre><code>## [1] &quot;Hallo&quot;</code></pre>
+<p>Bearbeitungshinweis: Im Verlauf des gesamten Kurses wird der Code in
+Form von sogenannten Code-Chunks (leicht gräulich hinterlegte Flächen)
+im Fließtext präsentiert. Die weiß hinterlegten Flächen zeigen den
+Output. Die Zahlen in eckigen Klammern dienen lediglich als
+Orientierungshilfen zur Einordnung des Outputs und sind für uns zumeist
+nicht relevant. Bitte senden Sie die Code-Chunks parallel zur Lektüre ab
+und überprüfen Sie, ob Sie den gleichen Output erhalten.</p>
+</div>
+<div id="global-environment-und-history" class="section level2">
+<h2>2.2 <code>Global Environment</code> und <code>History</code></h2>
+<p>Die Objekte <code>x</code> und <code>y</code> sind im Fenster
+<code>Global Environment</code> oben rechts erschienen. Das
+<code>Global Environment</code> ist der Ort, an dem <code>R</code>
+erstellte Objekte und eingeladene Daten für die Dauer einer
+<code>R</code>-Session speichert. Es ist gewissermaßen der Raum, in dem
+wir arbeiten - daher das Synonym <code>Workspace</code> - das Ihnen
+begegnen wird. <code>RStudio</code> gibt uns mit dem Fenster oben rechts
+einen direkten Überblick über alle von uns erstellten Objekte und
+verfügbaren Daten. Im Gegensatz dazu können Sie in der
+<code>History</code> (dem Reiter rechts daneben) den gesamten Code, den
+Sie jemals geschrieben haben - also nicht nur in der aktuellen Session -
+nachschlagen. Ihre <code>History</code> enthält im Moment lediglich den
+Code zur Erstellung von <code>x</code> und <code>y</code> sowie
+<code>Sys.time()</code>.</p>
+<p><br /> <img src="Screenshot_2.png" /> <br /></p>
+<p>Es ist empfehlenswert, das <code>Global Environment</code> nach
+Beendigung einer Session zu leeren, indem man den <code>Workspace</code>
+beim Schließen von <code>R</code> <em>nicht</em> speichert.
+<code>R Studio</code> wird Sie beim Schließen einer Sitzung danach
+fragen. Obwohl dies ungewohnt erscheinen mag, bleiben Änderungen dadurch
+nur vorübergehend und das <code>Global Environment</code> wird nicht
+dauerhaft verändert. Gleichzeitig ist es natürlich wichtig,
+Datenmanipulationen in einer späteren Session wiederholen zu können. Aus
+diesem Grund empfiehlt es sich, den Code in einem <code>R Script</code>
+zu speichern.</p>
+</div>
+<div id="r-script" class="section level2">
+<h2>2.3 <code>R Script</code></h2>
+<p>Öffnen Sie ein <code>R</code> Script über
+<code>File -&gt; New File -&gt; R-Script</code> oder
+<code>Strg+Shift+N</code> bzw. <code>Cmd+Shift+N</code>.</p>
+<p><br /> <img src="Screenshot_3.png" /> <br /></p>
+<p>Von nun an sollten Sie sämtlichen Code in solchen Skripten schreiben.
+Beginnen Sie damit: Lassen Sie uns das bestehende Objekt <code>x</code>
+folgendermaßen überschreiben:</p>
+<pre class="r"><code>x &lt;- 2</code></pre>
+<p>Wenn wir nun Enter drücken, verändern wir nichts, wir rutschen bloß
+in die nächste Codezeile im Skript. Allerdings können wir mit
+<code>-&gt; Run</code> (oben rechts über dem Skript) oder
+<code>Strg+Enter</code> bzw. <code>Cmd+Enter</code> Codezeilen aus dem
+Skript in die <code>Console</code> schicken. Ein Blick ins
+<code>Global Environment</code> bestätigt: <code>x</code> wurde der Wert
+2 zugeschrieben. Falls es bei Ihnen nicht geklappt haben sollte, stellen
+Sie sicher, dass sich der Cursor in der korrekten Zeile befindet.</p>
+<p>Skripte speichern also den Code in Textform, damit wir ihn später
+wiederverwenden können. Sie sind nicht nur wichtig, um den Code zu
+archivieren und zu überprüfen, sondern helfen uns auch die
+Replizierbarkeit unserer Analyse zu gewährleisten. Heutzutage verlangen
+wissenschaftliche Fachzeitschriften regelmäßig, dass mit dem Manuskript
+eines Artikels auch Replikationsmaterial zur Verfügung gestellt wird,
+anhand dessen die Analyse nachvollzogen werden kann. Genauso wird
+erwartet, dass empirische Arbeiten im Rahmen des Studiums mit
+Replikationsmaterial abgegeben werden, damit die dort berichteten
+Ergebnisse überprüft werden können. Um dies zu erreichen, müssen wir
+unser Skript speichern. Dazu können wir entweder aus
+<code>File -&gt; Save As…</code> klicken oder die Tastenkombination
+<code>Strg+S</code> bzw. <code>Cmd+S</code> verwenden.</p>
+</div>
+<div id="hilfe-und-weiteres" class="section level2">
+<h2>2.4 Hilfe und Weiteres</h2>
+<p>Zusätzlich zu dem <code>R</code> Script (oben links), der
+<code>Console</code> (unten links) und dem
+<code>Global Environment</code> bzw. der <code>History</code> (oben
+rechts) gibt es unten rechts noch ein viertes Fenster. In der Anwendung
+sind hier besonders die Reiter <code>Plots</code>, <code>Packages</code>
+und <code>Help</code> wichtig. Unter <code>Plots</code> werden in
+<code>R</code> erstellte Diagramme angezeigt. Unter
+<code>Packages</code> erhalten wir einen Überblick über die
+installierten und geladenen Pakete (dazu mehr unter Kapitel 4).
+Schließlich können Sie unter <code>Help</code> auf die Reference Manuals
+(Bedienungshandbücher) für einzelne Funktionen zugreifen. Geben Sie dazu
+einfach den Namen einer Funktion ohne Klammern in die Suchleiste ein.
+Alternativ können Sie ein Fragezeichen <code>?</code> zusammen mit der
+Funktion in die <code>Console</code> eingeben oder natürlich über das
+Script abschicken:</p>
+<pre class="r"><code>?table</code></pre>
+<pre><code>## Help on topic &#39;table&#39; was found in the following packages:
+## 
+##   * base
+##   * vctrs</code></pre>
+<p>Schauen Sie sich den Hilfe-Eintrag zur Funktion <code>table()</code>
+an, der Ihnen nun angezeigt wird. Die <code>R</code>-Reference Manuals
+sind in der Regel wie dieser Eintrag aufgebaut, mit den Punkten
+Description, Usage, Arguments usw. Hilfreich sind häufig die
+Informationen zu den Argumenten der Funktion, “See Also” zu verwandten
+oder alternativen Funktionen sowie insbesondere die “Examples”. Diese
+Anwendungsbeispiele helfen sehr dabei, <code>R</code>-Funktionen und
+ihre Verwendung zu verstehen.</p>
+</div>
+</div>
+<div id="objektklassen" class="section level1">
+<h1>3. Objektklassen</h1>
+<p>Wir möchten Ihnen nun einen ersten Einblick in das Kodieren mit
+<code>R</code> geben. Dafür ist es wichtig, die Klassen zu kennen, in
+denen Objekte vorliegen können. <code>R</code> unterscheidet mehrere
+einfache (oder auch atomare) Objektklassen. Davon sind jedoch nur drei
+für uns relevant: <em>character</em>, <em>numeric</em> und
+<em>logical</em>. Mit der Funktion <code>class()</code> können wir
+herausfinden, welcher Klasse die Objekte jeweils angehören.
+<em>characters</em> sind Zeichen und Zeichenfolgen und <code>R</code>’s
+Darstellungsform von Strings. Sie sind durch Anführungszeichen
+<code>""</code> gekennzeichnet:</p>
+<pre class="r"><code>class(&quot;abc&quot;)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<p><em>numerics</em> sind kontinuierliche Zahlen, also ganze Zahlen wie
+1 oder 27 und Dezimalzahlen wie 1,75.</p>
+<pre class="r"><code>class(1)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<p><em>logicals</em> bezeichnen die logischen wahr-/unwahr-Aussagen
+<code>TRUE</code> und <code>FALSE</code>.</p>
+<pre class="r"><code>class(TRUE)</code></pre>
+<pre><code>## [1] &quot;logical&quot;</code></pre>
+<p>Mittels <em>explicit coercion</em> können wir die Klasse der Objekte
+absichtlich verändern. Klassen können nur dann verändert werden, wenn
+ausreichend Information vorhanden ist, um die Objekte in anderen Klassen
+sinnvoll zu definieren. Ein Objekt der Klasse <em>logical</em> können
+wir sinnvoll als <em>numeric</em> definieren. Hierbei wird den Werten 1
+und 0 zugewiesen.</p>
+<pre class="r"><code>as.numeric(TRUE)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>as.numeric(FALSE)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Logische Werte können wir auch als <em>character</em> definieren.
+Dabei wird der entsprechenden Zeichenfolgen der Worte
+<code>"TRUE"</code> und <code>"FALSE"</code> zugewiesen.</p>
+<pre class="r"><code>as.character(TRUE)</code></pre>
+<pre><code>## [1] &quot;TRUE&quot;</code></pre>
+<pre class="r"><code>as.character(FALSE)</code></pre>
+<pre><code>## [1] &quot;FALSE&quot;</code></pre>
+<p><em>numerics</em> lassen sich zu <em>characters</em> umwandeln,
+wodurch die Zahlen auf Zeichen reduziert werden.</p>
+<pre class="r"><code>as.character(1)</code></pre>
+<pre><code>## [1] &quot;1&quot;</code></pre>
+<pre class="r"><code>as.character(15)</code></pre>
+<pre><code>## [1] &quot;15&quot;</code></pre>
+<p>Wir können auch <em>numerics</em> zu <em>logicals</em> umwandeln.
+Allerdings geht damit ein großer Informationsverlust einher, weil jede
+positive und negative Zahl zu <code>TRUE</code> und 0 zu
+<code>FALSE</code> umgewandelt wird.</p>
+<pre class="r"><code>as.logical(1)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>as.logical(0)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>as.logical(-15)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Schließlich können wir auch <em>character</em>-Objekte zu
+<em>numeric</em> umwandeln, wenn es sich dabei um Zahlen handelt.
+Sequenzen von oder mit Buchstaben sind hingegen nicht sinnvoll numerisch
+zu interpretieren. Entsprechend wird ein <code>NA</code> (für “not
+available”) ausgegeben.</p>
+<pre class="r"><code>as.numeric(&quot;1&quot;)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>as.numeric(&quot;1a&quot;)</code></pre>
+<pre><code>## Warning: NAs durch Umwandlung erzeugt</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>as.numeric(&quot;abc&quot;)</code></pre>
+<pre><code>## Warning: NAs durch Umwandlung erzeugt</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>Genauso ist es nur dann möglich, <em>characters</em> in
+<em>logicals</em> umzuwandeln, wenn es sich dabei um die exakt richtig
+geschriebenen Zeichenfolgen <code>“TRUE”</code> oder
+<code>“FALSE”</code> handelt.</p>
+<pre class="r"><code>as.logical(&quot;TRUE&quot;)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>as.logical(&quot;TURE&quot;)</code></pre>
+<pre><code>## [1] NA</code></pre>
+<pre class="r"><code>as.logical(&quot;1&quot;)</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>Insgesamt haben <em>characters</em> die wenigsten Voraussetzungen,
+das heißt, dass alles als <em>character</em> ausgedrückt werden kann.
+<em>numerics</em> setzen voraus, dass etwas als Zahl ausgedrückt werden
+kann. <em>logicals</em> sind schließlich am anspruchvollsten: Sie
+erwarten Dichotomie. Demnach kann bei <em>logicals</em> etwas entweder
+vorliegen (<code>TRUE</code>) oder nicht vorliegen (<code>FALSE</code>),
+mehr ist nicht möglich.</p>
+</div>
+<div id="vektoren" class="section level1">
+<h1>4. Vektoren</h1>
+<p>Vektoren sind in <code>R</code> grundlegende Objekte, die dazu
+dienen, Zeichenfolgen, Zahlen und logische Werte abzuspeichern. Bei den
+oben genannten Beispielen haben wir bereits Vektoren erzeugt. Ein Vektor
+kann einen oder mehrere Werte enthalten. Hier ist ein Beispiel für einen
+Vektor, der nur eine Zahl enthält: Die eckigen Klammern <code>[1]</code>
+kennzeichnen den Output von Vektoren und geben in unserem Beispiel an,
+dass 2 der erste und einzige Wert innerhalb des Vektors <code>x</code>
+ist.</p>
+<pre class="r"><code>x &lt;- 2
+x</code></pre>
+<pre><code>## [1] 2</code></pre>
+<p>Im nächsten Beispiel erstellen wir einen Vektor mit mehreren Werten.
+Der Doppelpunkt <code>:</code> ist durch das Wort „bis“ zu übersetzten.
+Das heißt, dass alle Zahlen von vier bis 38 im Vektor enthalten
+sind.</p>
+<pre class="r"><code>x &lt;- 4:38     
+x</code></pre>
+<pre><code>##  [1]  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38</code></pre>
+<p>Anhand der eckigen Klammern im Output erkennen wir, dass vier das
+erste und 29 das 26. Element innerhalb des Vektors <code>x</code> ist.
+Um Vektoren zu bilden und in ihnen mehrere Elemente zusammenzufassen,
+bietet sich die Funktion <code>c()</code> (für “combine“) an. Das
+bedeutet, dass alles was zwischen den Klammern nach dem <code>c</code>
+steht, dem Vektor zugewiesen wird. Vektoren nehmen immer die Klasse der
+Objekte an, die in ihnen gespeichert werden:</p>
+<pre class="r"><code>x &lt;- c(1, 2, 3)
+class(x)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>x &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;)
+class(x)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code>x &lt;- c(TRUE, FALSE, TRUE, TRUE, FALSE)
+class(x)</code></pre>
+<pre><code>## [1] &quot;logical&quot;</code></pre>
+<div id="vektoren-und-klassen" class="section level2">
+<h2>4.1 Vektoren und Klassen</h2>
+<p>Die Besonderheit der Vektoren besteht darin, dass sie immer nur eine
+bestimmte Klasse von Objekten beinhalten können. Zum Beispiel können sie
+nur <em>numerics</em> oder <em>characters</em> enthalten. Wenn wir
+versuchen, Elemente unterschiedlicher Klassen in einem Vektor
+zusammenzufassen, werden sie automatisch der weniger anspruchsvollen
+Klasse zugeordnet.</p>
+<pre class="r"><code>y &lt;- c(1, &quot;a&quot;)
+class(y)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<pre class="r"><code>y &lt;- c(1, TRUE)
+class(y)</code></pre>
+<pre><code>## [1] &quot;numeric&quot;</code></pre>
+<pre class="r"><code>y &lt;- c(&quot;a&quot;, TRUE)
+class(y)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<p>Dieser Prozess nennt sich <em>implicit coercion</em> (“impliziter
+Zwang”) und ist tückisch, weil <code>R</code> keinen Output über die
+Veränderung der Klasse ausgibt, obwohl es zu einem Informationsverlust
+kommt. Es ist daher wichtig, dass wir über die Klassen von Objekte
+Bescheid wissen.</p>
+</div>
+<div id="auswählen-von-elementen-in-vektoren" class="section level2">
+<h2>4.2 Auswählen von Elementen in Vektoren</h2>
+<p>Um einzelne Elemente innerhalb von Vektoren auszuwählen, können wir
+die eckigen Klammern <code>[]</code> verwenden. Das ist besonders
+praktisch bei längeren Vektoren. Zunächst erstellen wir einen
+<em>character</em>-Vektor <code>x</code>, der die ersten acht Buchstaben
+des Alphabets enthält. Anschließend können wir ein Element auswählen,
+indem wir seine Position innerhalb des Vektors angeben. Hier wählen wir
+das dritte Element und danach das vierte bis siebte Element aus.</p>
+<pre class="r"><code>x &lt;- c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;, &quot;f&quot;, &quot;g&quot;, &quot;h&quot;)
+x[3]          </code></pre>
+<pre><code>## [1] &quot;c&quot;</code></pre>
+<pre class="r"><code>x[4:7]        </code></pre>
+<pre><code>## [1] &quot;d&quot; &quot;e&quot; &quot;f&quot; &quot;g&quot;</code></pre>
+<p>Der Befehl <code>c()</code> lässt sich auch hierbei verwenden, zum
+Beispiel zur Auswahl des zweiten und fünften Elementes oder um dreimal
+das fünfte Element auszuwählen.</p>
+<pre class="r"><code>x[c(2, 5)]   </code></pre>
+<pre><code>## [1] &quot;b&quot; &quot;e&quot;</code></pre>
+<pre class="r"><code>x[c(5, 5, 5)] </code></pre>
+<pre><code>## [1] &quot;e&quot; &quot;e&quot; &quot;e&quot;</code></pre>
+<p>Genauso können wir eine negative Auswahl treffen und alles außer den
+von uns angegebenen Elementen auswählen. Elemente, die wir nicht
+auswählen möchten, versehen wir mit einem Minuszeichen
+<code>-</code>.</p>
+<pre class="r"><code>x[-5]         </code></pre>
+<pre><code>## [1] &quot;a&quot; &quot;b&quot; &quot;c&quot; &quot;d&quot; &quot;f&quot; &quot;g&quot; &quot;h&quot;</code></pre>
+<pre class="r"><code>x[-c(2, 6)]   </code></pre>
+<pre><code>## [1] &quot;a&quot; &quot;c&quot; &quot;d&quot; &quot;e&quot; &quot;g&quot; &quot;h&quot;</code></pre>
+<p>Eine weitere Möglichkeit, um Elemente in Vektoren auszuwählen, ist
+die Verwendung von Vergleichen und logischen Operationen. Dies ist
+besonders hilfreich bei numerischen Werten. Vergleiche können nur für
+numerische Werte durchgeführt werden, da nur Zahlen eine Ordnung
+aufweisen. Logische Operationen sowie Gleichungen und Ungleichungen
+können für <em>character</em>- und numerische Werte durchgeführt werden.
+In der folgenden Tabelle finden Sie eine Übersicht über die Umsetzung in
+<code>R</code>.</p>
+<table>
+<colgroup>
+<col width="37%" />
+<col width="27%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"><strong>Logische Operationen</strong></th>
+<th align="left"><strong>Umsetzung in <code>R</code></strong></th>
+<th align="left"><strong>Sinnvoll umsetzbar für…</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">oder</td>
+<td align="left"><code>|</code></td>
+<td align="left">character, numeric</td>
+</tr>
+<tr class="even">
+<td align="left">und</td>
+<td align="left"><code>&amp;</code></td>
+<td align="left">character, numeric</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="37%" />
+<col width="27%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"><strong>Gleichungen/Ungleichungen</strong></th>
+<th align="left"><strong>Umsetzung in <code>R</code></strong></th>
+<th align="left"><strong>Sinnvoll umsetzbar für…</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">gleich</td>
+<td align="left"><code>==</code></td>
+<td align="left">character, numeric</td>
+</tr>
+<tr class="even">
+<td align="left">ungleich</td>
+<td align="left"><code>!=</code></td>
+<td align="left">character, numeric</td>
+</tr>
+</tbody>
+</table>
+<table>
+<colgroup>
+<col width="37%" />
+<col width="26%" />
+<col width="35%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left"><strong>Vergleiche</strong></th>
+<th align="left"><strong>Umsetzung in <code>R</code></strong></th>
+<th align="left"><strong>Sinnvoll umsetzbar für…</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">kleiner</td>
+<td align="left"><code>&lt;</code></td>
+<td align="left">numeric</td>
+</tr>
+<tr class="even">
+<td align="left">größer</td>
+<td align="left"><code>&gt;</code></td>
+<td align="left">numeric</td>
+</tr>
+<tr class="odd">
+<td align="left">kleiner gleich</td>
+<td align="left"><code>&lt;=</code></td>
+<td align="left">numeric</td>
+</tr>
+<tr class="even">
+<td align="left">größer gleich</td>
+<td align="left"><code>&gt;=</code></td>
+<td align="left">numeric</td>
+</tr>
+</tbody>
+</table>
+<p>Nun definieren wir einen Vektor <code>jahre</code> und führen
+verschiedene Gleichungen/Ungleichungen und Vergleiche durch. Zunächst
+interessiert uns, welche Elemente mit dem Jahr 2010 übereinstimmen.</p>
+<pre class="r"><code>jahre &lt;- c(2013, 2005, 1995, 2017, 2021, 1989, 2010, 2018)
+jahre == 2010 </code></pre>
+<pre><code>## [1] FALSE FALSE FALSE FALSE FALSE FALSE  TRUE FALSE</code></pre>
+<p>Jetzt suchen wir nach den Elementen, die kleiner als das Jahr 2010
+sind. Also alle Jahre vor 2010.</p>
+<pre class="r"><code>jahre &lt; 2010  </code></pre>
+<pre><code>## [1] FALSE  TRUE  TRUE FALSE FALSE  TRUE FALSE FALSE</code></pre>
+<p>Die logischen Vektoren, die wir als Output bekommen, sind schwierig
+zu interpretieren, besonders bei langen Vektoren. Wenn wir wissen
+möchten, welche konkreten Jahre vor 2010 enthalten sind, schreiben
+wir:</p>
+<pre class="r"><code>jahre[jahre &lt; 2010] </code></pre>
+<pre><code>## [1] 2005 1995 1989</code></pre>
+<p>Hier erhalten wir alle Jahre die nicht 2010 sind.</p>
+<pre class="r"><code>jahre[jahre != 2010] </code></pre>
+<pre><code>## [1] 2013 2005 1995 2017 2021 1989 2018</code></pre>
+<p>Und hier alle Jahre seit 2010. Also alle Jare danach und das Jahr
+2010.</p>
+<pre class="r"><code>jahre[jahre &gt;= 2010]</code></pre>
+<pre><code>## [1] 2013 2017 2021 2010 2018</code></pre>
+<p><code>R</code> wendet den logischen Vektor, der in eckigen Klammern
+steht, auf den Vektor <code>jahre</code> an und gibt die Elemente von
+<code>jahre</code> aus, die der logische Vektor als <code>TRUE</code>
+identifiziert. Elemente, die als <code>FALSE</code> identifiziert
+werden, werden ignoriert.</p>
+<p>Auch die logischen Operationen <code>&amp;</code> und <code>|</code>
+oder können auf numerische Werte übertragen werden. Zum Beispiel, wenn
+wir die Jahre 2010 und 2013 erhalten wollen.</p>
+<pre class="r"><code>jahre[jahre == 2010 | jahre == 2013]</code></pre>
+<pre><code>## [1] 2013 2010</code></pre>
+<p>Oder wenn wir die Jahre finden wollen, die zwischen 2013 und 2018
+liegen.</p>
+<pre class="r"><code>jahre[jahre &gt;= 2013 &amp; jahre &lt;= 2018]</code></pre>
+<pre><code>## [1] 2013 2017 2018</code></pre>
+<p>Auch für Vektoren, die von der Klasse <em>character</em> sind, können
+wir Gleichungen/Ungleichungen und logische Operationen sinnvoll
+anwenden. Wenn wir beispielsweise den Vektor <code>namen</code>
+betrachten, der verschiedene Vornamen enthält, können wir zunächst nach
+den Namen Helena oder Nicole filtern.</p>
+<pre class="r"><code>namen &lt;- c(&quot;Helena&quot;, &quot;Philipp&quot;, &quot;Jakob&quot;, &quot;Julia&quot;, &quot;Christoph&quot;, &quot;Johannes&quot;, &quot;Nicole&quot;, &quot;Kerstin&quot;)
+namen[namen == &quot;Helena&quot; | namen == &quot;Nicole&quot;]</code></pre>
+<pre><code>## [1] &quot;Helena&quot; &quot;Nicole&quot;</code></pre>
+<p>Nun wird gefragt, ob ein Element in <code>namen</code> sowohl gleich
+“Helena” als auch gleich “Nicole” ist. Da jedes Element nur ein Name
+ist, trifft das für kein Element zu.</p>
+<pre class="r"><code>namen[namen == &quot;Helena&quot; &amp; namen == &quot;Nicole&quot;]</code></pre>
+<pre><code>## character(0)</code></pre>
+<p>Jetzt fragen wir, ob ein Element entweder nicht “Helena” oder nicht
+“Nicole” ist. Da kein Element beides sein kann, trifft das auf jedes
+Element zu.</p>
+<pre class="r"><code>namen[namen != &quot;Helena&quot; | namen != &quot;Nicole&quot;]</code></pre>
+<pre><code>## [1] &quot;Helena&quot;    &quot;Philipp&quot;   &quot;Jakob&quot;     &quot;Julia&quot;     &quot;Christoph&quot; &quot;Johannes&quot;  &quot;Nicole&quot;    &quot;Kerstin&quot;</code></pre>
+<p>Im nächsten Beispiel fragen wir uns, ob ein Element sowohl nicht
+“Helena” als auch nicht “Nicole” ist. Das trifft für alle Elemente außer
+“Helena” und “Nicole” zu.</p>
+<pre class="r"><code>namen[namen != &quot;Helena&quot; &amp; namen != &quot;Nicole&quot;]</code></pre>
+<pre><code>## [1] &quot;Philipp&quot;   &quot;Jakob&quot;     &quot;Julia&quot;     &quot;Christoph&quot; &quot;Johannes&quot;  &quot;Kerstin&quot;</code></pre>
+<p>Wenn wir also eine neue Liste àndere` aller Namen, außer Helena und
+Nicole haben möchten, geht das wie folgt:</p>
+<pre class="r"><code>andere &lt;- namen[namen != &quot;Helena&quot; &amp; namen != &quot;Nicole&quot;]
+andere</code></pre>
+<pre><code>## [1] &quot;Philipp&quot;   &quot;Jakob&quot;     &quot;Julia&quot;     &quot;Christoph&quot; &quot;Johannes&quot;  &quot;Kerstin&quot;</code></pre>
+</div>
+<div id="arithmetische-operationen-mit-vektoren" class="section level2">
+<h2>4.3 Arithmetische Operationen mit Vektoren</h2>
+<p>Schließlich können wir mit Vektoren auch arithmetische Operationen
+durchführen. Das bedeutet, dass wir mit den Grundrechenarten, also
+Addition, Subtraktion, Multiplikation und Division, Rechnungen
+durchführen können. Dies funktioniert sowohl mit Vektoren, die nur ein
+Element enthalten, als auch mit Vektoren, die mehrere Elemente
+enthalten. Hier ist ein Beispiel für den Vektor <code>x</code>, der das
+Element 2 beinhaltet. Die Grundrechenarten können mit dem Vektor selbst
+durchgeführt werden:</p>
+<pre class="r"><code>x &lt;- 2
+x + x</code></pre>
+<pre><code>## [1] 4</code></pre>
+<p>Oder mit einer Zahl:</p>
+<pre class="r"><code>4 - x</code></pre>
+<pre><code>## [1] 2</code></pre>
+<p>Oder mit einem anderen Vektor:</p>
+<pre class="r"><code>y &lt;- 3
+x * y</code></pre>
+<pre><code>## [1] 6</code></pre>
+<p>Die obigen Rechnungen waren sehr einfach, da der Vektor nur aus einer
+Zahl bestand. Wir hätten genauso gut die Zahl 2 bzw. 3 statt den
+Vektoren verwenden können. In der Praxis werden die Berechnungen jedoch
+meistens für Vektoren mit mehreren Elementen durchgeführt. Der Vorteil
+hierbei ist, dass die Rechnung für jedes Element im Vektor durchgeführt
+wird, was deutlich effizienter ist, als jedes Element einzeln zu
+berechnen. Zum Beispiel wird hier jedes Element des Vektors
+<code>x</code> mit der Zahl 2 multipliziert.</p>
+<pre class="r"><code>x &lt;- 1:4
+2 * x</code></pre>
+<pre><code>## [1] 2 4 6 8</code></pre>
+<p>Auch für Rechnungen mit dem Vektor selbst funktioniert dieses
+Prinzip. So erhalten wir durch die Addition von <code>x</code> zu
+<code>x</code> das gleiche Ergebnis wie im vorherigen Beispiel.</p>
+<pre class="r"><code>x + x</code></pre>
+<pre><code>## [1] 2 4 6 8</code></pre>
+<p>Ebenfalls können wir die arithmetischen Operationen mit mehrere
+Vektoren, die mehrere Elementen enthalten, durchführen. So können wir
+den Vektor <code>y</code> vom Vektor <code>x</code> abziehen. Wichtig
+hierbei ist, dass die Vektoren gleich viele Elemente enthalten müssen.
+Das heißt, <code>y</code> muss ebenfalls vier Elemente enthalten</p>
+<pre class="r"><code>y &lt;- c(2, 1, 3, 2)
+x - y</code></pre>
+<pre><code>## [1] -1  1  0  2</code></pre>
+<p><code>R</code> verfügt auch über einige Standardfunktionen, die
+Berechnungen erleichtern. <code>sqrt()</code> berechnet die
+Quadratwurzel.</p>
+<pre class="r"><code>x &lt;- c(1, 4, 9, 16)
+sqrt(x)      </code></pre>
+<pre><code>## [1] 1 2 3 4</code></pre>
+<p>Mit der Funktion <code>mean()</code> können wir das arithmetische
+Mittel, also den Durchschnitt von einem Vektor bilden.</p>
+<pre class="r"><code>mean(x)    </code></pre>
+<pre><code>## [1] 7.5</code></pre>
+</div>
+</div>
+<div id="funktionen-und-pakete" class="section level1">
+<h1>5. Funktionen und Pakete</h1>
+<p>Bislang haben wir Funktionen wie <code>Sys.time()</code>,
+<code>c()</code> und <code>class()</code> kennengelernt. Allerdings
+haben wir uns aber noch nicht damit beschäftigt, welche Struktur
+Funktionen aufweisen und wie sie in <code>R</code> gebildet werden. Dies
+wird Inhalt des folgenden Kapitels.</p>
+<div id="base-r-und-die-grundstruktur-von-funktionen"
+class="section level2">
+<h2>5.1 <code>base</code>-<code>R</code> und die Grundstruktur von
+Funktionen</h2>
+<p>Funktionen sind Paketen zugeordnet. Sie können immer nur dann
+verwendet werden, wenn wir das zugehörige Paket installiert und geladen
+haben. Um herauszufinden, zu welchem Paket eine Funktion gehört, können
+Sie die Hilfefunktion aufrufen. Das Paket finden wir oben links in
+geschweiften Klammern hinter dem Namen der Funktion.</p>
+<pre class="r"><code>?summary</code></pre>
+<div class="r-help-page">
+<table width="100%" summary="page for summary">
+<tr>
+<td>
+summary
+</td>
+<td style="text-align: right;">
+R Documentation
+</td>
+</tr>
+</table>
+<h2>
+Object Summaries
+</h2>
+<h3>
+Description
+</h3>
+<p>
+<code>summary</code> is a generic function used to produce result
+summaries of the results of various model fitting functions. The
+function invokes particular <code>methods</code> which depend on the
+<code>class</code> of the first argument.
+</p>
+<h3>
+Usage
+</h3>
+<pre class="r">
+summary(object, ...)
+
+## Default S3 method:
+summary(object, ..., digits, quantile.type = 7)
+## S3 method for class 'data.frame'
+summary(object, maxsum = 7,
+       digits = max(3, getOption("digits")-3), ...)
+
+## S3 method for class 'factor'
+summary(object, maxsum = 100, ...)
+
+## S3 method for class 'matrix'
+summary(object, ...)
+
+## S3 method for class 'summaryDefault'
+format(x, digits = max(3L, getOption("digits") - 3L), ...)
+ ## S3 method for class 'summaryDefault'
+print(x, digits = max(3L, getOption("digits") - 3L), ...)
+</pre>
+<h3>
+Arguments
+</h3>
+<table summary="R argblock">
+<tr valign="top">
+<td>
+<code>object</code>
+</td>
+<td>
+<p>
+an object for which a summary is desired.
+</p>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<code>x</code>
+</td>
+<td>
+<p>
+a result of the <em>default</em> method of <code>summary()</code>.
+</p>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<code>maxsum</code>
+</td>
+<td>
+<p>
+integer, indicating how many levels should be shown for
+<code>factor</code>s.
+</p>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<code>digits</code>
+</td>
+<td>
+<p>
+integer, used for number formatting with <code>signif()</code> (for
+<code>summary.default</code>) or <code>format()</code> (for
+<code>summary.data.frame</code>). In <code>summary.default</code>, if
+not specified (i.e., <code>missing(.)</code>), <code>signif()</code>
+will <em>not</em> be called anymore (since <span
+style="font-family: Courier New, Courier; color: #666666;"><b>R</b></span>
+&gt;= 3.4.0, where the default has been changed to only round in the
+<code>print</code> and <code>format</code> methods).
+</p>
+</td>
+</tr>
+</table>
+<table summary="R argblock">
+<tr valign="top">
+<td>
+<code>quantile.type</code>
+</td>
+<td>
+<p>
+integer code used in <code>quantile(*, type=quantile.type)</code> for
+the default method.
+</p>
+</td>
+</tr>
+<tr valign="top">
+<td>
+<code>…</code>
+</td>
+<td>
+<p>
+additional arguments affecting the summary produced.
+</p>
+</td>
+</tr>
+</table>
+<h3>
+Details
+</h3>
+<p>
+For <code>factor</code>s, the frequency of the first <code>maxsum -
+1</code> most frequent levels is shown, and the less frequent levels are
+summarized in <code>“(Others)”</code> (resulting in at most
+<code>maxsum</code> frequencies).
+</p>
+<p>
+The functions <code>summary.lm</code> and <code>summary.glm</code> are
+examples of particular methods which summarize the results produced by
+<code>lm</code> and <code>glm</code>.
+</p>
+<h3>
+Value
+</h3>
+<p>
+The form of the value returned by <code>summary</code> depends on the
+class of its argument. See the documentation of the particular methods
+for details of what is produced by that method.
+</p>
+<p>
+The default method returns an object of class <code>c(“summaryDefault”,
+“table”)</code> which has specialized <code>format</code> and
+<code>print</code> methods. The <code>factor</code> method returns an
+integer vector.
+</p>
+<p>
+The matrix and data frame methods return a matrix of class
+<code>“table”</code>, obtained by applying <code>summary</code> to each
+column and collating the results.
+</p>
+<h3>
+References
+</h3>
+<p>
+Chambers, J. M. and Hastie, T. J. (1992) <em>Statistical Models in
+S</em>. Wadsworth &amp; Brooks/Cole.
+</p>
+<h3>
+See Also
+</h3>
+<p>
+<code>anova</code>, <code>summary.glm</code>, <code>summary.lm</code>.
+</p>
+<h3>
+Examples
+</h3>
+<pre class="r">
+summary(attenu, digits = 4) #-&gt; summary.data.frame(...), default precision
+summary(attenu $ station, maxsum = 20) #-&gt; summary.factor(...)
+
+lst &lt;- unclass(attenu$station) &gt; 20 # logical with NAs
+## summary.default() for logicals -- different from *.factor:
+summary(lst)
+summary(as.factor(lst))
+</pre>
+</div>
+<p>Die Funktion <code>summary()</code> gehört zum Paket
+<code>base</code>. Dieses Paket ist das Ursprungspaket von
+<code>R</code> und wird gemeinsam mit <code>R</code> installiert. Es
+beinhaltet grundlegende Funktionen, die für eine erfolgreiche
+Datenanalyse unerlässlich sind. Für spezialisiertere Anwendungen müssen
+jedoch besondere Pakete installiert werden.</p>
+<p>Funktionen besitzen Argumente, die wir spezifizieren können oder zum
+Teil müssen. Dadurch bestimmen wir, worauf sich die Funktion bezieht und
+wie genau sie ausgeführt werden soll. Argumente stehen innerhalb der
+Klammern <code>()</code> hinter dem Namen der Funktion und werden
+mithilfe des einfachen Gleichheitszeichens <code>=</code> auf einen
+bestimmten Wert festgesetzt oder mit Inhalt versehen. In etwa so:</p>
+<p><code>Funktion(Argument1 = a, Argument2 = b)</code>.</p>
+<p>Manche Argumente müssen explizit spezifiziert werden, während andere
+mit einer Standardeinstellung, dem default, versehen sind.
+<code>R</code> erzeugt eine Fehlermeldung, wenn obligatorische Argumente
+nicht bestimmt wurden.</p>
+<pre class="r"><code>summary(object = )       </code></pre>
+<pre class="r"><code>summary(object = jahre)  </code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1989</td>
+<td align="right">2002.5</td>
+<td align="right">2011.5</td>
+<td align="right">2008.5</td>
+<td align="right">2017.25</td>
+<td align="right">2021</td>
+</tr>
+</tbody>
+</table>
+<p>Außerdem müssen Sie Argumente nicht ausdrücklich nennen. Da sie eine
+feste Reihenfolge haben, reicht es aus, wenn Sie in der richtigen
+Reihenfolge sinnvoll interpretierbaren Input in die Klammern des Befehls
+schreiben. Insbesondere bei Funktionen mit nur einem Argument können Sie
+sich in der Regel die Nennung des Arguments sparen.</p>
+<pre class="r"><code>summary(jahre)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Min.</th>
+<th align="right">1st Qu.</th>
+<th align="right">Median</th>
+<th align="right">Mean</th>
+<th align="right">3rd Qu.</th>
+<th align="right">Max.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1989</td>
+<td align="right">2002.5</td>
+<td align="right">2011.5</td>
+<td align="right">2008.5</td>
+<td align="right">2017.25</td>
+<td align="right">2021</td>
+</tr>
+</tbody>
+</table>
+<p><code>RStudio</code> geht uns zur Hand, indem es die Argumente einer
+Funktion vorschlägt, wenn wir uns mit dem Cursor innerhalb der Klammern
+einer Funktion befinden und <code>Tab</code> drücken. So muss man nicht
+die Argumente unterschiedlicher Funktionen im Kopf haben.</p>
+</div>
+<div id="installieren-und-laden-von-paketen" class="section level2">
+<h2>5.2 Installieren und Laden von Paketen</h2>
+<p>Als Beispiel für ein spezialisiertes Paket möchten wir nun das Paket
+<code>ggplot2</code> vorstellen, welchem wir bei dem Erstellen von
+Grafiken wieder begegnen werden. Um ein Paket zu installieren, nutzen
+wir den Befehl <code>install.packages()</code>, wobei das Paket in
+Anführungszeichen <code>""</code> gesetzt wird.</p>
+<pre class="r"><code>install.packages(&quot;ggplot2&quot;)</code></pre>
+<p>Nun haben wir <code>ggplot2</code> erfolgreich auf unserem Computer
+installiert. Überprüfen Sie im Fenster rechts unten unter Packages, ob
+Sie es finden können. Um <code>ggplot2</code> nutzen zu können, müssen
+wir es noch laden. Dazu verwenden wir die Funktion
+<code>library()</code>. Sie finden unter Packages die Bezeichnung
+<code>System Library</code> für den Ort, an dem alle Pakete gespeichert
+sind.</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>Jetzt ist das Paket geladen und wir können auf seine Funktionen
+zugreifen. Wenn Sie es nochmal unter Packages suchen, werden Sie
+feststellen, dass sich in dem Kästchen links neben dem Paket nun ein
+Haken befindet. Alternativ hätten wir das Paket auch laden können, indem
+wir den Haken per Mausklick setzen. Die Funktionsweise von
+<code>ggplot2</code> wird in den Sitzungen 5, 7, 8 und 10 für
+spezifische Zwecke erläutert.</p>
+</div>
+</div>
+<div id="aufgaben" class="section level1">
+<h1>6. Aufgaben</h1>
+<ol style="list-style-type: decimal">
+<li><ol style="list-style-type: lower-alpha">
+<li>Erstellen Sie zwei numerische Vektoren, die je fünf beliebige Werte
+beinhalten.</li>
+<li>Summieren Sie die Vektoren.</li>
+<li>Multiplizieren Sie die Vektoren miteinander.</li>
+<li>Bilden Sie einen weiteren Vektor, indem Sie die beiden Vektoren
+miteinander kombinieren.</li>
+<li>Subtrahieren Sie von dem neuen Vektor aus d die Zahl 5.</li>
+</ol></li>
+<li><ol style="list-style-type: lower-alpha">
+<li>Erstellen Sie einen <em>character</em>-Vektor, der die Buchstaben
+des Alphabets beinhaltet.</li>
+<li>Bilden Sie einen zweiten <em>character</em>-Vektor, indem Sie eine
+Auswahl aus dem ersten treffen, welche nur die Konsonanten
+beinhaltet.</li>
+<li>Bilden Sie einen weiteren Vektor, der nur die Vokale enthält.</li>
+</ol></li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

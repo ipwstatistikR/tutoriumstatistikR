@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 12: Dimensionsreduzierende Verfahren</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 12: Dimensionsreduzierende Verfahren</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Nachdem wir verschiedene statistische Verfahren kennengelernt haben,
+um Zusammenhänge zu erkennen und zu visualisieren, werden wir uns nun
+mit dimensionsreduzierenden Verfahren beschäftigen.
+Dimensionsreduzierende Verfahren sind statistische Analysemethoden, die
+eine Menge von Variablen auf die zugrunde liegenden Dimensionen
+reduzieren. Diese Dimensionen werden auch als (Haupt-)Komponenten oder
+Faktoren bezeichnet. Ziel ist es, bei möglichst geringem
+Informationsverlust möglichst wenige Komponenten zu erhalten.
+Voraussetzung für dimensionsreduzierende Verfahren sind metrische oder
+kategoriale Variablen.</p>
+<p>In dieser Sitzung werden wir die Hauptkomponentenanalyse (PCA) und
+die explorative Faktorenanalyse (EFA) kennenlernen. Die
+Hauptkomponentenanalyse ist ein deskriptives Verfahren, während die
+explorative Faktorenanalyse ein induktives Verfahren zur Datenreduktion
+darstellt. Es gibt noch viele weitere dimensionsreduzierende Verfahren,
+wie zum Beispiel die konfirmatorische Faktorenanalyse. Generell schaffen
+diese Verfahren Übersichtlichkeit und es können Gemeinsamkeiten zwischen
+den Variablen gefunden werden.</p>
+<p>Die explorative Faktorenanalyse wird am Beispiel von <a
+href="https://www.jstor.org/stable/j.ctt32bg23"><em>Patterns of
+Democracy</em></a> von Arend Lijphart durchgeführt. Seine Ergebnisse
+visualisierte er mit der <em>Landkarte der Demokratie</em>, mit der
+demokratische Länder auf zwei Dimensionen eingeordnet werden können.
+Außerdem konnte er zwischen Konsens- und Mehrheitsdemokratien
+unterscheiden.In dieser Sitzung werden wir Lijpharts Faktorenanalyse und
+seine <em>Landkarte der Demokratie</em> replizieren.</p>
+</div>
+<div id="pakete-laden-daten-einlesen-und-variablen-transformieren"
+class="section level1">
+<h1>2. Pakete laden, Daten einlesen und Variablen transformieren</h1>
+<p>Dazu müssen Sie zunächst die nötigen Pakete und Daten laden und
+einige Variablen umkodieren.</p>
+<pre class="r"><code>library(Hmisc)
+library(foreign)
+library(ggplot2)
+library(stats)
+library(reshape2)</code></pre>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)
+lijphart &lt;- read.csv2(&quot;Lijphart_Data_recode.csv&quot;)</code></pre>
+<p>Zusätzlich zu den Datentransformationen der letzten Sitzungen müssen
+wir noch einige weitere Variablen umkodieren.</p>
+<pre class="r"><code># 1. Zweiparteiensystem vs. Mehrparteiensystem 
+# (ENPP)
+lijphart$enpp4510 &lt;- as.numeric(lijphart$enpp4510)
+
+# 2. Einparteienkabinette vs. Koalitionsregierungen 
+# (Mittelwert Regierungsdauer Minimal-Winning Koalition und Einparteienkabinette)
+lijphart$minwin_one_part4510 &lt;- as.numeric(lijphart$minwin_one_part4510)
+
+# 3. Exekutivdominanz vs. dominante Legislative 
+# (Durchschnittliche Lebensdauer von Kabinetten)
+lijphart$exe_dom4510 &lt;- as.numeric(lijphart$exe_dom4510)
+
+# 4. Mehrheitswahlrecht vs. Verhältniswahlrecht
+# (Gallagher-Index der elektoralen Disproportionalität)
+lijphart$disprop4510 &lt;- as.numeric(lijphart$disprop4510)
+
+# 5. Pluralistische vs. korporatistische Interessenvertretung
+# (Korporatismus-Index nach Siaroff)
+lijphart$inter_gr_plural4510 &lt;- as.numeric(lijphart$inter_gr_plural4510)
+
+# 6. Unitarisch-zentralisiert vs. Föderaldezentralisiert
+# (Skala von 1 bis 4 (zentral unitarisch bis föderal und dezentral))
+lijphart$fed_unit4510 &lt;- as.numeric(lijphart$fed_unit4510)
+
+# 7. Unikameralismus vs. Bikameralismus
+# Skala von 1 bis 4, (unikameral bis stark bikameral)
+lijphart$bicam4510 &lt;- as.numeric(lijphart$bicam4510)
+
+# 8. Flexible vs. Rigide Verfassungen
+# (Skala von 1 bis 4, (einfach, absolut, super, größer super))
+lijphart$const_rigid4510 &lt;- as.numeric(lijphart$const_rigid4510)
+
+# 9. Keine Normenkontrolle vs. Normenkontrolle durch Verfassungsgericht
+# (Skala von 1 bis 4, vergeben nach Sekundärliteratur)
+lijphart$judic_rev4510 &lt;- as.numeric(lijphart$judic_rev4510)
+
+# 10. Abhängige vs. Unabhängige Zentralbank
+# (Grad Zentralbankautonomie (Indizies Cukierman, Grilli…))
+lijphart$cen_bank_indep4594 &lt;- as.numeric(lijphart$cen_bank_indep4594)</code></pre>
+</div>
+<div id="vorbereitung-der-daten" class="section level1">
+<h1>3. Vorbereitung der Daten</h1>
+<div id="auswahl-der-variablen" class="section level2">
+<h2>3.1 Auswahl der Variablen</h2>
+<p>Grundsätzlich ist die Auswahl der Variablen wichtig, weil sie in
+einem hohen Maße den Erfolg der Faktorenanalyse bestimmt. Lijphart nutzt
+für seine Faktorenanalyse die zehn Variablen, die wir zuvor umkodiert
+haben. Aus diesen Variablen erstellen wir ein <code>subset</code>.</p>
+<pre class="r"><code>sub_lijphart &lt;- lijphart[, c(&quot;enpp4510&quot;, &quot;minwin_one_part4510&quot;, &quot;exe_dom4510&quot;, 
+                             &quot;disprop4510&quot;, &quot;inter_gr_plural4510&quot;,
+                             &quot;fed_unit4510&quot;, &quot;bicam4510&quot;, &quot;const_rigid4510&quot;,                                 &quot;judic_rev4510&quot;, &quot;cen_bank_indep4594&quot;)]
+head(sub_lijphart)</code></pre>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="13%" />
+<col width="8%" />
+<col width="8%" />
+<col width="13%" />
+<col width="8%" />
+<col width="6%" />
+<col width="11%" />
+<col width="9%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">enpp4510</th>
+<th align="right">minwin_one_part4510</th>
+<th align="right">exe_dom4510</th>
+<th align="right">disprop4510</th>
+<th align="right">inter_gr_plural4510</th>
+<th align="right">fed_unit4510</th>
+<th align="right">bicam4510</th>
+<th align="right">const_rigid4510</th>
+<th align="right">judic_rev4510</th>
+<th align="right">cen_bank_indep4594</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">3.15</td>
+<td align="right">82.4</td>
+<td align="right">8.00</td>
+<td align="right">17.98</td>
+<td align="right">2.70</td>
+<td align="right">1.38</td>
+<td align="right">4.0</td>
+<td align="right">4</td>
+<td align="right">2.7</td>
+<td align="right">0.39</td>
+</tr>
+<tr class="even">
+<td align="right">2.22</td>
+<td align="right">80.7</td>
+<td align="right">9.10</td>
+<td align="right">9.44</td>
+<td align="right">2.12</td>
+<td align="right">1.63</td>
+<td align="right">4.0</td>
+<td align="right">4</td>
+<td align="right">3.0</td>
+<td align="right">0.42</td>
+</tr>
+<tr class="odd">
+<td align="right">2.68</td>
+<td align="right">43.3</td>
+<td align="right">8.07</td>
+<td align="right">2.51</td>
+<td align="right">0.38</td>
+<td align="right">1.07</td>
+<td align="right">2.0</td>
+<td align="right">3</td>
+<td align="right">3.0</td>
+<td align="right">0.55</td>
+</tr>
+<tr class="even">
+<td align="right">1.69</td>
+<td align="right">100.0</td>
+<td align="right">9.44</td>
+<td align="right">16.48</td>
+<td align="right">3.00</td>
+<td align="right">-0.15</td>
+<td align="right">2.0</td>
+<td align="right">3</td>
+<td align="right">2.0</td>
+<td align="right">0.41</td>
+</tr>
+<tr class="odd">
+<td align="right">1.68</td>
+<td align="right">100.0</td>
+<td align="right">8.87</td>
+<td align="right">17.27</td>
+<td align="right">2.20</td>
+<td align="right">-0.49</td>
+<td align="right">2.0</td>
+<td align="right">2</td>
+<td align="right">2.0</td>
+<td align="right">0.38</td>
+</tr>
+<tr class="even">
+<td align="right">4.72</td>
+<td align="right">37.3</td>
+<td align="right">2.57</td>
+<td align="right">3.35</td>
+<td align="right">1.15</td>
+<td align="right">0.10</td>
+<td align="right">2.8</td>
+<td align="right">3</td>
+<td align="right">1.8</td>
+<td align="right">0.27</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="korrelationsmatrix" class="section level2">
+<h2>3.2 Korrelationsmatrix</h2>
+<p>Generell sind nur Variablen, die miteinander korrelieren, fähig zur
+Bündelung Zudem gilt: Je gößer die Korrelation, desto mehr Varianz kann
+durch wenige Faktoren erklärt werden. Daher folgt nach der
+Variablenauswahl die Berechnung einer <em>Korrelationsmatrix</em>. In
+<code>R</code> geht dies mit folgendem Code:</p>
+<pre class="r"><code>cor_matrix &lt;- rcorr(as.matrix(sub_lijphart))
+cor_matrix</code></pre>
+<pre><code>##                     enpp4510 minwin_one_part4510 exe_dom4510 disprop4510 inter_gr_plural4510 fed_unit4510 bicam4510
+## enpp4510                1.00               -0.85       -0.79       -0.57               -0.61         0.00      0.09
+## minwin_one_part4510    -0.85                1.00        0.78        0.58                0.71        -0.07     -0.03
+## exe_dom4510            -0.79                0.78        1.00        0.55                0.51         0.08      0.10
+## disprop4510            -0.57                0.58        0.55        1.00                0.61         0.09      0.09
+## inter_gr_plural4510    -0.61                0.71        0.51        0.61                1.00         0.00      0.07
+## fed_unit4510            0.00               -0.07        0.08        0.09                0.00         1.00      0.76
+## bicam4510               0.09               -0.03        0.10        0.09                0.07         0.76      1.00
+## const_rigid4510        -0.08                0.00        0.11        0.17                0.01         0.74      0.38
+## judic_rev4510          -0.24                0.17        0.18        0.36                0.26         0.71      0.41
+## cen_bank_indep4594     -0.04               -0.15       -0.02       -0.12               -0.10         0.71      0.38
+##                     const_rigid4510 judic_rev4510 cen_bank_indep4594
+## enpp4510                      -0.08         -0.24              -0.04
+## minwin_one_part4510            0.00          0.17              -0.15
+## exe_dom4510                    0.11          0.18              -0.02
+## disprop4510                    0.17          0.36              -0.12
+## inter_gr_plural4510            0.01          0.26              -0.10
+## fed_unit4510                   0.74          0.71               0.71
+## bicam4510                      0.38          0.41               0.38
+## const_rigid4510                1.00          0.46               0.38
+## judic_rev4510                  0.46          1.00               0.34
+## cen_bank_indep4594             0.38          0.34               1.00
+## 
+## n= 36 
+## 
+## 
+## P
+##                     enpp4510 minwin_one_part4510 exe_dom4510 disprop4510 inter_gr_plural4510 fed_unit4510 bicam4510
+## enpp4510                     0.0000              0.0000      0.0003      0.0000              0.9897       0.6004   
+## minwin_one_part4510 0.0000                       0.0000      0.0002      0.0000              0.6810       0.8662   
+## exe_dom4510         0.0000   0.0000                          0.0005      0.0015              0.6512       0.5713   
+## disprop4510         0.0003   0.0002              0.0005                  0.0000              0.5876       0.5918   
+## inter_gr_plural4510 0.0000   0.0000              0.0015      0.0000                          0.9852       0.6671   
+## fed_unit4510        0.9897   0.6810              0.6512      0.5876      0.9852                           0.0000   
+## bicam4510           0.6004   0.8662              0.5713      0.5918      0.6671              0.0000                
+## const_rigid4510     0.6569   0.9899              0.5308      0.3108      0.9738              0.0000       0.0206   
+## judic_rev4510       0.1661   0.3215              0.2907      0.0322      0.1229              0.0000       0.0135   
+## cen_bank_indep4594  0.8199   0.3718              0.9287      0.4862      0.5464              0.0000       0.0241   
+##                     const_rigid4510 judic_rev4510 cen_bank_indep4594
+## enpp4510            0.6569          0.1661        0.8199            
+## minwin_one_part4510 0.9899          0.3215        0.3718            
+## exe_dom4510         0.5308          0.2907        0.9287            
+## disprop4510         0.3108          0.0322        0.4862            
+## inter_gr_plural4510 0.9738          0.1229        0.5464            
+## fed_unit4510        0.0000          0.0000        0.0000            
+## bicam4510           0.0206          0.0135        0.0241            
+## const_rigid4510                     0.0043        0.0217            
+## judic_rev4510       0.0043                        0.0416            
+## cen_bank_indep4594  0.0217          0.0416</code></pre>
+<p>Die Korrelationsmatrix wird in <code>R</code> in mehreren Zeilen
+dargestellt, da sie zu groß ist. Sie könnten nun die Grafik zum Beispiel
+mit Excel aufarbeiten, um ein übersichtlicheres Ergebnis zu erhalten.
+Für einen schnellen Überblick empfiehlt es sich, eine Heatmap mit
+<code>ggplot()</code> zu erstellen. Dazu muss zunächst ein
+<code>dataframe</code> erstellt werden.</p>
+<pre class="r"><code>cor_df &lt;- melt(cor_matrix$r)
+
+ggplot(cor_df, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = &quot;white&quot;) +
+  scale_fill_gradient(low = &quot;blue&quot;, high = &quot;red&quot;) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = &quot;Korrelationsmatrix Heatmap&quot;)</code></pre>
+<p><img src="R_12_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Die Heatmap ist so zu interpretieren, dass kalte Farben eine negative
+Korrelation und warme Farben eine positive Korrelation bedeuten. Weiß
+würde eine neutrale Korrelation bedeuten. Da wir sehen können, dass alle
+Variablen miteinander korrelieren, können wir
+Dimensionsreduktionsverfahren anwenden.</p>
+</div>
+</div>
+<div id="hauptkomponentenanalyse" class="section level1">
+<h1>4. Hauptkomponentenanalyse</h1>
+<p>Nachdem wir die Variablen für unsere Analyse ausgewählt und die
+Voraussetzungen geprüft haben, können wir zunächst eine
+<em>Hauptkomponentenanalyse</em> durchführen. Die
+Hauptkomponentenanalyse dient zur Strukturierung der Daten. Mit der
+Funktion <code>prcomp()</code> können wir sie durchführen.</p>
+<pre class="r"><code>model_princomp &lt;- prcomp(sub_lijphart, scale = TRUE)
+model_princomp</code></pre>
+<pre><code>## Standard deviations (1, .., p=10):
+##  [1] 1.9575733 1.7530967 0.8948009 0.8126860 0.7567629 0.6390219 0.6063879 0.4095548 0.3270288 0.1000158
+## 
+## Rotation (n x k) = (10 x 10):
+##                             PC1         PC2         PC3         PC4         PC5         PC6         PC7          PC8
+## enpp4510             0.42791560 -0.18353791  0.35917363 -0.11264655 -0.04624807 -0.10720619 -0.05100845 -0.411251013
+## minwin_one_part4510 -0.42483876  0.23837982 -0.13648429 -0.09232681 -0.07090785  0.04930368  0.27872920  0.432597903
+## exe_dom4510         -0.41397453  0.14080676 -0.29666253 -0.12080612 -0.37434557  0.30802455 -0.15036206 -0.667579186
+## disprop4510         -0.38967840  0.09657021  0.41816948  0.17588221  0.01634489 -0.17807617 -0.76024973  0.127122484
+## inter_gr_plural4510 -0.38463166  0.16241527  0.25338448 -0.20698227  0.34517100 -0.56243344  0.37817106 -0.350026993
+## fed_unit4510        -0.18418703 -0.52889154 -0.02415918 -0.03926803 -0.01769062  0.02592394  0.03867396 -0.006913301
+## bicam4510           -0.14100399 -0.39569770  0.23331885 -0.71228488 -0.29618067  0.03685147 -0.02240476  0.223353978
+## const_rigid4510     -0.17370774 -0.38588334  0.03717568  0.56424401 -0.50571352 -0.33594977  0.24441137 -0.005487234
+## judic_rev4510       -0.27587202 -0.32191667  0.30184801  0.24173497  0.46957226  0.58364338  0.17144024 -0.091581322
+## cen_bank_indep4594  -0.07174855 -0.40634789 -0.61463214 -0.06868306  0.41110605 -0.29601088 -0.29151346 -0.032227719
+##                             PC9        PC10
+## enpp4510            -0.66825002  0.09791701
+## minwin_one_part4510 -0.67905337  0.04617052
+## exe_dom4510         -0.03850410  0.03779896
+## disprop4510         -0.07793667 -0.02885296
+## inter_gr_plural4510  0.12777380 -0.03607814
+## fed_unit4510        -0.10075600 -0.81947726
+## bicam4510            0.18608537  0.29606758
+## const_rigid4510      0.03247855  0.26783585
+## judic_rev4510       -0.01037356  0.26775374
+## cen_bank_indep4594  -0.15001200  0.28651449</code></pre>
+<p>Als Output erhalten wir die Ladungen. Diese werden für zehn
+Hauptkomponenten dargestellt, da wir zehn Variablen als Input haben.
+Einige Komponenten sind jedoch wichtiger als andere, da sie mehr Varianz
+erklären. Um diese zu bestimmen, gibt es mehrere Möglichkeiten. Der
+einfachste Weg ist die Berechnung eines Screeplots. Der Screeplot ist
+eine Visualisierung der <em>Eigenwerte</em> in einem Koordinatensystem.
+Die Eigenwerte geben an, wie wichtig ein Faktor ist. Im Screeplot sind
+sie absteigend geordnet. Die Anzahl der Faktoren ist am Knick zu
+erkennen. Dieser Knick ist die größte Differenz der Eigenwerte zwischen
+zwei Variablen. Der erste Punkt links vom Knick entspricht der Anzahl
+der Variablen.</p>
+<pre class="r"><code>screeplot(model_princomp, 
+          type = &quot;lines&quot;, 
+          main = &quot;Screeplot&quot;)</code></pre>
+<p><img src="R_12_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Wir können anhand des Knicks erkennen, dass zwei Komponenten am
+besten geeignet sind. Dieses Ergebnis erhalten wir auch, wenn wir die
+Eigenwerte berechnen und ausgeben lassen. Dabei sind alle Komponenten
+relevant, die größer als 1 sind. Diese Art der Bestimmung der Anzahl der
+Hauptkomponenten wird auch als <em>Kaiserkriterium</em> bezeichnet.</p>
+<pre class="r"><code>eig &lt;- (model_princomp$sdev)^2
+eig</code></pre>
+<pre><code>##  [1] 3.83209334 3.07334792 0.80066865 0.66045854 0.57269011 0.40834893 0.36770634 0.16773516 0.10694783 0.01000316</code></pre>
+<p>Wir können auch untersuchen, wie viel Prozent der Varianz durch die
+Komponenten erklärt wird. Alle Komponenten zusammen ergeben 100%. Da für
+unsere Hauptkomponentenanalyse nur die ersten beiden Komponenten
+relevant sind, können wir sagen, dass die erste Komponente 38,32% und
+die zweite Komponente 30,73% der Varianz erklärt.</p>
+<pre class="r"><code>variance &lt;- eig*100/sum(eig)
+variance</code></pre>
+<pre><code>##  [1] 38.3209334 30.7334792  8.0066865  6.6045854  5.7269011  4.0834893  3.6770634  1.6773516  1.0694783  0.1000316</code></pre>
+<p>Mit dem folgenden Code können wir schließlich die Erklärung der
+Varianz unserer beiden Hauptkomponenten erhalten. Eine Faustregel
+besagt, dass etwa 70-80% der Varianz erklärt werden sollten, damit das
+Dimensionsreduktionsmodell möglichst wenige Komponenten mit möglichst
+wenig Informationsverlust zusammenfasst.</p>
+<pre class="r"><code>sum(variance[1:2])</code></pre>
+<pre><code>## [1] 69.05441</code></pre>
+<p>Unser Modell ist nun reduziert, da wir nur die ersten beiden
+Hauptkomponenten betrachten. Mit dem folgenden Code können wir uns die
+<em>Ladungen</em> des reduzierten Modells anzeigen lassen. Negative
+Werte zeigen eine negative Korrelation und positive Werte eine positive
+Korrelation an. Je höher der Wert, desto stärker die Korrelation. Als
+Faustregel gilt, dass bei Werten zwischen 0,3 und 0,5 von einer starken
+Korrelation gesprochen werden kann. Dies gilt für die ersten fünf
+Variablen der ersten Dimension und für die letzten fünf Variablen der
+zweiten Dimension.</p>
+<pre class="r"><code>model_princomp$rotation[ ,1:2]</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">PC1</th>
+<th align="right">PC2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">enpp4510</td>
+<td align="right">0.4279156</td>
+<td align="right">-0.1835379</td>
+</tr>
+<tr class="even">
+<td align="left">minwin_one_part4510</td>
+<td align="right">-0.4248388</td>
+<td align="right">0.2383798</td>
+</tr>
+<tr class="odd">
+<td align="left">exe_dom4510</td>
+<td align="right">-0.4139745</td>
+<td align="right">0.1408068</td>
+</tr>
+<tr class="even">
+<td align="left">disprop4510</td>
+<td align="right">-0.3896784</td>
+<td align="right">0.0965702</td>
+</tr>
+<tr class="odd">
+<td align="left">inter_gr_plural4510</td>
+<td align="right">-0.3846317</td>
+<td align="right">0.1624153</td>
+</tr>
+<tr class="even">
+<td align="left">fed_unit4510</td>
+<td align="right">-0.1841870</td>
+<td align="right">-0.5288915</td>
+</tr>
+<tr class="odd">
+<td align="left">bicam4510</td>
+<td align="right">-0.1410040</td>
+<td align="right">-0.3956977</td>
+</tr>
+<tr class="even">
+<td align="left">const_rigid4510</td>
+<td align="right">-0.1737077</td>
+<td align="right">-0.3858833</td>
+</tr>
+<tr class="odd">
+<td align="left">judic_rev4510</td>
+<td align="right">-0.2758720</td>
+<td align="right">-0.3219167</td>
+</tr>
+<tr class="even">
+<td align="left">cen_bank_indep4594</td>
+<td align="right">-0.0717485</td>
+<td align="right">-0.4063479</td>
+</tr>
+</tbody>
+</table>
+<p>Schließlich können wir die <em>Rotationen</em> in unserem Modell
+ändern. Rotation ist eine Transformation, um die Interpretierbarkeit der
+Komponenten zu erhöhen. Es gibt mehrere Rotationsmethoden, die wir
+verwenden können. Die beiden bekanntesten sind die orthogonale oder
+rechtwinklige Rotation (Varimax-Methode) und die schiefwinklige Rotation
+(Promax-Methode). Bei der Funktion <code>prcomp</code> ist die Rotation
+standardmäßig auf <code>None</code> gesetzt. Dies kann mit dem Argument
+<code>rotate =</code> geändert werden. Hier einmal für die orthogonale
+Rotation:</p>
+<pre class="r"><code>model_princomp_vari &lt;- prcomp(sub_lijphart, scale = TRUE, rotate = &quot;varimax&quot;)</code></pre>
+<pre><code>## Warning: In prcomp.default(sub_lijphart, scale = TRUE, rotate = &quot;varimax&quot;) :
+##  extra argument &#39;rotate&#39; will be disregarded</code></pre>
+<pre class="r"><code>model_princomp_vari</code></pre>
+<pre><code>## Standard deviations (1, .., p=10):
+##  [1] 1.9575733 1.7530967 0.8948009 0.8126860 0.7567629 0.6390219 0.6063879 0.4095548 0.3270288 0.1000158
+## 
+## Rotation (n x k) = (10 x 10):
+##                             PC1         PC2         PC3         PC4         PC5         PC6         PC7          PC8
+## enpp4510             0.42791560 -0.18353791  0.35917363 -0.11264655 -0.04624807 -0.10720619 -0.05100845 -0.411251013
+## minwin_one_part4510 -0.42483876  0.23837982 -0.13648429 -0.09232681 -0.07090785  0.04930368  0.27872920  0.432597903
+## exe_dom4510         -0.41397453  0.14080676 -0.29666253 -0.12080612 -0.37434557  0.30802455 -0.15036206 -0.667579186
+## disprop4510         -0.38967840  0.09657021  0.41816948  0.17588221  0.01634489 -0.17807617 -0.76024973  0.127122484
+## inter_gr_plural4510 -0.38463166  0.16241527  0.25338448 -0.20698227  0.34517100 -0.56243344  0.37817106 -0.350026993
+## fed_unit4510        -0.18418703 -0.52889154 -0.02415918 -0.03926803 -0.01769062  0.02592394  0.03867396 -0.006913301
+## bicam4510           -0.14100399 -0.39569770  0.23331885 -0.71228488 -0.29618067  0.03685147 -0.02240476  0.223353978
+## const_rigid4510     -0.17370774 -0.38588334  0.03717568  0.56424401 -0.50571352 -0.33594977  0.24441137 -0.005487234
+## judic_rev4510       -0.27587202 -0.32191667  0.30184801  0.24173497  0.46957226  0.58364338  0.17144024 -0.091581322
+## cen_bank_indep4594  -0.07174855 -0.40634789 -0.61463214 -0.06868306  0.41110605 -0.29601088 -0.29151346 -0.032227719
+##                             PC9        PC10
+## enpp4510            -0.66825002  0.09791701
+## minwin_one_part4510 -0.67905337  0.04617052
+## exe_dom4510         -0.03850410  0.03779896
+## disprop4510         -0.07793667 -0.02885296
+## inter_gr_plural4510  0.12777380 -0.03607814
+## fed_unit4510        -0.10075600 -0.81947726
+## bicam4510            0.18608537  0.29606758
+## const_rigid4510      0.03247855  0.26783585
+## judic_rev4510       -0.01037356  0.26775374
+## cen_bank_indep4594  -0.15001200  0.28651449</code></pre>
+<p>Und hier für die schiefwinklige Rotation:</p>
+<pre class="r"><code>model_princomp_pro &lt;- prcomp(sub_lijphart, scale = TRUE, rotate = &quot;promax&quot;)</code></pre>
+<pre><code>## Warning: In prcomp.default(sub_lijphart, scale = TRUE, rotate = &quot;promax&quot;) :
+##  extra argument &#39;rotate&#39; will be disregarded</code></pre>
+<pre class="r"><code>model_princomp_pro</code></pre>
+<pre><code>## Standard deviations (1, .., p=10):
+##  [1] 1.9575733 1.7530967 0.8948009 0.8126860 0.7567629 0.6390219 0.6063879 0.4095548 0.3270288 0.1000158
+## 
+## Rotation (n x k) = (10 x 10):
+##                             PC1         PC2         PC3         PC4         PC5         PC6         PC7          PC8
+## enpp4510             0.42791560 -0.18353791  0.35917363 -0.11264655 -0.04624807 -0.10720619 -0.05100845 -0.411251013
+## minwin_one_part4510 -0.42483876  0.23837982 -0.13648429 -0.09232681 -0.07090785  0.04930368  0.27872920  0.432597903
+## exe_dom4510         -0.41397453  0.14080676 -0.29666253 -0.12080612 -0.37434557  0.30802455 -0.15036206 -0.667579186
+## disprop4510         -0.38967840  0.09657021  0.41816948  0.17588221  0.01634489 -0.17807617 -0.76024973  0.127122484
+## inter_gr_plural4510 -0.38463166  0.16241527  0.25338448 -0.20698227  0.34517100 -0.56243344  0.37817106 -0.350026993
+## fed_unit4510        -0.18418703 -0.52889154 -0.02415918 -0.03926803 -0.01769062  0.02592394  0.03867396 -0.006913301
+## bicam4510           -0.14100399 -0.39569770  0.23331885 -0.71228488 -0.29618067  0.03685147 -0.02240476  0.223353978
+## const_rigid4510     -0.17370774 -0.38588334  0.03717568  0.56424401 -0.50571352 -0.33594977  0.24441137 -0.005487234
+## judic_rev4510       -0.27587202 -0.32191667  0.30184801  0.24173497  0.46957226  0.58364338  0.17144024 -0.091581322
+## cen_bank_indep4594  -0.07174855 -0.40634789 -0.61463214 -0.06868306  0.41110605 -0.29601088 -0.29151346 -0.032227719
+##                             PC9        PC10
+## enpp4510            -0.66825002  0.09791701
+## minwin_one_part4510 -0.67905337  0.04617052
+## exe_dom4510         -0.03850410  0.03779896
+## disprop4510         -0.07793667 -0.02885296
+## inter_gr_plural4510  0.12777380 -0.03607814
+## fed_unit4510        -0.10075600 -0.81947726
+## bicam4510            0.18608537  0.29606758
+## const_rigid4510      0.03247855  0.26783585
+## judic_rev4510       -0.01037356  0.26775374
+## cen_bank_indep4594  -0.15001200  0.28651449</code></pre>
+<p>Für unser Beispiel sind keine bedeutenden Unterschiede feststellbar.
+In der Praxis wird die orthogonale Rotation am meisten genutzt.</p>
+</div>
+<div id="explorative-faktorenanalyse" class="section level1">
+<h1>5. Explorative Faktorenanalyse</h1>
+<p>Wir wollen nun eine explorative Faktorenanalyse durchführen. Auch für
+diese sind alle Schritte, die wir in dieser Sitzung durchgeführt haben,
+notwendig. Das heißt, die Hauptkomponentenanalyse ist Voraussetzung für
+die explorative Faktorenanalyse. Die Faktorenanalyse wird in
+<code>R</code> mit <code>factanal()</code> durchgeführt. Wichtig ist
+hier, dass wir unsere Daten nennen und die Anzahl der Faktoren angeben.
+Diese ist 2, da wir oben 2 als die beste Anzahl von Komponenten
+ermittelt haben. Außerdem geben wir die Methode der orthogonalen
+Rotation an. Wir können zusätzlich die Faktorwerte berechnen lassen,
+indem wir das Argument <code>scores</code> auf <code>regression</code>
+setzen. Diese werden für die Visualisierung benötigt.</p>
+<pre class="r"><code>model_factanal &lt;- factanal(sub_lijphart, 2, rotation = &quot;varimax&quot;, scores = &quot;regression&quot;)
+print(model_factanal, round = 2, cutoff = .3)</code></pre>
+<pre><code>## 
+## Call:
+## factanal(x = sub_lijphart, factors = 2, scores = &quot;regression&quot;,     rotation = &quot;varimax&quot;)
+## 
+## Uniquenesses:
+##            enpp4510 minwin_one_part4510         exe_dom4510         disprop4510 inter_gr_plural4510        fed_unit4510 
+##               0.187               0.104               0.306               0.568               0.477               0.005 
+##           bicam4510     const_rigid4510       judic_rev4510  cen_bank_indep4594 
+##               0.432               0.455               0.439               0.488 
+## 
+## Loadings:
+##                     Factor1 Factor2
+## enpp4510            -0.902         
+## minwin_one_part4510  0.944         
+## exe_dom4510          0.829         
+## disprop4510          0.650         
+## inter_gr_plural4510  0.723         
+## fed_unit4510                 0.998 
+## bicam4510                    0.753 
+## const_rigid4510              0.736 
+## judic_rev4510                0.708 
+## cen_bank_indep4594           0.711 
+## 
+##                Factor1 Factor2
+## SS loadings      3.410   3.130
+## Proportion Var   0.341   0.313
+## Cumulative Var   0.341   0.654
+## 
+## Test of the hypothesis that 2 factors are sufficient.
+## The chi square statistic is 75.27 on 26 degrees of freedom.
+## The p-value is 1.1e-06</code></pre>
+<p>Mit der Funktion <code>print</code> weisen wir <code>R</code> an, das
+Ergebnis der Faktorenanalyse auszugeben. Dabei legen wir mit dem
+Argument <code>digits</code> die Anzahl der Rundungsziffern fest.
+Zusätzlich können wir mit <code>cutoff</code> bestimmen, ab welcher
+Grenze die Ergebnisse nicht mehr ausgegeben werden sollen. Auf diese
+Weise können wir die Übersichtlichkeit unserer Faktorenanalyse
+erhöhen.</p>
+<p>Das Ergebnis der Faktorenanalyse zeigt die gewünschte Anzahl von
+Faktoren und deren Faktorladungen für die zehn Variablen. Aufgabe des
+Forschers oder der Forscherin ist es nun, die Faktoren inhaltlich zu
+interpretieren. In der Regel wird nach Gemeinsamkeiten zwischen den
+Variablen gesucht. Lijphart bezeichnet den ersten Faktor als
+<em>Exekutive-Parteien-Dimension</em> und den zweiten Faktor als
+<em>Föderalismus-Unitarismus-Dimension</em>.</p>
+</div>
+<div id="visualisierung" class="section level1">
+<h1>6. Visualisierung</h1>
+<p>Arend Lijphart fasst die Ergebnisse seiner Faktorenanalyse in der
+Landkarte der Demokratie zusammen. Dort können die untersuchten
+Demokratien anhand der beiden Dimensionen eingeordnet werden. Es
+entsteht eine Grafik, in der die Demokratien eingeordnet und miteinander
+verglichen werden können.</p>
+<p>Diese Form der Visualisierung wird <em>mapping</em> genannt. Wir
+können es mit <code>R</code> nachvollziehen. Dazu benötigen wir die
+<em>Faktorwerte</em>, die angeben, wie stark die Untersuchungseinheiten
+von den Faktoren erfasst werden. In diesem Fall bedeutet dies, wie gut
+eine Demokratie durch die Dimensionen Exekutive-Parteien und
+Föderalismus-Unitarismus beschrieben wird. Die Faktorwerte können als
+<code>R</code> mit folgendem Code ausgegeben werden:</p>
+<pre class="r"><code>head(model_factanal$scores)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Factor1</th>
+<th align="right">Factor2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.6774763</td>
+<td align="right">1.3772267</td>
+</tr>
+<tr class="even">
+<td align="right">0.7943245</td>
+<td align="right">1.6252078</td>
+</tr>
+<tr class="odd">
+<td align="right">-0.2026600</td>
+<td align="right">1.0635061</td>
+</tr>
+<tr class="even">
+<td align="right">1.3630201</td>
+<td align="right">-0.1426088</td>
+</tr>
+<tr class="odd">
+<td align="right">1.2698724</td>
+<td align="right">-0.4842255</td>
+</tr>
+<tr class="even">
+<td align="right">-1.0058544</td>
+<td align="right">0.0931026</td>
+</tr>
+</tbody>
+</table>
+<p>Um unsere Replikation mit Lijpharts Landkarte der Demokratie besser
+vergleichen zu können, passen wir sie etwas an. Wir verändern die
+Datenpunkte mit <code>geom_point()</code>, indem wir sie mit dem
+Argument <code>size</code> verkleinern, ihre Form mit <code>shape</code>
+in eine Raute ändern und diese mit <code>fill</code> schwarz ausfüllen.
+Außerdem beschriften wir unsere Datenpunkte, um zu überprüfen, ob sie
+ungefähr mit der Position der Datenpunkte von Lijphart übereinstimmen.
+Dazu verwenden wir <code>geom_text ()</code>. Zuerst definieren wir mit
+<code>label</code> die Daten für unsere Beschriftung. Danach können wir
+die Beschriftung mit <code>nudge_y</code> auf der y-Achse verschieben.
+Das Argument <code>check_overlap</code> dient dazu, Überlappungen der
+Beschriftungen zu vermeiden. Mit <code>geom_hline()</code> und
+<code>geom_vline()</code> können wir eine horizontale und eine vertikale
+Linie bei 0 zeichnen. Dies erleichtert die Zuordnung der Demokratien.
+Anschließend definieren wir mit <code>labs()</code> die
+Achsenbeschriftungen, den Titel und den Untertitel. Mit
+<code>coord_cartesian()</code> können wir das Koordinatensystem an der
+x-Achse spiegeln, indem wir die Definitionsränder von <code>xlim</code>
+von negativ nach positiv anordnen. Zum Schluss legen wir mit
+<code>theme_linedraw()</code> das Design unserer Grafik fest.</p>
+<pre class="r"><code>scores_data &lt;- as.data.frame(model_factanal$scores)
+
+plot &lt;- ggplot(data = scores_data, aes(x = Factor1, y = Factor2)) + 
+  geom_point(size = 1, shape = 23, fill = &quot;black&quot;) +
+  geom_text(aes(label = lijphart$Country),
+            nudge_y = -.2,
+            check_overlap = T) +
+  geom_hline(yintercept = 0) +
+  geom_vline(xintercept = 0) +
+  labs(x = &quot;Exekutive-Parteien Dimension&quot;, 
+       y = &quot;Foederalismus-Unitarismus Dimension&quot;, 
+       title = &quot;Die Landkarte der Demokratie&quot;, 
+       subtitle = &quot;Eine Replikation nach Arend Lijphart&quot;) +
+  coord_cartesian(ylim = c(2.5, -2.5), xlim = c(-2.1, 2.1)) +
+  theme_linedraw() 
+plot</code></pre>
+<p><img src="R_12_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>Anschließend speichern wir die Grafik mit <code>ggsave()</code> in
+unserer <code>working directory</code>.</p>
+<pre class="r"><code># Grafik speichern
+ggsave(&quot;Landkarte der Demokratie.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<p>Bitte beachten Sie, dass die Linien in der von Ihnen replizierten
+Landkarte der Demokratie je nach Betriebssystem unterschiedlich in ‘R’
+ausgegeben werden können. Nun können wir unsere “Landkarte der
+Demokratie” mit der von Arend Lijphart in Patterns of Democracy
+vergleichen. Es fällt auf, dass die Diagramme starke Ähnlichkeiten
+aufweisen. Allerdings sind einige Demokratien in unserer Grafik
+verschoben, zum Beispiel liegt Argentinien bei uns etwas weiter links
+als bei Lijphart. Dies liegt daran, dass Faktorenanalysen in
+verschiedenen Statistikprogrammen mit unterschiedlichen Algorithmen
+berechnet werden.</p>
+</div>
+<div id="aufgaben" class="section level1">
+<h1>7. Aufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Verändern Sie die Anzahl der Faktoren zu:
+<ul>
+<li>drei Faktoren und</li>
+<li>zu einem Faktor. Wie verändern sich die Ergebnisse? Können Sie Ihre
+Ergebnisse sinnvoll interpretieren? Vergleichen Sie Ihre Ergebnisse mit
+Ihrer replizierten Faktorenanalyse.</li>
+</ul></li>
+<li>Erstellen Sie ein neues <code>subset</code> mit allen Variablen aus
+<code>sub_lijphart</code> außer der Variablen der Interessenvertretung.
+<ul>
+<li>Führen Sie eine Faktorenanalyse mit zwei Faktoren durch. Wie wirkt
+sich die Reduktion auf Ihre Ergebnisse aus? Ziehen Sie den Vergleich zu
+Ihrer replizierten Faktorenanalyse.</li>
+<li>Erstellen Sie dazu auch eine Visualisierung, welche Sie mit der
+replizierten “Landkarte der Demokratie” vergleichen.</li>
+</ul></li>
+<li>Replizieren Sie die Faktorenanalyse erneut. Verwenden Sie dabei alle
+Untersuchungseinheiten außer die Demokratien Großbritannien und
+Neuseeland. Erstellen Sie eine Visualisierung. Welche Veränderungen
+können Sie beobachten? Vergleichen Sie dazu Ihre Ergebnisse mit Ihrer
+replizierten Faktorenanalyse.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

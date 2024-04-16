@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 11: Zähldaten</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 11: Zähldaten</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Zähldaten haben besondere Eigenschaften, weshalb lineare oder
+logistische Regressionen nicht sinnvoll auf sie angewendet werden
+können. Um dennoch Analysen mit Zähldaten durchführen zu können, gibt es
+besondere Regressionsverfahren. Ziel dieser Sitzung ist es, die Struktur
+von Zähldaten, mögliche Regressionsmodelle und ihre Voraussetzungen zu
+erläutern. Schließlich wird gezeigt, wie Regressionsergebnisse
+interpretiert werden können. Die Inhalte dieser Sitzung basieren auf
+einem Text von <a
+href="https://link.springer.com/chapter/10.1007/978-3-531-92038-2_33">Tutz
+(2010)</a>.</p>
+</div>
+<div id="verteilung-von-zähldaten" class="section level1">
+<h1>2. Verteilung von Zähldaten</h1>
+<p>Zähldaten sind diskrete, positive, ganze Zahlen, wie zum Beispiel 0,
+1, 2 oder 17. Das bedeutet, dass sie niemals negativ sein oder in
+Dezimalzahlen vorliegen können. In den meisten Fällen geben Zähldaten
+die Anzahl von Ereignissen in einem bestimmten Intervall an,
+beispielsweise wie viele Kinder eine Person in ihrem Leben bzw. in den
+letzten zehn Jahren bekommen hat oder wie viele Klausuren ein
+Studierender in einem Semester geschrieben hat. Zähldaten sind nicht wie
+metrische Variablen normalverteilt. Dies gilt insbesondere dann, wenn
+die Werte, wie in den vorherigen Beispielen, nicht sehr hoch sein
+können. Klassische Regressionsmodelle können daher nicht angewendet
+werden.</p>
+<p>Aber wenn die Zähldaten nicht normalverteilt sind, wie sind sie dann
+verteilt? Hier kommen die Poisson-Verteilung und die negative
+Binomialverteilung in Frage. Die Poisson-Verteilung zeichnet sich
+dadurch aus, dass Erwartungswert und Varianz gleich sind. Das heißt,
+wenn viele Ereignisse erwartet werden, ist auch die Varianz groß. Werden
+hingegen nur wenige Ereignisse erwartet, ist die Varianz gering.</p>
+<p><span class="math inline">\(E(Y) = \text{var}(Y) =
+\lambda\)</span></p>
+<p>Dieses Kriterium wird als <em>Equidispersionseigenschaft</em>
+bezeichnet. Es gilt als restriktiv und unflexibel. Häufig liegt bei
+Zähldaten keine Poisson-Verteilung vor, da Erwartungswert und Varianz
+nicht gleich sind. Meistens ist die Varianz größer, dann spricht man von
+<em>Überdispersion</em>. Ist die Varianz ungleich dem Erwartungswert,
+kann die negative Binomialverteilung genutzt werden. Hierbei gibt es
+zwei Parameter <span class="math inline">\(\mu\)</span> und <span
+class="math inline">\(\nu\)</span>.</p>
+<p>Charakteristisch für die negative Binomialverteilung ist, dass die
+Varianz ungleich dem Erwartungswert ist.</p>
+<p><span class="math inline">\(var(Y) = \lambda +
+\frac{\lambda^2}\nu\)</span></p>
+<p><span class="math inline">\(E(Y) = \lambda\)</span></p>
+</div>
+<div id="datensätze-laden-und-umkodieren" class="section level1">
+<h1>3. Datensätze laden und umkodieren</h1>
+<p>Zunächst laden wir den <code>gles</code>-Datenatz ein.</p>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)
+library(foreign)
+gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)</code></pre>
+<p>Wenn wir die Eigenschaften von Zähldaten mit den Eigenschaften
+unserer bisherigen Variablen vergleichen, stellen wir fest, dass wir
+bisher keinen Kontakt zu Zähldaten hatten. Als abhängige Variable müssen
+wir also eine neue Variable suchen. Eine der wenigen Variablen im
+GLES-Datensatz ist sind Variablen <code>q110a-i</code>. Bei diesen
+Variablen wird abgefragt, an wie vielen Tagen ein Teilnehmender
+bestimmte Zeitungen in der Woche gelesen hat. Wir betrachten diese
+Variable für die Variante <code>q110a</code>, was dem Lesen der
+BILD-Zeitung entspricht.</p>
+<pre class="r"><code>table(gles$q110a)</code></pre>
+<table>
+<colgroup>
+<col width="37%" />
+<col width="7%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">seltener als 1 Tag pro Woche</th>
+<th align="right">1 Tag</th>
+<th align="right">2 Tage</th>
+<th align="right">3 Tage</th>
+<th align="right">4 Tage</th>
+<th align="right">5 Tage</th>
+<th align="right">6 Tage</th>
+<th align="right">7 Tage</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1772</td>
+<td align="right">48</td>
+<td align="right">48</td>
+<td align="right">28</td>
+<td align="right">21</td>
+<td align="right">19</td>
+<td align="right">16</td>
+<td align="right">53</td>
+</tr>
+</tbody>
+</table>
+<p>Die Variable hat sieben Ausprägungen. Die Ausprägungen geben die
+Anzahl der Tage an, an denen ein Teilnehmer oder eine Teilnehmerin die
+BILD-Zeitung gelesen hat. Eine Ausnahme bildet die erste Ausprägung, da
+es sich hier nicht um null Tage, sondern um weniger als einen Tag
+handelt. Dies widerspricht eigentlich der Annahme, dass Zähldaten immer
+ganze Zahlen sind. Für das Beispiel nehmen wir an, dass eine Person, die
+die BILD-Zeitung weniger als einmal pro Woche liest, die BILD-Zeitung
+nie liest. Daher können wir die Variable als Zählvariable interpretieren
+und kodieren sie für unsere weitere Analyse um, indem wir sie in einen
+<em>numeric</em> Vektor umwandeln und das Skalenniveau anpassen.</p>
+<pre class="r"><code>gles$q110a_num &lt;- as.numeric(gles$q110a)
+gles$bild &lt;- gles$q110a_num - 1
+table(gles$bild)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">0</th>
+<th align="right">1</th>
+<th align="right">2</th>
+<th align="right">3</th>
+<th align="right">4</th>
+<th align="right">5</th>
+<th align="right">6</th>
+<th align="right">7</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1772</td>
+<td align="right">48</td>
+<td align="right">48</td>
+<td align="right">28</td>
+<td align="right">21</td>
+<td align="right">19</td>
+<td align="right">16</td>
+<td align="right">53</td>
+</tr>
+</tbody>
+</table>
+<p>Die Fragestellung dieser Sitzung ist: Wie beeinflussten das
+Geschlecht und das Alter das Lesen der BILD-Zeitung. Dazu kodieren wir
+die Variable <code>geschlecht</code> und <code>alter</code> wie gewohnt
+um.</p>
+<pre class="r"><code># Alter
+q2c_num &lt;- as.numeric(as.character(gles$q2c))
+gles$alter &lt;- 2017 - q2c_num
+
+#Geschlecht
+names(gles)[names(gles) == &quot;q1&quot;] &lt;- &quot;geschlecht&quot;</code></pre>
+</div>
+<div id="poisson-regression" class="section level1">
+<h1>3. Poisson Regression</h1>
+<p>Bei einer Poisson-Verteilung kann die lineare Regression nicht
+verwendet werden, da eine lineare Regression unter anderem auch negative
+Ergebnisse liefert. Zähldaten können jedoch nicht negativ sein. Daher
+ist die lineare Regression ungeeignet. Wir verwenden einen
+mathematischen Trick, indem wir eine <em>Transformationsfunktion</em>
+und die Linearkombination verwenden, die wir bereits aus der linearen
+Regression kennen. <em>Transformationsfunktionen</em> haben die Aufgabe,
+dafür zu sorgen, dass der Wertebereich, den die Linearkombination
+annehmen kann, niemals negativ wird. Wenn <span
+class="math inline">\(h\)</span> unsere <em>Transformationsfunktion</em>
+ist, sieht unser Regressionsmodell wie folgt aus:</p>
+<p><span class="math inline">\(\mu = h(b_0 + x_1b_1 + \ldots +
+x_nb_n)\)</span></p>
+<p>Aber welche <em>Transformationsfunktion</em> können wir für <span
+class="math inline">\(h\)</span> verwenden? Um diese Frage zu
+beantworten, müssen wir uns überlegen, welche Funktion niemals negativ
+werden kann. Das ist zum Beispiel bei der <span
+class="math inline">\(e\)</span>-Funktion der Fall. Die <span
+class="math inline">\(e\)</span>-Funktion hat die Form <span
+class="math inline">\(e^x\)</span>. Egal was wir dabei für x einsetzen,
+das Ergebnis ist immer positiv. Wir setzen also für <span
+class="math inline">\(h\)</span> die <em>Transformationsfunktion</em>
+<span class="math inline">\(e^x\)</span> ein und erhalten:</p>
+<p><span class="math inline">\(\mu = e^{b_0 + x_1b_1 + \ldots +
+x_nb_n}\)</span></p>
+<p>Diese <em>Transformationsfunktion</em> heißt <em>loglineares
+Modell</em> und wird meistens in dieser äquivalenten Umformung
+genutzt:</p>
+<p><span class="math inline">\(log(\mu) = b_0 + x_1b_1 + \ldots +
+x_nb_n\)</span></p>
+<p>Hier wurde der Logarithmus <span class="math inline">\(log()\)</span>
+auf beiden Seiten der Gleichung angewendet, um das <span
+class="math inline">\(e\)</span> auf der rechten Seite aufzulösen. Somit
+steht auf der rechten Seite nur noch der Exponent und auf der linken
+Seite <span class="math inline">\(log(\mu)\)</span>.</p>
+<p>Zur Anwendung einer Poisson-Regression verwenden wir wieder die
+Funktion <code>glm</code> wie bei der logistischen Regression. Wir
+spezifizieren unsere neue Variable <code>bild</code> als abhängige
+Variable und die Variablen <code>geschlecht</code> und
+<code>alter</code> als unabhängige Variablen. Mit dem Argument
+<code>data</code> wählen wir den Datensatz aus und mit
+<code>family</code> legen wir die Regressionsmethode
+<code>poisson()</code> fest. Innerhalb von <code>poisson()</code> können
+wir die <em>Transformationsfunktion</em> festlegen, also unser <span
+class="math inline">\(h\)</span> von oben. Wie oben definieren wir die
+<em>Transformationsfunktion</em> für das <em>loglineare Modell</em>,
+indem wir <code>link = "log"</code> angeben.</p>
+<pre class="r"><code>poisson &lt;- glm(bild ~  geschlecht + alter, data = gles, family = poisson(link = &quot;log&quot;))
+summary(poisson) </code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = bild ~ geschlecht + alter, family = poisson(link = &quot;log&quot;), 
+##     data = gles)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.2492  -1.0441  -0.8383  -0.7268   5.8361  
+## 
+## Coefficients:
+##                     Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)        -0.981847   0.101693  -9.655  &lt; 2e-16 ***
+## geschlechtweiblich -0.667391   0.072399  -9.218  &lt; 2e-16 ***
+## alter               0.008153   0.001781   4.577 4.73e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for poisson family taken to be 1)
+## 
+##     Null deviance: 4094.8  on 2003  degrees of freedom
+## Residual deviance: 3986.3  on 2001  degrees of freedom
+##   (108 observations deleted due to missingness)
+## AIC: 4692.6
+## 
+## Number of Fisher Scoring iterations: 7</code></pre>
+</div>
+<div id="überdispersion" class="section level1">
+<h1>4. Überdispersion</h1>
+<p>Mit der Ausgabe von <code>summary</code> können wir überprüfen, ob
+die Poisson-Regression angewendet werden kann. Wie bereits erwähnt,
+liegt <em>Überdispersion</em> vor, wenn die Varianz der abhängigen
+Variable größer ist als der Erwartungswert. Dagegen liegt
+<em>Unterdispersion</em> vor, wenn die Varianz kleiner ist als der
+Erwartungswert. Dies ist jedoch viel seltener der Fall. Um zu testen, ob
+<em>Überdispersion</em> vorliegt, gibt es mehrere Möglichkeiten. Zum
+einen kann <em>Überdispersion</em> mit der Funktion
+<code>dispersiontest()</code> getestet werden. Ist der p-Wert des Tests
+signifikant, liegt <em>Überdispersion</em> vor. Das bedeutet, dass die
+Verwendung einer Poisson-Regression <em>nicht</em> zulässig ist. Ist der
+p-Wert nicht signifikant, liegt auch keine <em>Überdispersion</em> vor
+und wir können eine Poisson-Regression verwenden.</p>
+<pre class="r"><code>library(car)
+library(AER)
+dispersiontest(poisson, trafo=  1)</code></pre>
+<pre><code>## 
+##  Overdispersion test
+## 
+## data:  poisson
+## z = 10.607, p-value &lt; 2.2e-16
+## alternative hypothesis: true alpha is greater than 0
+## sample estimates:
+##   alpha 
+## 3.59582</code></pre>
+<p>Wir können erkennen, dass der Wert signifikant ist. Daraus folgt,
+dass wir die Poisson-Regression nicht verwenden sollten. Stattdessen
+können wir eine Quasi-Poisson-Regression oder eine negative
+Binomialregression verwenden.</p>
+</div>
+<div id="quasi-poisson-regression" class="section level1">
+<h1>5. Quasi-Poisson Regression</h1>
+<p>Eine Alternative zur Poisson-Regression ist die
+Quasi-Poisson-Regression. Diese kann auch dann verwendet werden, wenn
+Erwartungswert und Varianz nicht gleich sind. Wir können diese Methode
+sowohl bei <em>Unterdispersion</em> als auch bei <em>Übdispersion</em>
+verwenden. Für die Varianz wird eine zusätzliche Parameterschätzung
+verwendet. Dies bedeutet, dass die Quasipoisson-Regression eine
+Erweiterung oder Verallgemeinerung der Poisson-Regression ist. In R
+können wir die Quasi-Poisson-Regression ähnlich wie die
+Poisson-Regression berechnen. Auch hier verwenden wir das
+<em>loglineare</em> Modell.</p>
+<pre class="r"><code>quasipoisson &lt;- glm(bild ~  geschlecht + alter, data = gles, family = quasipoisson(link = &quot;log&quot;))
+summary(quasipoisson)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = bild ~ geschlecht + alter, family = quasipoisson(link = &quot;log&quot;), 
+##     data = gles)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.2492  -1.0441  -0.8383  -0.7268   5.8361  
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)        -0.981847   0.218174  -4.500 7.18e-06 ***
+## geschlechtweiblich -0.667391   0.155326  -4.297 1.82e-05 ***
+## alter               0.008153   0.003822   2.133    0.033 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for quasipoisson family taken to be 4.602849)
+## 
+##     Null deviance: 4094.8  on 2003  degrees of freedom
+## Residual deviance: 3986.3  on 2001  degrees of freedom
+##   (108 observations deleted due to missingness)
+## AIC: NA
+## 
+## Number of Fisher Scoring iterations: 7</code></pre>
+<p>Um besser lesbaren Output zu erhalten, verwenden wir die Funktion
+<code>stargazer()</code>.</p>
+<pre class="r"><code>library(stargazer)
+stargazer(quasipoisson, type = &quot;text&quot;)</code></pre>
+<pre><code>## 
+## ==============================================
+##                        Dependent variable:    
+##                    ---------------------------
+##                               bild            
+## ----------------------------------------------
+## geschlechtweiblich          -0.667***         
+##                              (0.155)          
+##                                               
+## alter                        0.008**          
+##                              (0.004)          
+##                                               
+## Constant                    -0.982***         
+##                              (0.218)          
+##                                               
+## ----------------------------------------------
+## Observations                  2,004           
+## ==============================================
+## Note:              *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>Anhand der Sternchen können wir erkennen, dass es sich sowohl beim
+Alter als auch beim Geschlecht um statistisch signifikante Werte
+handelt. Die Werte vor den Sternchen geben die Koeffizienten an und die
+Werte in Klammern die Standardfehler. Die Koeffizienten können jedoch
+nur schwer interpretiert werden, da sie noch logarithmiert sind (siehe
+linke Seite der letzten Formel). Da der Logarithmus mit der <span
+class="math inline">\(e\)</span>-Funktion (<code>exp()</code> in
+<code>R</code>) aufgehoben werden kann, schreiben wir diesen Code:</p>
+<pre class="r"><code>exp(coef(quasipoisson))</code></pre>
+<pre><code>##        (Intercept) geschlechtweiblich              alter 
+##          0.3746184          0.5130456          1.0081862</code></pre>
+<p>Die Koeffizienten können nun besser interpretiert werden. Dabei
+bedeuten Werte kleiner als 1 einen negativen Effekt und Werte größer als
+1 einen positiven Effekt. Konkret kann der Effekt des Alters auf das
+Lesen der BILD-Zeitung wie folgt interpretiert werden: Mit jedem
+weiteren Lebensjahr steigt die Wahrscheinlichkeit, die BILD-Zeitung zu
+lesen, um den Faktor 0,008. Oder anders ausgedrückt: Mit jedem weiteren
+Lebensjahr ist es um 0,8% wahrscheinlicher, dass jemand BILD liest. Für
+das Geschlecht ergibt sich ein negativer Zusammenhang. Um das Ergebnis
+besser interpretieren zu können, muss es daher noch von 1 abgezogen
+werden.</p>
+<pre class="r"><code>1 - exp(coef(quasipoisson)[2])</code></pre>
+<pre><code>## geschlechtweiblich 
+##          0.4869544</code></pre>
+<p>Wenn eine Person weiblich ist, ist es 0,487-mal unwahrscheinlicher,
+dass eine Person die BILD-Zeitung liest. Oder anders: Wenn eine Person
+weiblich ist, ist es 48,7% unwahrscheinlicher, dass diese Person BILD
+liest.</p>
+</div>
+<div id="negative-binomialregression" class="section level1">
+<h1>6. Negative Binomialregression</h1>
+<p>Eine weitere, typischere Alternative zur Poisson-Regression, ist die
+negative Binomial-Regression. Sie eignet sich allerdings nur bei
+<em>Überdispersion</em>, also wenn die Varianz größer ist als der
+Erwartungswert. Die Umsetzung ist ähnlich wie bei den anderen
+Regressionsmethoden, allerdings muss hier auf das Paket MASS
+zurückgegriffen werden.</p>
+<pre class="r"><code>library(MASS)
+binomial &lt;- glm.nb(bild ~ geschlecht + alter, data = gles)
+summary(binomial)</code></pre>
+<pre><code>## 
+## Call:
+## glm.nb(formula = bild ~ geschlecht + alter, data = gles, init.theta = 0.06199869335, 
+##     link = log)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.5682  -0.5320  -0.4846  -0.4538   1.6636  
+## 
+## Coefficients:
+##                     Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)        -0.974531   0.283028  -3.443 0.000575 ***
+## geschlechtweiblich -0.667955   0.194084  -3.442 0.000578 ***
+## alter               0.008010   0.005065   1.581 0.113804    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for Negative Binomial(0.062) family taken to be 1)
+## 
+##     Null deviance: 608.84  on 2003  degrees of freedom
+## Residual deviance: 594.96  on 2001  degrees of freedom
+##   (108 observations deleted due to missingness)
+## AIC: 2510.5
+## 
+## Number of Fisher Scoring iterations: 1
+## 
+## 
+##               Theta:  0.06200 
+##           Std. Err.:  0.00551 
+## 
+##  2 x log-likelihood:  -2502.50700</code></pre>
+<pre class="r"><code>stargazer(binomial, type = &quot;text&quot;)</code></pre>
+<pre><code>## 
+## ==============================================
+##                        Dependent variable:    
+##                    ---------------------------
+##                               bild            
+## ----------------------------------------------
+## geschlechtweiblich          -0.668***         
+##                              (0.194)          
+##                                               
+## alter                         0.008           
+##                              (0.005)          
+##                                               
+## Constant                    -0.975***         
+##                              (0.283)          
+##                                               
+## ----------------------------------------------
+## Observations                  2,004           
+## Log Likelihood             -1,252.253         
+## theta                   0.062*** (0.006)      
+## Akaike Inf. Crit.           2,510.507         
+## ==============================================
+## Note:              *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>Wir können erkennen, dass nur die Variable <code>geschlecht</code>
+statistisch signifikant ist. Zur Interpretation nutzen wir wieder die
+transformierten Koeffizienten.</p>
+<pre class="r"><code>1 - exp(coef(binomial)[2])</code></pre>
+<pre><code>## geschlechtweiblich 
+##          0.4872442</code></pre>
+<p>Das Ergebnis ist der Quasipoisson-Regression sehr ähnlich. Es kann
+wie folgt interpretiert werden: Wenn jemand weiblich ist, dann ist die
+Wahrscheinlichkeit, dass diese Person BILD liest, um 48,7% geringer.</p>
+</div>
+<div id="aufgaben" class="section level1">
+<h1>7. Aufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Wenden Sie ein passendes Regressionsmodell aus dieser Sitzung auf
+eine der anderen Zeitungen aus der Variable <code>q110</code> an.</li>
+<li>Interpretieren Sie die Ergebnisse Ihres Modells.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

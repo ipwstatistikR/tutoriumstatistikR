@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 6: Bivariate Analyse</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 6: Bivariate Analyse</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1 Einleitung</h1>
+<p>In der bivariaten Analyse wird der Zusammenhang zwischen zwei
+Variablen untersucht. Dieser kann symmetrisch oder asymmetrisch sein. In
+der heutigen Sitzung werden wir uns der symmetrischen Beziehung zwischen
+X und Y widmen, bei der keine Variable als Ursache angenommen wird. Die
+Analyse steht dabei unter der Frage, ob der empirisch zu beobachtende
+Zusammenhang zwischen zwei Variablen von der theoretisch zu erwartenden
+Verteilung bei Unabhängigkeit abweicht. Dabei stützt sich die bivariate
+Analyse auf statistische Maßzahlen oder Möglichkeiten der grafischen und
+tabellarischen Darstellung. In dieser Sitzung werden wir bivariate
+Zusammenhangsmaße für nominale und metrische Variablen in R
+berechnen.</p>
+</div>
+<div id="datensätze-laden-und-umkodieren" class="section level1">
+<h1>2. Datensätze laden und umkodieren</h1>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)</code></pre>
+<pre class="r"><code>library(foreign)
+gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)
+lijphart &lt;- read.csv2(&quot;Lijphart_Data_recode.csv&quot;)</code></pre>
+<pre class="r"><code># GLES
+# Alter
+q2c_num &lt;- as.numeric(as.character(gles$q2c))
+gles$alter &lt;- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == &quot;q1&quot;] &lt;- &quot;geschlecht&quot;
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == &quot;unter 500 Euro&quot; |
+                     gles$q192 == &quot;500 bis unter 750 Euro&quot; |
+                     gles$q192 == &quot;750 bis unter 1000 Euro&quot;] &lt;- &quot;weniger als 1000&quot;
+gles$einkommen_cat[gles$q192 == &quot;1000 bis unter 1250 Euro&quot; |
+                     gles$q192 == &quot;1250 bis unter 1500 Euro&quot; |
+                     gles$q192 == &quot;1500 bis unter 2000 Euro&quot;] &lt;- &quot;1000 bis 1999&quot;
+gles$einkommen_cat[gles$q192 == &quot;2000 bis unter 2500 Euro&quot; |
+                     gles$q192 == &quot;2500 bis unter 3000 Euro&quot;] &lt;- &quot;2000 bis 2999&quot;
+gles$einkommen_cat[gles$q192 == &quot;3000 bis unter 4000 Euro&quot;] &lt;- &quot;3000 bis 3999&quot;
+gles$einkommen_cat[gles$q192 == &quot;4000 bis unter 5000 Euro&quot;] &lt;- &quot;4000 bis 4999&quot;
+gles$einkommen_cat[gles$q192 == &quot;5000 bis unter 7500 Euro&quot;] &lt;- &quot;5000 bis 7499&quot;
+gles$einkommen_cat[gles$q192 == &quot;7500 bis unter 10000 Euro&quot; |
+                     gles$q192 == &quot;10000 Euro und mehr&quot;] &lt;- &quot;7500 und mehr&quot;
+
+gles$einkommen_cat &lt;- factor(gles$einkommen_cat,
+                                levels = c(&quot;weniger als 1000&quot;,
+                                           &quot;1000 bis 1999&quot;,
+                                           &quot;2000 bis 2999&quot;,
+                                           &quot;3000 bis 3999&quot;,
+                                           &quot;4000 bis 4999&quot;,
+                                           &quot;5000 bis 7499&quot;,
+                                           &quot;7500 und mehr&quot;))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == &quot;weniger als 1000&quot;] &lt;- 1
+gles$einkommen_num[gles$einkommen_cat == &quot;1000 bis 1999&quot;] &lt;- 2
+gles$einkommen_num[gles$einkommen_cat == &quot;2000 bis 2999&quot;] &lt;- 3
+gles$einkommen_num[gles$einkommen_cat == &quot;3000 bis 3999&quot;] &lt;- 4
+gles$einkommen_num[gles$einkommen_cat == &quot;4000 bis 4999&quot;] &lt;- 5
+gles$einkommen_num[gles$einkommen_cat == &quot;5000 bis 7499&quot;] &lt;- 6
+gles$einkommen_num[gles$einkommen_cat == &quot;7500 und mehr&quot;] &lt;- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == &quot;Grossstadt&quot;] &lt;- &quot;Großstadt&quot;
+gles$wohnort[gles$q197 == &quot;kleine oder mittelgrosse Stadt&quot;] &lt;- &quot;Kleinstadt&quot;
+gles$wohnort[gles$q197 == &quot;laendliche Gegend oder Dorf&quot;] &lt;- &quot;Land&quot;
+gles$wohnort[gles$q197 == &quot;Vorstadt/ Vorort einer Grossstadt&quot;] &lt;- &quot;Vorstadt&quot;
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe &lt;- as.character(gles$q32)
+gles$LiRe[gles$LiRe == &quot;1 links&quot;] &lt;- &quot;1&quot;
+gles$LiRe[gles$LiRe == &quot;11 rechts&quot;] &lt;- &quot;11&quot;
+gles$LiRe &lt;- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe &gt;= 1 &amp;
+                gles$LiRe &lt;= 2] &lt;- &quot;links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 3 &amp;
+                gles$LiRe &lt;= 4] &lt;- &quot;moderat links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 5 &amp;
+                gles$LiRe &lt;= 7] &lt;- &quot;mittig&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 8 &amp;
+                gles$LiRe &lt;= 9] &lt;- &quot;moderat rechts&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 10 &amp;
+                gles$LiRe &lt;= 11] &lt;- &quot;rechts&quot;
+
+gles$LiRe_cat &lt;- factor(gles$LiRe_cat,
+                                levels = c(&quot;links&quot;,
+                                           &quot;moderat links&quot;,
+                                           &quot;mittig&quot;,
+                                           &quot;moderat rechts&quot;,
+                                           &quot;rechts&quot;))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == &quot;AfD&quot;] &lt;- 1
+gles$AfD.Wahl[gles$q19ba != &quot;AfD&quot;] &lt;- 0</code></pre>
+</div>
+<div id="nominales-skalenniveau" class="section level1">
+<h1>3 Nominales Skalenniveau</h1>
+<div id="chi-quadrat" class="section level2">
+<h2>3.1 Chi-Quadrat</h2>
+<p>Für Zusammenhänge zwischen zwei nominalskalierten Variablen in
+größeren Kontingenztabellen berechnen wir <span
+class="math inline">\(\chi^2\)</span> und Cramer’s V. Der <span
+class="math inline">\(\chi^2\)</span>-Unabhängigkeitstest vergleicht die
+empirisch beobachtete Häufigkeit <span
+class="math inline">\(f_{ij}\)</span> in Kontingenztabellen mit der zu
+erwartenden Häufigkeit <span class="math inline">\(e_{ij}\)</span> in
+Indifferenztabellen bei statistischer Unabhängigkeit und prüft, ob diese
+Häufigkeiten signifikant unterschiedlich sind:</p>
+<p><span class="math inline">\(\chi^2 = \sum_{j=1}^m \sum_{i=1}^k
+\frac{(f_{ij} - e_{ij})^2}{e_{ij}}\)</span></p>
+<p>In <code>R</code> können wir <span
+class="math inline">\(\chi^2\)</span> mit der Funktion
+<code>chisq.test()</code> berechnen. Wir beginnen mit dem angenommenen
+Zusammenhang zwischen der Wahl der AfD und dem Wohnort der Befragten.
+Die Variablen <code>AfD.Wahl</code> und <code>wohnort</code> ordnen wir
+den Argumenten <code>x</code> und <code>y</code> zu. Beide Variablen
+sind nominalskaliert. Wir speichern den Output von
+<code>chisq.test()</code> in dem Objekt <code>test_wohnort</code>. Wenn
+wir nun <code>test_wohnort</code> abschicken, zeigt <code>R</code> den
+Output der Funktion <code>chisq.test()</code>.</p>
+<pre class="r"><code>test_wohnort &lt;- chisq.test(gles$AfD.Wahl, gles$wohnort)
+test_wohnort</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  gles$AfD.Wahl and gles$wohnort
+## X-squared = 11.555, df = 3, p-value = 0.009072</code></pre>
+<p>Der p-Wert des <span class="math inline">\(\chi^2\)</span>-Tests
+liegt nahe Null. Daher können wir mit großer Sicherheit die Annahme von
+Unabhängigkeit zwischen den beiden Variablen in der Grundgesamtheit
+zurückweisen. <code>R</code> hat den Wert anhand der Tabellen empirisch
+beobachteter und bei Unabhängigkeit zu erwartender Zellenhäufigkeiten
+berechnet. Das können wir nachvollziehen, indem wir uns beide Tabellen
+mit <code>test_wohnort$observed</code> für die beobachteten und
+<code>test_wohnort$expected</code> für die erwarteten Häufigkeiten
+ausgeben. Sie sind als Teil des Outputs von <code>chisq.test()</code> in
+dem Objekt <code>test_wohnort</code> gespeichert worden. Dabei steht die
+AfD-Wahl in den Zeilen und der Wohnort in den Spalten.</p>
+<pre class="r"><code>test_wohnort$observed # beobachtete Häufigkeiten</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">gles<span
+class="math inline">\(AfD.Wahl/gles\)</span>wohnort</th>
+<th align="right">Großstadt</th>
+<th align="right">Kleinstadt</th>
+<th align="right">Land</th>
+<th align="right">Vorstadt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">340</td>
+<td align="right">526</td>
+<td align="right">543</td>
+<td align="right">119</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">27</td>
+<td align="right">71</td>
+<td align="right">60</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>test_wohnort$expected # bei Unabhängigkeit erwartete Häufigkeiten</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">Großstadt</th>
+<th align="right">Kleinstadt</th>
+<th align="right">Land</th>
+<th align="right">Vorstadt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">331.82012</td>
+<td align="right">539.77278</td>
+<td align="right">545.19763</td>
+<td align="right">111.20947</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">35.17988</td>
+<td align="right">57.22722</td>
+<td align="right">57.80237</td>
+<td align="right">11.79053</td>
+</tr>
+</tbody>
+</table>
+<p>Die Kreuztabelle der beobachteten Häufigkeiten lässt sich genauso mit
+<code>table()</code> erstellen. Bei unterstellten Zusammenhängen
+zwischen zwei Merkmalen ist es häufig sinnvoll, Kreuztabellen für einen
+ersten Eindruck mittels <code>table()</code> zu erstellen.</p>
+<pre class="r"><code>table(gles$AfD.Wahl, gles$wohnort)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">/</th>
+<th align="right">Großstadt</th>
+<th align="right">Kleinstadt</th>
+<th align="right">Land</th>
+<th align="right">Vorstadt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">340</td>
+<td align="right">526</td>
+<td align="right">543</td>
+<td align="right">119</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">27</td>
+<td align="right">71</td>
+<td align="right">60</td>
+<td align="right">4</td>
+</tr>
+</tbody>
+</table>
+<p>Als weiteres Beispiel berechnen wir <span
+class="math inline">\(\chi^2\)</span> für den Zusammenhang zwischen der
+berichteten AfD-Wahl und dem Geschlecht der Befragten.</p>
+<pre class="r"><code>test_geschlecht &lt;- chisq.test(gles$AfD.Wahl, gles$geschlecht)
+test_geschlecht</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test with Yates&#39; continuity correction
+## 
+## data:  gles$AfD.Wahl and gles$geschlecht
+## X-squared = 21.758, df = 1, p-value = 3.093e-06</code></pre>
+<pre class="r"><code>test_geschlecht$observed # beobachtete Häufigkeiten</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">gles<span
+class="math inline">\(AfD.Wahl/gles\)</span>geschlecht</th>
+<th align="right">maennlich</th>
+<th align="right">weiblich</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">776</td>
+<td align="right">752</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">114</td>
+<td align="right">48</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>test_geschlecht$expected # bei Unabhängigkeit erwartete Häufigkeiten</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">maennlich</th>
+<th align="right">weiblich</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">0</td>
+<td align="right">804.68639</td>
+<td align="right">723.31361</td>
+</tr>
+<tr class="even">
+<td align="left">1</td>
+<td align="right">85.31361</td>
+<td align="right">76.68639</td>
+</tr>
+</tbody>
+</table>
+<p>Auch in diesem Fall liegt der p-Wert nahe an Null, sodass von einem
+Zusammenhang zwischen den beiden Variablen in der Grundgesamtheit
+ausgegangen werden kann.</p>
+</div>
+<div id="cramers-v" class="section level2">
+<h2>3.2 Cramer’s V</h2>
+<p>Ein Nachteil von <span class="math inline">\(\chi^2\)</span> ist,
+dass es je nach Tabellenformat und Fallzahl unterschiedlich ausfällt,
+d.h. kein normierter Wertebereich vorliegt. Deshalb kann Cramer’s V als
+Standardisierung von <span class="math inline">\(\chi^2\)</span> auf den
+Wertebereich [0, 1] berechnet werden:</p>
+<p><span class="math inline">\(V = \sqrt{\frac{\chi^2}{n \cdot \min(m-1,
+k-1)}}\)</span></p>
+<p>So können wir die Stärke von Zusammenhängen vergleichen. Weil die
+drei oben untersuchten Variablen dem gleichen Datensatz entstammen, ist
+die Fallzahl identisch. Da die AfD-Wahl zudem jeweils die Variable mit
+den wenigsten (nämlich zwei) Kategorien ist, dürfte die Normierung durch
+Cramer’s V keinen Effekt haben. Der höhere <span
+class="math inline">\(\chi^2\)</span>-Wert für den Zusammenhang zwischen
+Geschlecht und AfD-Wahl im Vergleich zum Zusammenhang zwischen Wohnort
+und AfD-Wahl, sollte auch für Cramer’s V vorliegen.</p>
+<p>Wir verwenden die Funktion <code>cramerV()</code> aus dem Paket
+<code>rcompanion</code>, da base-R keine Funktion zur Berechnung von
+Cramer’s V bereitstellt. Entsprechend müssen wir <code>rcompanion</code>
+zunächst installieren und laden. Die Funktion <code>cramerV()</code>
+erwartet als Input eine Kreuztabelle der beobachteten Häufigkeiten. Wie
+oben gezeigt, können wir diese entweder händisch mittels
+table(<code>Variable1</code>, <code>Variable2</code>) erstellen, oder
+die durch <code>chisq.test()</code> erstellte Tabelle verwenden, die
+unter <code>test_wohnort$observed</code> gespeichert ist.</p>
+<pre class="r"><code>#install.packages(&quot;rcompanion&quot;)
+library(rcompanion)
+cramerV(table(gles$AfD.Wahl, gles$wohnort)) # aufgrund händisch erstellter Kreuztabelle</code></pre>
+<pre><code>## Cramer V 
+##  0.08269</code></pre>
+<pre class="r"><code>cramerV(test_wohnort$observed) # aufgrund von chisq.test() erstellter Kreuztabelle</code></pre>
+<pre><code>## Cramer V 
+##  0.08269</code></pre>
+<p>Den Zusammenhang zwischen dem Geschlecht und der AfD-Wahl prüfen wir
+hier ausschließlich anhand des Outputs von
+<code>chisq.test()</code>.</p>
+<pre class="r"><code>cramerV(test_geschlecht$observed) # aufgrund von chisq.test() erstellter Kreuztabelle</code></pre>
+<pre><code>## Cramer V 
+##   0.1155</code></pre>
+<p>Wie erwartet, zeigt auch Cramer’s V einen etwas stärkeren
+Zusammenhang zwischen dem Geschlecht und der AfD-Wahl, als zwischen dem
+Wohnort und der AfD-Wahl. Tatsächlich müssen allerdings beide
+Zusammenhänge als eher schwach bezeichnet werden. Starke Zusammenhänge
+treten in den Sozialwissenschaften aber auch eher selten auf.</p>
+</div>
+</div>
+<div id="metrisches-skalenniveau" class="section level1">
+<h1>4 Metrisches Skalenniveau</h1>
+<div id="kovarianz" class="section level2">
+<h2>4.1 Kovarianz</h2>
+<p>Den Zusammenhang zwischen zwei metrisch skalierten Variablen
+ermitteln wir mithilfe der Kovarianz und dem Korrelationskoeffizient r.
+Während das Alter klar metrisch ist, ist dies für die
+Links-Rechts-Selbsteinstufung mit zehn Stufen eine Annahme, die in der
+Forschungspraxis aber häufig getroffen wird.</p>
+<p><span
+class="math inline">\(cov(x;y)=\frac{1}{n}\sum_{i=1}^n(x_i-\overline{x})(y_i-\overline{y})\)</span>.</p>
+<p>In <code>R</code> bestimmen wir die Kovarianz mithilfe der Funktion
+<code>cov()</code>. Für das Alter und die Links-Rechts-Selbsteinstufung
+berechnen wir die Kovarianz wie folgt: Die Variablen <code>alter</code>
+und <code>LiRe</code> werden den Argumenten <code>x</code> und
+<code>y</code> zugewiesen. Da es sich um die ersten beiden Argumente der
+Funktion handelt, müssen wir diese nicht explizit nennen. Wir
+spezifizieren außerdem das Argument use mit <code>complete.obs</code>.
+Dadurch legen wir fest, dass Beobachtungen (Zeilen), bei denen für eine
+der beiden Variablen keine Information vorhanden ist (<code>NA</code>),
+bei der Berechnung nicht berücksichtigt werden.</p>
+<pre class="r"><code>cov(gles$alter, gles$LiRe, use = &quot;complete.obs&quot;)</code></pre>
+<pre><code>## [1] 3.765734</code></pre>
+<p>Die Kovarianz für den Zusammenhang zwischen dem Alter der Befragten
+und der subjektiven Links-Rechts-Selbsteinstufung liegt bei rund 3.77.
+Damit liegt ein positiver Zusammenhang vor. Da die Höhe des Wertes von
+den Skalen der Variablen abhängt, kann die Stärke des Zusammenhangs
+nicht ohne Weiteres eingeschätzt werden.</p>
+</div>
+<div id="korrelationskoeffizient-r" class="section level2">
+<h2>4.2 Korrelationskoeffizient r</h2>
+<p>Allerdings können wir die Kovarianz auf den Wertebereich -1 bis 1
+normieren, sodass wir ein Maß für die Stärke des Zusammenhangs erhalten.
+Das erreichen wir dadurch, dass wir die Kovarianz durch das Produkt der
+Standardabweichungen beider Variablen dividieren (Diaz-Bone 2019: 94),
+um den Korrelationskoeffizienten zu berechnen.</p>
+<p><span class="math inline">\(r=\frac{cov(x;y)}{s_x\cdot
+s_y}\)</span></p>
+<p>Die Funktionen zur Berechnung von Kovarianz und Korrelation in
+<code>R</code> sind identisch aufgebaut (siehe die Hilfeseiten für die
+Kovarianz und die Korrelation durch die Befehle <code>?cov</code> oder
+<code>?cor</code>). Wir nennen wieder die Variablen <code>alter</code>
+und <code>LiRe</code> als die Argumente für <code>x</code> und
+<code>y</code> (erneut implizit) und legen use so fest, dass Zeilen, in
+denen eine der beiden Variablen ein <code>NA</code> aufweist, von der
+Berechnung ausgeschlossen werden.</p>
+<pre class="r"><code>cor(gles$alter, gles$LiRe, use = &quot;complete.obs&quot;)</code></pre>
+<pre><code>## [1] 0.1030572</code></pre>
+<p>Für den Zusammenhang zwischen Alter und Links-Rechts-Selbsteinstufung
+errechnen wir einen Korrelationskoeffizienten von rund 0.1. Damit liegt
+ein schwacher positiver Zusammenhang vor. Durch Berücksichtigung der
+Skalierung der Variablen können wir eine inhaltliche Interpretation
+ableiten. <code>LiRe</code> ist so kodiert, dass höhere Werte einer
+rechteren Selbsteinstufung entsprechen. Wir können also folgern, dass
+mit zunehmendem Alter der Befragten eine rechtere politische Position
+einhergeht.</p>
+</div>
+</div>
+<div id="übungsaufgaben" class="section level1">
+<h1>5 Übungsaufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Finden Sie heraus, auf Grundlage welcher Variable wir die
+<code>AfD.Wahl</code> ursprünglich gebildet haben. Kodieren Sie diese
+Variable so um, dass sie die Wahlentscheidung der Befragten für die
+Parteien im Deutschen Bundestag enthält. Setzen Sie andere Antworten auf
+<code>NA</code>. Erstellen Sie eine Kreuztabelle für die
+Wahlentscheidung und den Wohnort der Befragten.</li>
+<li>Berechnen und interpretieren Sie mithilfe von <span
+class="math inline">\(\chi^2\)</span> und Cramer’s V den Zusammenhang
+zwischen Wahlentscheidung und Wohnort. Lassen Sie sich auch die Tabellen
+der empirisch beobachteten und erwarteten Häufigkeiten ausgeben und
+vergleichen Sie diese.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

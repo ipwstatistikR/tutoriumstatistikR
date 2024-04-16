@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 8: Multiple lineare Regression</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 8: Multiple lineare Regression</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Bei der multiplen linearen Regression wird der Einfluss mehrerer
+unabhängiger Variablen auf eine abhängige metrische Variable untersucht.
+Je nachdem, ob das Forschungsdesign x-oder y-zentriert ist, wird
+versucht, die Varianz in der abhängigen Variable möglichst umfassend zu
+erklären (y-zentriert) oder den Einfluss der unabhängigen Variablen auf
+die abhängige Variable (x-zentriert) zu prüfen. In dieser Sitzung werden
+wir eine multiple lineare Regression durchführen, die Ergebnisse
+interpretieren und die wichtigsten statistischen Tests im Zusammenhang
+mit der multiplen linearen Regression durchführen.</p>
+</div>
+<div id="datensätze-laden-und-umkodieren" class="section level1">
+<h1>2. Datensätze laden und umkodieren</h1>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)</code></pre>
+<pre class="r"><code>library(foreign)
+gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)
+lijphart &lt;- read.csv2(&quot;Lijphart_Data_recode.csv&quot;)</code></pre>
+<pre class="r"><code># GLES
+# Alter
+q2c_num &lt;- as.numeric(as.character(gles$q2c))
+gles$alter &lt;- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == &quot;q1&quot;] &lt;- &quot;geschlecht&quot;
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == &quot;unter 500 Euro&quot; |
+                     gles$q192 == &quot;500 bis unter 750 Euro&quot; |
+                     gles$q192 == &quot;750 bis unter 1000 Euro&quot;] &lt;- &quot;weniger als 1000&quot;
+gles$einkommen_cat[gles$q192 == &quot;1000 bis unter 1250 Euro&quot; |
+                     gles$q192 == &quot;1250 bis unter 1500 Euro&quot; |
+                     gles$q192 == &quot;1500 bis unter 2000 Euro&quot;] &lt;- &quot;1000 bis 1999&quot;
+gles$einkommen_cat[gles$q192 == &quot;2000 bis unter 2500 Euro&quot; |
+                     gles$q192 == &quot;2500 bis unter 3000 Euro&quot;] &lt;- &quot;2000 bis 2999&quot;
+gles$einkommen_cat[gles$q192 == &quot;3000 bis unter 4000 Euro&quot;] &lt;- &quot;3000 bis 3999&quot;
+gles$einkommen_cat[gles$q192 == &quot;4000 bis unter 5000 Euro&quot;] &lt;- &quot;4000 bis 4999&quot;
+gles$einkommen_cat[gles$q192 == &quot;5000 bis unter 7500 Euro&quot;] &lt;- &quot;5000 bis 7499&quot;
+gles$einkommen_cat[gles$q192 == &quot;7500 bis unter 10000 Euro&quot; |
+                     gles$q192 == &quot;10000 Euro und mehr&quot;] &lt;- &quot;7500 und mehr&quot;
+
+gles$einkommen_cat &lt;- factor(gles$einkommen_cat,
+                                levels = c(&quot;weniger als 1000&quot;,
+                                           &quot;1000 bis 1999&quot;,
+                                           &quot;2000 bis 2999&quot;,
+                                           &quot;3000 bis 3999&quot;,
+                                           &quot;4000 bis 4999&quot;,
+                                           &quot;5000 bis 7499&quot;,
+                                           &quot;7500 und mehr&quot;))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == &quot;weniger als 1000&quot;] &lt;- 1
+gles$einkommen_num[gles$einkommen_cat == &quot;1000 bis 1999&quot;] &lt;- 2
+gles$einkommen_num[gles$einkommen_cat == &quot;2000 bis 2999&quot;] &lt;- 3
+gles$einkommen_num[gles$einkommen_cat == &quot;3000 bis 3999&quot;] &lt;- 4
+gles$einkommen_num[gles$einkommen_cat == &quot;4000 bis 4999&quot;] &lt;- 5
+gles$einkommen_num[gles$einkommen_cat == &quot;5000 bis 7499&quot;] &lt;- 6
+gles$einkommen_num[gles$einkommen_cat == &quot;7500 und mehr&quot;] &lt;- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == &quot;Grossstadt&quot;] &lt;- &quot;Großstadt&quot;
+gles$wohnort[gles$q197 == &quot;kleine oder mittelgrosse Stadt&quot;] &lt;- &quot;Kleinstadt&quot;
+gles$wohnort[gles$q197 == &quot;laendliche Gegend oder Dorf&quot;] &lt;- &quot;Land&quot;
+gles$wohnort[gles$q197 == &quot;Vorstadt/ Vorort einer Grossstadt&quot;] &lt;- &quot;Vorstadt&quot;
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe &lt;- as.character(gles$q32)
+gles$LiRe[gles$LiRe == &quot;1 links&quot;] &lt;- &quot;1&quot;
+gles$LiRe[gles$LiRe == &quot;11 rechts&quot;] &lt;- &quot;11&quot;
+gles$LiRe &lt;- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe &gt;= 1 &amp;
+                gles$LiRe &lt;= 2] &lt;- &quot;links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 3 &amp;
+                gles$LiRe &lt;= 4] &lt;- &quot;moderat links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 5 &amp;
+                gles$LiRe &lt;= 7] &lt;- &quot;mittig&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 8 &amp;
+                gles$LiRe &lt;= 9] &lt;- &quot;moderat rechts&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 10 &amp;
+                gles$LiRe &lt;= 11] &lt;- &quot;rechts&quot;
+
+gles$LiRe_cat &lt;- factor(gles$LiRe_cat,
+                                levels = c(&quot;links&quot;,
+                                           &quot;moderat links&quot;,
+                                           &quot;mittig&quot;,
+                                           &quot;moderat rechts&quot;,
+                                           &quot;rechts&quot;))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == &quot;AfD&quot;] &lt;- 1
+gles$AfD.Wahl[gles$q19ba != &quot;AfD&quot;] &lt;- 0</code></pre>
+<p>Wenn alles geklappt hat, sehen Sie rechts oben im Global Environment
+die beiden Datensätze gles mit 2112 Beobachtungen und 602 Variablen und
+lijphart mit 36 Beobachtungen und 74 Variablen.</p>
+</div>
+<div id="theorie" class="section level1">
+<h1>3. Theorie</h1>
+<p>Die Regressionskoeffizienten <span class="math inline">\(b_j\)</span>
+geben den Effekt einer unabhängigen Variable auf die abhängige Variable
+an. Bei mehreren unabhängigen Variablen werden die
+Regressionskoeffizienten nach <span class="math inline">\(b_0\)</span>
+fortlaufend mit <span class="math inline">\(b_1\)</span>, <span
+class="math inline">\(b_2\)</span> etc. indiziert. Die
+Regressionsgleichung lautet:</p>
+<p><span class="math inline">\(y_i=b_0+b_1 *
+x_{1i}+b_2*x_{2i}+b_j*x_{ji}+e_i\)</span>.</p>
+<p>Im konkreten Modell erklären wir die Links-Rechts-Selbsteinstufung
+der Befragten anhand ihres Alters, Geschlechts und Wohnorts. Die
+Gleichung lautet also:</p>
+<p><span class="math inline">\(LiRe_i=b_0+b_{alter_i} * x_{alter_i} +
+b_{geschlecht_i} * x_{geschlecht_i} + b_{wohnort_i} * x_{wohnort_i} +
+e_i\)</span></p>
+</div>
+<div
+id="durchführung-und-visualisierung-einer-multiplen-linearen-regression"
+class="section level1">
+<h1>4. Durchführung und Visualisierung einer multiplen linearen
+Regression</h1>
+<p>Wie in der vorherigen Sitzung zur bivariaten linearen Regression
+gezeigt, berechnen wir lineare Regressionen in <code>R</code> mit dem
+Befehl <code>lm()</code>. Allerdings fügen wir nun jeweils mit einem +
+zusätzliche Variablen hinzu. Dadurch wird nicht mehr bloß der Effekt des
+Alters auf die Links-Rechts-Selbsteinstufung geschätzt, sondern der
+Effekt von Alter, Geschlecht und Wohnort parallel. Mit dem Argument data
+= <code>gles</code> wählen wir den Datensatz aus. Der Befehl lautet
+also:</p>
+<pre class="r"><code>lm(LiRe ~ alter + geschlecht + wohnort, data = gles)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = LiRe ~ alter + geschlecht + wohnort, data = gles)
+## 
+## Coefficients:
+##        (Intercept)               alter  geschlechtweiblich   wohnortKleinstadt         wohnortLand     wohnortVorstadt  
+##            4.47512             0.01047            -0.43886             0.47961             0.55996             0.33990</code></pre>
+<p>Während sich bei der bivariaten linearen Regression insbesondere das
+Plotten der Regressionsgeraden eignet, haben wir diese Möglichkeit bei
+der multiplen linearen Regression nicht. Die visuelle Darstellung müsste
+bei drei unabhängigen Variablen und einer abhängigen Variable
+vierdimensional sein. Deshalb beschränken wir uns bei der Darstellung
+auf die Effekte. Einen detaillierteren Regressionsoutput erhalten wir,
+wenn wir den Output von <code>lm()</code> in einem Objekt speichern.
+Dafür geben wir dem Modell einen Namen, hier modell. Dieses lassen wir
+uns mit dem Befehl <code>summary()</code> ausgeben:</p>
+<pre class="r"><code>modell &lt;- lm(LiRe ~ alter + geschlecht + wohnort, data = gles)
+summary(modell)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = LiRe ~ alter + geschlecht + wohnort, data = gles)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.8343 -1.3085  0.1901  1.1156  6.2517 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         4.475121   0.148485  30.139  &lt; 2e-16 ***
+## alter               0.010471   0.002272   4.608 4.33e-06 ***
+## geschlechtweiblich -0.438857   0.085989  -5.104 3.65e-07 ***
+## wohnortKleinstadt   0.479610   0.117138   4.094 4.40e-05 ***
+## wohnortLand         0.559962   0.117634   4.760 2.08e-06 ***
+## wohnortVorstadt     0.339904   0.187732   1.811   0.0704 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.9 on 1957 degrees of freedom
+##   (149 observations deleted due to missingness)
+## Multiple R-squared:  0.03567,    Adjusted R-squared:  0.03321 
+## F-statistic: 14.48 on 5 and 1957 DF,  p-value: 5.932e-14</code></pre>
+<p>Im Gegensatz zu der Standardausgabe mit <code>summary()</code> gibt
+uns der Befehl <code>stargazer()</code> eine geordnete Ausgabe mit der
+Zahl der Beobachtungen, statistischen Maßzahlen, Signifikanzniveaus usw.
+Wir fügen der Funktion <code>stargazer()</code> das Argument
+<code>type = "text"</code> hinzu, damit wir eine interpretierbare
+Ausgabe in der Konsole erhalten:</p>
+<pre class="r"><code>#install.packages(&quot;stargazer&quot;)
+library(stargazer)
+stargazer(modell, type = &quot;text&quot;)</code></pre>
+<pre><code>## 
+## ===============================================
+##                         Dependent variable:    
+##                     ---------------------------
+##                                LiRe            
+## -----------------------------------------------
+## alter                        0.010***          
+##                               (0.002)          
+##                                                
+## geschlechtweiblich           -0.439***         
+##                               (0.086)          
+##                                                
+## wohnortKleinstadt            0.480***          
+##                               (0.117)          
+##                                                
+## wohnortLand                  0.560***          
+##                               (0.118)          
+##                                                
+## wohnortVorstadt               0.340*           
+##                               (0.188)          
+##                                                
+## Constant                     4.475***          
+##                               (0.148)          
+##                                                
+## -----------------------------------------------
+## Observations                   1,963           
+## R2                             0.036           
+## Adjusted R2                    0.033           
+## Residual Std. Error      1.900 (df = 1957)     
+## F Statistic          14.479*** (df = 5; 1957)  
+## ===============================================
+## Note:               *p&lt;0.1; **p&lt;0.05; ***p&lt;0.01</code></pre>
+<p>Wollen wir diese Tabelle später in eine Datei kopieren, ändern wir im
+Code das Argument zu <code>type = „html“</code>. Dadurch wird eine Datei
+im Arbeitsverzeichnis abgelegt. Beim Anklicken dieser Datei öffnet sich
+eine Website, von der wir die Tabelle durch die Tastenkombination
+<code>Strg. + C</code> (Windows) bzw. <code>Cmd. + C (Mac)</code>
+kopieren und in unsere Datei einfügen können.</p>
+<p>Eine grafische Visualisierungsoption bietet das Paket
+<code>ggeffects</code>. Zunächst verwenden wir die Funktion
+<code>ggpredict()</code>, mit der wir die vorhergesagten Werte für die
+abhängige Variable <code>LiRe</code> für bestimmte Werte der
+unabhängigen Variablen berechnen.</p>
+<pre class="r"><code>#install.packages(&quot;ggeffects&quot;)
+library(ggeffects)
+ggpredict(modell)</code></pre>
+<pre><code>## $alter
+## # Predicted values of LiRe
+## 
+## alter | Predicted |       95% CI
+## --------------------------------
+##    10 |      5.06 | [4.82, 5.30]
+##    20 |      5.16 | [4.96, 5.37]
+##    30 |      5.27 | [5.09, 5.45]
+##    40 |      5.37 | [5.21, 5.54]
+##    60 |      5.58 | [5.42, 5.75]
+##    70 |      5.69 | [5.50, 5.87]
+##    80 |      5.79 | [5.58, 6.00]
+##   100 |      6.00 | [5.73, 6.28]
+## 
+## Adjusted for:
+## * geschlecht =  maennlich
+## *    wohnort = Kleinstadt
+## 
+## $geschlecht
+## # Predicted values of LiRe
+## 
+## geschlecht | Predicted |       95% CI
+## -------------------------------------
+## maennlich  |      5.48 | [5.32, 5.64]
+## weiblich   |      5.04 | [4.87, 5.21]
+## 
+## Adjusted for:
+## *   alter =      50.12
+## * wohnort = Kleinstadt
+## 
+## $wohnort
+## # Predicted values of LiRe
+## 
+## wohnort    | Predicted |       95% CI
+## -------------------------------------
+## Land       |      5.56 | [5.40, 5.72]
+## Kleinstadt |      5.48 | [5.32, 5.64]
+## Vorstadt   |      5.34 | [5.01, 5.67]
+## Großstadt  |      5.00 | [4.80, 5.20]
+## 
+## Adjusted for:
+## *      alter =     50.12
+## * geschlecht = maennlich
+## 
+## attr(,&quot;class&quot;)
+## [1] &quot;ggalleffects&quot; &quot;list&quot;        
+## attr(,&quot;model.name&quot;)
+## [1] &quot;modell&quot;</code></pre>
+<p>Im Output sehen wir die für <code>LiRe</code> vorhergesagten Werte,
+wenn alter bestimmte Werte annimmt. Wenn eine Person zehn Jahre ist,
+sagt das Modell also eine Position auf der subjektiven Links-Rechtsachse
+von 5.06 vorher. Für 60-jährige im Mittel eine Position von 5.58 usw.
+Darunter finden wir analog die Vorhersagen für die anderen unabhängigen
+Variablen.</p>
+<p>Diese Vorhersagewerte wollen wir nun visualisieren. Wir verwenden
+jeweils die base-Funktion <code>plot</code>, die wir auf den Output von
+<code>ggpredict()</code> anwenden. Je nach Klasse der Variablen erhalten
+wir unterschiedliche Plots: Für das Alter als kontinuierliche Variable
+erhalten wir eine Gerade, welche die Vorhersagewerte für
+<code>LiRe</code> über die Ausprägungen von alter darstellt. Für die
+kategorialen Variablen geschlecht und wohnort werden jeweils die
+Vorhersagewerte pro Kategorie geplottet. In beiden Fällen sind die
+Konfidenzintervalle abgebildet: Um die Gerade des Alters als grau
+hinterlegter Bereich, um die Vorhersagewerte des Geschlechts und des
+Wohnorts mit Markern. Für die kontinuierliche Variable alter wird der
+Effekt also durch die Steigung der Geraden abgebildet, für die
+kategorialen geschlecht und wohnort sind sie direkt anhand der Skala auf
+der Y-Achse abzulesen.</p>
+<pre class="r"><code>plot(ggpredict(modell, terms = &quot;alter&quot;))</code></pre>
+<p><img src="R_8_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>plot(ggpredict(modell, terms = &quot;geschlecht&quot;))</code></pre>
+<p><img src="R_8_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>plot(ggpredict(modell, terms = &quot;wohnort&quot;))</code></pre>
+<p><img src="R_8_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="modellinterpretation" class="section level1">
+<h1>5. Modellinterpretation</h1>
+<p>Die Regressionskoeffizienten stehen in der ersten Spalte des
+erzeugten Outputs. In der zweiten Spalte sind Standardfehler der
+Regressionskoeffizienten, in der dritten t-Werte und in der vierten
+p-Werte mit “Signifikanz-Sternchen” (s. Legende darunter) abgetragen.
+Unten sehen wir Standardfehler des Modells und Freiheitsgrade sowie den
+multiplen Determinationskoeffizienten <span
+class="math inline">\(r^2\)</span> und das <span
+class="math inline">\(adj. r^2\)</span>. Schließlich wird der F-Test für
+das Gesamtmodell mitsamt p-Wert berichtet.</p>
+<p>Das Modell mit den unabhängigen Variablen <code>alter</code>,
+<code>geschlecht</code> und <code>wohnort</code> kann die Varianz in der
+abhängigen Variable <code>LiRe</code> nur zu einem sehr geringen Anteil
+von etwas mehr als 3 % erklären (<span
+class="math inline">\(r^2\)</span> = 0.036 und <span
+class="math inline">\(adj. r^2\)</span>. = 0.033). In einer
+Forschungsarbeit müssten wir prüfen, ob die Erklärungsleistung des
+Modells mithilfe zusätzlicher unabhängiger Variablen erhöht werden kann.
+Der p-Wert der <strong>F-Statistik</strong> zeigt allerdings, dass das
+Modell die abhängige Variable insgesamt signifikant besser erklärt als
+ein Modell ohne unabhängige Variablen. Die von uns berücksichtigten
+Variablen sind (mit Ausnahme von Wohnort Vorstadt) statistisch hoch
+signifikant, d.h. es ist sehr unwahrscheinlich, dass der festgestellte
+Koeffizient in der Grundgesamtheit gleich Null ist (das 99.9
+%-Konfidenzintervall um den Koeffizienten beinhaltet die Null nicht).
+Für Wohnort Vorstadt beinhaltet zumindest das 90 %-Konfidenzintervall
+die Null nicht.</p>
+<p>Wenn wir die Regressionskoeffizienten in die allgemeine Gleichung
+eingesetzt werden, kann das Modell durch folgende Gleichung beschrieben
+werden:</p>
+<p><span class="math inline">\(LiRe_i=4.475+ 0.010 * x_{alter_i} -0.439
+* x_{geschlecht_i} + 0.480 * x_{kleinstadt_i} + 0.560 * x_{land_i} +
+0.340 * x_{vorstadt_i} + e_i\)</span></p>
+</div>
+<div id="statistische-tests" class="section level1">
+<h1>6. Statistische Tests</h1>
+<p>Mithilfe des <strong>F-Tests</strong> kann überprüft werden, ob das
+Regressionsmodell in der Grundgesamtheit überhaupt eine
+Erklärungsleistung aufweist. <code>R</code> gibt den empirischen Wert
+der Teststatistik und die Freiheitsgrade automatisch an. Ist der
+empirische F-Wert größer als der Rückweisungswert für F, kann die <span
+class="math inline">\(H_0\)</span> verworfen werden, d.h. große F-Werte
+sprechen für die <span class="math inline">\(H_1\)</span>.</p>
+<p>Schließlich kann mithilfe des <strong>t-Tests</strong> für die
+einzelnen Regressionskoeffizienten geprüft werden, ob sie in der
+Grundgesamtheit von 0 verschieden sind. <code>R</code> gibt die
+empirischen t-Werte der Teststatistik ebenfalls selbstständig an, sie
+stehen in der dritten Spalte (t-value). Fällt der t-Wert außerhalb des
+Annahmebereichs für die <span class="math inline">\(H_0\)</span>, wird
+die <span class="math inline">\(H_0\)</span> zurückgewiesen, dass der
+Wert des Koeffizienten in der Grundgesamtheit gleich Null ist.</p>
+</div>
+<div id="übungsaufgaben" class="section level1">
+<h1>7. Übungsaufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Berechnen Sie ein multiples lineares Regressionsmodell, bei dem die
+unabhängigen Variablen Ein-kommen, Alter und Geschlecht auf die
+Links-Rechts-Selbsteinstufung (<code>q32</code>) regressieren. Beachten
+Sie, dass Sie die Variablen ggf. sinnvoll umkodieren müssen. Lassen Sie
+sich die Ergebnisse mithilfe des stargazer-Pakets ausgeben.</li>
+<li>Interpretieren Sie das in Aufgabe 1 berechnete Regressionmodell
+hinsichtlich der Erklärungskraft, Signifikanz und Effektrichtung.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

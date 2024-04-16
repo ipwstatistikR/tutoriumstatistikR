@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 9: Anwendungsvoraussetzungen der linearen Regression</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 9: Anwendungsvoraussetzungen der linearen Regression</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Nachdem wir in der letzten Sitzung ein multiples lineares
+Regressionsmodell gerechnet haben, wollen wir in dieser Sitzung die
+Anwendungsvoraussetzungen für dieses Modell prüfen. Darunter sind
+Voraussetzungen zu verstehen, „die (in ausreichender Weise) erfüllt sein
+sollen, damit die Regressionsanalyse valide Resultate liefern kann“
+(Diaz-Bone 2019: 202). Es können auch Maßnahmen zur Verbesserung der
+Anwendungsvoraussetzung getroffen werden, die wir ebenfalls in dieser
+Sitzung kennenlernen werden.</p>
+</div>
+<div id="datensätze-einladen-pakete-laden-und-umkodieren"
+class="section level1">
+<h1>2. Datensätze einladen, Pakete laden und umkodieren</h1>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)</code></pre>
+<pre class="r"><code>library(foreign)
+gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)
+lijphart &lt;- read.csv2(&quot;Lijphart_Data_recode.csv&quot;)</code></pre>
+<pre class="r"><code># GLES
+# Alter
+q2c_num &lt;- as.numeric(as.character(gles$q2c))
+gles$alter &lt;- 2017 - q2c_num
+
+# Geschlecht
+names(gles)[names(gles) == &quot;q1&quot;] &lt;- &quot;geschlecht&quot;
+
+# Einkommen kategorial
+gles$einkommen_cat[gles$q192 == &quot;unter 500 Euro&quot; |
+                     gles$q192 == &quot;500 bis unter 750 Euro&quot; |
+                     gles$q192 == &quot;750 bis unter 1000 Euro&quot;] &lt;- &quot;weniger als 1000&quot;
+gles$einkommen_cat[gles$q192 == &quot;1000 bis unter 1250 Euro&quot; |
+                     gles$q192 == &quot;1250 bis unter 1500 Euro&quot; |
+                     gles$q192 == &quot;1500 bis unter 2000 Euro&quot;] &lt;- &quot;1000 bis 1999&quot;
+gles$einkommen_cat[gles$q192 == &quot;2000 bis unter 2500 Euro&quot; |
+                     gles$q192 == &quot;2500 bis unter 3000 Euro&quot;] &lt;- &quot;2000 bis 2999&quot;
+gles$einkommen_cat[gles$q192 == &quot;3000 bis unter 4000 Euro&quot;] &lt;- &quot;3000 bis 3999&quot;
+gles$einkommen_cat[gles$q192 == &quot;4000 bis unter 5000 Euro&quot;] &lt;- &quot;4000 bis 4999&quot;
+gles$einkommen_cat[gles$q192 == &quot;5000 bis unter 7500 Euro&quot;] &lt;- &quot;5000 bis 7499&quot;
+gles$einkommen_cat[gles$q192 == &quot;7500 bis unter 10000 Euro&quot; |
+                     gles$q192 == &quot;10000 Euro und mehr&quot;] &lt;- &quot;7500 und mehr&quot;
+
+gles$einkommen_cat &lt;- factor(gles$einkommen_cat,
+                                levels = c(&quot;weniger als 1000&quot;,
+                                           &quot;1000 bis 1999&quot;,
+                                           &quot;2000 bis 2999&quot;,
+                                           &quot;3000 bis 3999&quot;,
+                                           &quot;4000 bis 4999&quot;,
+                                           &quot;5000 bis 7499&quot;,
+                                           &quot;7500 und mehr&quot;))
+
+# Einkommen numerisch
+gles$einkommen_num[gles$einkommen_cat == &quot;weniger als 1000&quot;] &lt;- 1
+gles$einkommen_num[gles$einkommen_cat == &quot;1000 bis 1999&quot;] &lt;- 2
+gles$einkommen_num[gles$einkommen_cat == &quot;2000 bis 2999&quot;] &lt;- 3
+gles$einkommen_num[gles$einkommen_cat == &quot;3000 bis 3999&quot;] &lt;- 4
+gles$einkommen_num[gles$einkommen_cat == &quot;4000 bis 4999&quot;] &lt;- 5
+gles$einkommen_num[gles$einkommen_cat == &quot;5000 bis 7499&quot;] &lt;- 6
+gles$einkommen_num[gles$einkommen_cat == &quot;7500 und mehr&quot;] &lt;- 7
+
+# Wohnort
+gles$wohnort[gles$q197 == &quot;Grossstadt&quot;] &lt;- &quot;Großstadt&quot;
+gles$wohnort[gles$q197 == &quot;kleine oder mittelgrosse Stadt&quot;] &lt;- &quot;Kleinstadt&quot;
+gles$wohnort[gles$q197 == &quot;laendliche Gegend oder Dorf&quot;] &lt;- &quot;Land&quot;
+gles$wohnort[gles$q197 == &quot;Vorstadt/ Vorort einer Grossstadt&quot;] &lt;- &quot;Vorstadt&quot;
+
+# Links-Rechts-Selbsteinstufung
+gles$LiRe &lt;- as.character(gles$q32)
+gles$LiRe[gles$LiRe == &quot;1 links&quot;] &lt;- &quot;1&quot;
+gles$LiRe[gles$LiRe == &quot;11 rechts&quot;] &lt;- &quot;11&quot;
+gles$LiRe &lt;- as.numeric(gles$LiRe)
+
+# Links-Rechts-Selbsteinstufung aggregiert
+gles$LiRe_cat[gles$LiRe &gt;= 1 &amp;
+                gles$LiRe &lt;= 2] &lt;- &quot;links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 3 &amp;
+                gles$LiRe &lt;= 4] &lt;- &quot;moderat links&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 5 &amp;
+                gles$LiRe &lt;= 7] &lt;- &quot;mittig&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 8 &amp;
+                gles$LiRe &lt;= 9] &lt;- &quot;moderat rechts&quot;
+gles$LiRe_cat[gles$LiRe &gt;= 10 &amp;
+                gles$LiRe &lt;= 11] &lt;- &quot;rechts&quot;
+
+gles$LiRe_cat &lt;- factor(gles$LiRe_cat,
+                                levels = c(&quot;links&quot;,
+                                           &quot;moderat links&quot;,
+                                           &quot;mittig&quot;,
+                                           &quot;moderat rechts&quot;,
+                                           &quot;rechts&quot;))
+
+# AfD-Wahl
+gles$AfD.Wahl[gles$q19ba == &quot;AfD&quot;] &lt;- 1
+gles$AfD.Wahl[gles$q19ba != &quot;AfD&quot;] &lt;- 0</code></pre>
+<pre class="r"><code>modell &lt;- lm(LiRe ~ alter + geschlecht + wohnort, data = gles)</code></pre>
+</div>
+<div id="anwendungsvoraussetzungen-für-multiple-lineare-regressionen"
+class="section level1">
+<h1>3. Anwendungsvoraussetzungen für multiple lineare Regressionen</h1>
+<p>Lineare Regressionen unterstellen bestimmte Annahmen über die Daten,
+zu deren Analyse sie verwendet werden. Diese Annahmen werden in der
+Regressionsdiagnostik im Anschluss an die Regressionsanalyse geprüft.
+Dabei stützt sich die Diagnostik größtenteils auf grafische Auswertungen
+und ist damit bis zu einem gewissen Grad subjektiv. Die
+Anwendungsvoraussetzungen der linearen Regression bedingen sich
+teilweise gegenseitig.</p>
+<div
+id="linearer-zusammenhang-zwischen-den-unabhängigen-variablen-und-der-abhängigen-variablen"
+class="section level2">
+<h2>3.1 Linearer Zusammenhang zwischen den unabhängigen Variablen und
+der abhängigen Variablen</h2>
+<p>Die multiple lineare Regression unterstellt einen linearen
+Zusammenhang zwischen den unabhängigen Variablen und der abhängigen
+Variable. In <code>R</code> besteht der effizienteste Weg zur Prüfung
+der Linearität darin, die Residuen gegen die Vorhersagewerte zu plotten.
+Da dies der erste Diagnostikplot ist, fügen wir im Input der Funktion
+eine Eins an.</p>
+<pre class="r"><code>plot(modell, 1)</code></pre>
+<p><img src="R_9_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Durch den Plot wird von <code>R</code> eine rote Linie gezogen, die
+zur Bewertung der Linearität dient. Ist diese Linie gerade, liegt
+Linearität vor. Wenn die Linie allerdings Knicke oder eine Steigung
+aufweist, können wir eine Verletzung der Linearitätsannahme nicht
+ausschließen. In unserem Beispiel ist kein Muster zu erkennen, wir
+können also von einer Linearität des Zusammenhangs ausgehen, sodass ein
+lineares Regressionsmodell angemessen ist.</p>
+</div>
+<div id="geringe-multikollinearität-zwischen-den-unabhängigen-variablen"
+class="section level2">
+<h2>3.2 Geringe Multikollinearität zwischen den unabhängigen
+Variablen</h2>
+<p>Bei der Multikollinearitätsannahme wird geprüft, ob die unabhängigen
+Variablen untereinander unabhängig voneinander sind. In unserem Beispiel
+wäre es vorstellbar, dass Alter und Wohnort zusammenhängen. In der
+Forschungspraxis wird diese Annahme oft mithilfe des Variance Inflation
+Factor (VIF) geprüft, indem wir die Funktion <code>vif()</code> aus dem
+Paket <code>car</code> verwenden. Wenn keine Multikollinearität
+vorliegt, liegt der VIF bei Eins (Kühnel/Krebs 2014: 539). In unserem
+Modell liegt der VIF-Wert für alle unabhängigen Variablen nahe Eins, wir
+können das Vorliegen problematischer Multikollinearität also verneinen,
+weil nur extreme Abweichung dagegensprechen. Seltener zur Prüfung der
+Multikollinearität ist die Verwendung der Toleranz mit [0, 1]. Dabei
+gelten Werte kleiner 0.1 und größer 0.9 als problematisch.</p>
+<pre class="r"><code>#install.packages(&quot;car&quot;)
+library(car)
+vif(modell)</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">GVIF</th>
+<th align="right">Df</th>
+<th align="right">GVIF^(1/(2*Df))</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">alter</td>
+<td align="right">1.003915</td>
+<td align="right">1</td>
+<td align="right">1.001956</td>
+</tr>
+<tr class="even">
+<td align="left">geschlecht</td>
+<td align="right">1.001405</td>
+<td align="right">1</td>
+<td align="right">1.000702</td>
+</tr>
+<tr class="odd">
+<td align="left">wohnort</td>
+<td align="right">1.002838</td>
+<td align="right">3</td>
+<td align="right">1.000473</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="varianzhomogenität-der-residuen-homoskedastizität"
+class="section level2">
+<h2>3.3 Varianzhomogenität der Residuen (Homoskedastizität)</h2>
+<p>Ein Regressionsmodell soll eine „einheitliche Vorhersageleistung über
+alle Größenordnungen von <span class="math inline">\(\hat{y}_i\)</span>.̂
+hinweg“ (Diaz-Bone 2019: 208) treffen. Bei Heteroskedastizität hängen
+die Residuen mit der Größenordnung von <span
+class="math inline">\(\hat{y}_i\)</span>.̂ zusammen, was im Plot
+beispielsweise durch eine zu einer Seite geöffnete Trichterform zu
+erkennen wäre. Die Annahme der Homoskedastizität prüfen wir mit einem
+ähnlichen Plot wie dem für die Linearität verwendeten Residuals
+vs. Fitted-Plot. Diesmal wird aber die Wurzel der standardisierten
+Residuen gegen die Vorhersagewerte geplottet.</p>
+<pre class="r"><code>plot(modell, 3)</code></pre>
+<p><img src="R_9_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Auch durch diesen Plot wird von <code>R</code> eine rote Linie
+gezogen, die uns hier zur Bewertung der Varianzhomogenität dient. Wenn
+die Linie Knicke oder eine Steigung aufweist, können wir
+Heteroskedastizität nicht ausschließen. In unserem Beispiel ist die
+Annahme der Homoskedastizität erfüllt. In Abschnitt 5 zeigen wir
+Möglichkeiten zum Umgang mit Verletzungen der Homoskedastizitätsannahme
+umzugehen.</p>
+</div>
+<div id="normalverteilung-der-residuen" class="section level2">
+<h2>3.4 Normalverteilung der Residuen</h2>
+<p>Um valide inferenzstatische Aussagen auf Basis eines Modells treffen
+zu können, müssen die Residuen normalverteilt sein. Wir verwenden zur
+Prüfung der Annahme die standardisierten Residuen. Diese lassen wir uns
+mithilfe des Befehls <code>rstandard()</code> ausgeben. Der Output in
+der Konsole ist unübersichtlich, wird aber auch nicht benötigt.
+Stattdessen plotten wir die standardisierten Residuen mit
+<code>hist(rstandard())</code> als Histogramm. Für unser Modell lautet
+der Befehl also:</p>
+<pre class="r"><code>head(rstandard(modell))</code></pre>
+<pre><code>##          1          2          4          5          6          7 
+##  1.2477077 -0.2685221  0.6476435  0.1669586 -0.8229933 -1.2053387</code></pre>
+<pre class="r"><code>hist(rstandard(modell))</code></pre>
+<p><img src="R_9_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Das Histogramm zeigt eine annähernde Normalverteilung für die
+standardisierten Residuen, sodass die Annahme der Normalverteilung der
+Residuen nicht verletzt ist. Sind die Residuen nicht normalverteilt, ist
+die Transformation der abhängigen Variablen, die in Abschnitt 5 genau
+erklärt wird, die gängigste Möglichkeit, die Verteilung der Residuen
+näher an eine Normalverteilung anzupassen.</p>
+</div>
+</div>
+<div id="interaktion" class="section level1">
+<h1>4. Interaktion</h1>
+<p>Für die Regressionsgleichung war unsere Grundannahme bisher, dass sie
+nur additive Terme enthält, die also unabhängig voneinander sind. Wenn
+wir vermuten, dass der Effekt einer Variable durch eine andere Variable
+beeinflusst wird, berechnen wir interagierende Terme. Diese ergeben sich
+durch Multiplikation der zu interagierenden Variablen. Das Produkt wird
+als zusätzlicher Term (Interaktionsterm) in die Regressionsgleichung
+einge-führt, der sich wie eine eigene Variable mit eigenem
+(konditionalem) Regressionskoeffizienten verhält.</p>
+<p><span class="math inline">\(y_i=b_0+b_1 *
+x_{1i}+b_2*x_{2i}+b_3*x_{3_i} * x_{3_i}+e_i\)</span>.</p>
+<p>Die konditionellen Regressionskoeffizienten sind von der Ausprägung
+der anderen Variablen abhängig, sodass keine Vergleichsaussagen möglich
+sind. Durch Interaktionsterme nimmt i.d.R. die Multikollinearität zu.
+Durch Mittelwertzentrierung der zu interagierenden Variablen vor
+Berechnung der Interaktionen nimmt sie ab. Um den Interaktionseffekt mit
+einer Variable zu messen, wird auf Basis der zu interagierenden
+Variablen eine neue Variable gebildet, z.B.:</p>
+<pre class="r"><code>interaktion &lt;- gles$alter * gles$einkommen_num</code></pre>
+<p>Dabei ist wichtig, dass der Datensatz angegeben wird, aus dem die
+Variablen stammen. Die neu erstellte Variable kann im Befehl für das
+Regressionsmodell eingefügt werden.</p>
+</div>
+<div id="verbesserung-der-anwendungsvoraussetzungen"
+class="section level1">
+<h1>5. Verbesserung der Anwendungsvoraussetzungen</h1>
+<p>Es können Maßnahmen zur Verbesserung der Anwendungsvoraussetzung
+getroffen werden. Wenn wir solche Maßnahmen treffen, sollten wir im
+Anschluss nochmal alle Anwendungsvoraussetzungen prüfen.</p>
+<div
+id="variablentransformation-möglichkeiten-zur-verbesserung-der-linearität-und-normalverteilung-der-residuen"
+class="section level2">
+<h2>5.1 Variablentransformation: Möglichkeiten zur Verbesserung der
+Linearität und Normalverteilung der Residuen</h2>
+<p>Wenn kontinuierliche Variablen vorliegen, die nicht linear mit der
+abhängigen Variablen zusammenhängen, können diese transformiert werden.
+Im Rahmen der Prüfung der Anwendungsvoraussetzungen multipler linearer
+Regressionsmodelle kann eine Variable transformiert werden, um die
+Beziehung zu linearisieren. Bei nicht-normalverteilen Residuen, kann es
+ebenfalls Sinn ergeben, Variablen zu transformieren. Allerdings können
+auch theoretische Überlegungen dazu führen, eine Variable zu
+transformieren. In einem Beispiel mit Zählvariablen (s. Sitzung 11)
+seien die Monate vor der Bundestagswahl die unabhängige Variable. In
+diesem Kontext könnte es sinnvoll sein, die unabhängige Variable zu
+transformieren, da das Verhalten von Abgeordneten (abhängige Variable)
+32-33 Monate zu 2-3 Monaten vor der Wahl mathematisch zwar analog ist,
+inhaltlich aber nicht. Da die Interpretation der Daten auf der
+ursprünglichen Skala am leichtesten ist und durch Transformation
+tendenziell schwieriger wird, sollte eine Transformation gut überlegt
+sein.</p>
+<p>Typische Transformationen sind Logarithmen und Potenzen, z.B. log(x),
+<span class="math inline">\(e^x\)</span> oder <span
+class="math inline">\(x^2\)</span>. Anhand der Variable alter aus dem
+<code>gles</code>-Datensatz können wir beispielhaft eine
+Variablentransformation durchführen und das Alter logarithmieren. Dafür
+definieren wir ein Objekt, in dem wir die neue logarithmierte Variable
+speichern und setzen dafür ein log vor die Ursprungsvariable.</p>
+<pre class="r"><code>log_alter &lt;- log(gles$alter)</code></pre>
+<p>Wie finde ich eine geeignete Transformationsfunktion? Jede
+Transformation hat ihre eigenen Eigenschaften, die unterschiedlich gut
+zu Ihren Daten passen. Daher probieren Sie am besten verschiedene
+Transformationen aus und beobachten, wie diese Ihre Daten beeinflussen.
+Dafür können Sie die Anwendungsvoraussetzen mit transformierter Variable
+erneut prüfen.</p>
+</div>
+<div id="möglichkeiten-zum-umgang-mit-multikollinearität"
+class="section level2">
+<h2>5.2 Möglichkeiten zum Umgang mit Multikollinearität</h2>
+<p>Die einfachste Lösung zum Umgang mit Multikollinearität ist das
+Auslassen einer oder mehrerer stark miteinander korrelierender
+unabhängiger Variablen aus dem Modell. Die inhaltliche Überprüfung nach
+Entdeckung einer hohen Multikollinearität ergibt oft, dass man zwei
+redundante Messinstrumente hat, d.h. dass ein Effekt bereits durch eine
+andere unabhängige Variable gemessen wird. Eine alternative Möglichkeit
+ist die Zusammenfassung von mehreren unabhängigen Variablen zu einem
+Index, der dann als eine unabhängige Variable ins Modell eingeführt
+wird, sodass die inhaltliche Dimension der einen unabhängigen Variable
+nicht vollständig verloren geht.</p>
+</div>
+<div id="möglichkeiten-zur-verbesserung-der-varianzhomogenität"
+class="section level2">
+<h2>5.3 Möglichkeiten zur Verbesserung der Varianzhomogenität</h2>
+<p>Falls Heteroskedastizität vorliegt, hat das Folgen für die
+berechneten Standardfehler der Regressionskoeffizien-ten und somit auch
+auf die t- und p-Werte, die mithilfe des Standardfehlers der
+Regressionskoeffizienten berechnet werden. Es gibt verschiedene
+Möglichkeiten, um mit Heteroskedastizität umzugehen, beispielsweise
+offensichtlich fehlende Variablen ins Modell aufzunehmen. Allerdings ist
+es nicht trivial, welche Variable fehlt. Außerdem wäre es möglich,
+nichtlineare Beziehungen zwischen der abhängigen und den unabhängigen
+Variablen zu berücksichtigen, mögliche Interaktionen zwischen den
+unabhängigen Variablen zu berücksichtigen oder Y zu transformieren.</p>
+</div>
+</div>
+<div id="übungsaufgaben" class="section level1">
+<h1>6. Übungsaufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Überprüfen Sie für das im Beispiel verwendet Modell die
+Multikollinearitätsannahme mithilfe einer Korrelationsmatrix und
+kodieren Sie dafür ggf. die Variablen um. Recherchieren Sie den dafür
+benötigten R-Code. Erklären Sie, warum sich diese Form der
+Multikollinearitätsprüfung nur bedingt eignet.</li>
+<li>Nehmen Sie zwei bis vier weitere Variablen aus gles auf, um die
+geringe Erklärungsleistung des Modells zu erhöhen. Überprüfen Sie für
+das neue Modell die Anwendungsvoraussetzungen.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

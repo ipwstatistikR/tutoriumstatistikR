@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Politikwissenschaftliche Statistik mit R. Sitzung 7: Bivariate lineare Regression</title>
+
+<script src="site_libs/header-attrs-2.16/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/lumen.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Politikwissenschaftliche Statistik mit R</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">(0) Willkommen</a>
+</li>
+<li>
+  <a href="R_1.html">(1) Einführung und Grundlagen</a>
+</li>
+<li>
+  <a href="R_2.html">(2) Faktoren und Objekte</a>
+</li>
+<li>
+  <a href="R_3.html">(3) Datensätze einladen und Variablen umkodieren</a>
+</li>
+<li>
+  <a href="R_4.html">(4) Univariate Analyse</a>
+</li>
+<li>
+  <a href="R_5.html">(5) Visualisierung univariater Verteilungen</a>
+</li>
+<li>
+  <a href="R_6.html">(6) Bivariate Analyse</a>
+</li>
+<li>
+  <a href="R_7.html">(7) Bivariate lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_8.html">(8) Multiple lineare Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_9.html">(9) Anwendungsvoraussetzungen der linearen Regression</a>
+</li>
+<li>
+  <a href="R_10.html">(10) Binominale logistische Regression und Visualisierung</a>
+</li>
+<li>
+  <a href="R_11.html">(11) Zähldaten</a>
+</li>
+<li>
+  <a href="R_12.html">(12) Dimensionsreduzierende Verfahren</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Politikwissenschaftliche Statistik mit R.
+Sitzung 7: Bivariate lineare Regression</h1>
+<h4 class="author">Christoph Garwe, Philipp Meyer, Laura Brune, Timor
+Othersen und Christoph Hönnige</h4>
+<address class="author_afil">
+Institut für Politikwissenschaft, Leibniz Universität Hannover<br>
+</div>
+
+
+<script>
+  $(document).ready(function() {
+    $head = $('#header');
+    $head.prepend('<div class="knitr source"><img src="logo_IPW.png" width="160px" align="right"   ></div>')
+  });
+</script>
+<hr />
+<p><br /></p>
+<p><br /></p>
+<div id="einleitung" class="section level1">
+<h1>1. Einleitung</h1>
+<p>Nachdem wir uns in der letzten Sitzung symmetrischen Beziehungen
+gewidmet haben, wollen wir uns in der heutigen Sitzung mit bivariaten
+linearen Regressionen (OLS) auseinandersetzen. Die Grundidee ist, dass
+wir durch die x-Werte (unabhängige Variable) eines Falls dessen y-Werte
+(abhängige Variable) vorhersagen können. Wie gut unser Modell die
+y-Werte voraussagt, können wir mithilfe von <span
+class="math inline">\(r^2\)</span> quantifizieren. Die OLS nimmt an,
+dass sich die abhängige Variable als lineare Funktion einer unabhängigen
+Variable beschreiben lässt. Eine Veränderung um eine Einheit der
+unabhängigen Variable führt also zu einer Veränderung der abhängigen
+Variable um den Wert des Steigungskoeffizienten. Im Folgenden führen wir
+eine bivariate lineare Regression durch und berechnen beispielhaft den
+Zusammenhang zwischen der effektiven Parteienanzahl (ENP) und dem
+Gallagher-Index.</p>
+</div>
+<div id="datensätze-laden-und-umkodieren" class="section level1">
+<h1>2. Datensätze laden und umkodieren</h1>
+<pre class="r"><code>getwd()
+setwd(&quot;eigener Pfad&quot;)</code></pre>
+<pre class="r"><code>library(foreign)
+gles &lt;- read.spss(file = &quot;ZA6801_de_v4-0-1.sav&quot;, to.data.frame = TRUE)
+lijphart &lt;- read.csv2(&quot;Lijphart_Data_recode.csv&quot;)</code></pre>
+<pre class="r"><code># Lijphart
+# ENPP
+lijphart$enpp4510 &lt;- as.numeric(lijphart$enpp4510)
+
+# Gallagher-Index
+lijphart$disprop4510 &lt;- as.numeric(lijphart$disprop4510)
+
+# Bikameralismus-Index
+lijphart$bicam4510 &lt;- as.numeric(lijphart$bicam4510)
+
+# Minimal-Gewinn-Koalition mit einer Partei
+lijphart$minwin_one_part4510 &lt;- as.numeric(lijphart$minwin_one_part4510)
+
+# Exekutivdominanz (Kabinettsdauer)
+lijphart$exe_dom4510 &lt;- as.numeric(lijphart$exe_dom4510)</code></pre>
+</div>
+<div id="durchführung-einer-bivariaten-linearen-regression"
+class="section level1">
+<h1>3. Durchführung einer bivariaten linearen Regression</h1>
+<p>Um eine bivariate lineare Regression durchzuführen, verwenden wir die
+Funktion <code>lm()</code> (kurz für linear model). Wir müssen die
+abhängige Variable, die unabhängige Variable und den Datensatz angeben.
+In unserem Beispiel geben wir <code>enpp4510</code> als abhängige
+Variable und <code>disprop4510</code> als unabhängige Variable an und
+beziehen diese Variablen aus dem Datensatz <code>lijphart</code>. In
+einer OLS wird die abhängige Variable als lineare Funktion der
+unabhängigen Variable angenommen. Zur Berechnung einer solchen Funktion
+nutzen wir das tilde-Symbol <code>~</code> (<code>Alt + N</code> oder
+<code>Option + N</code>). Die Regressionsergebnisse speichern wir in dem
+Objekt <code>lm_lijphart</code>.</p>
+<pre class="r"><code>lm_lijphart &lt;- lm(enpp4510 ~ disprop4510, data = lijphart)</code></pre>
+<p>Wenn wir <code>lm_lijphart</code> eingeben, werden uns der Intercept
+(der Schnittpunkt der Regressionsgeraden mit der y-Achse) und die
+Koeffizienten des Modells ausgegeben.</p>
+<pre class="r"><code>lm_lijphart</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = enpp4510 ~ disprop4510, data = lijphart)
+## 
+## Coefficients:
+## (Intercept)  disprop4510  
+##      4.0921      -0.1054</code></pre>
+<p>Wir sehen hier, dass der Intercept 4.092 beträgt und der Koeffizient
+mit -0.105 angegeben wird. Steigt der Wert des Gallagher-Index um eine
+Einheit, wird das Wahlsystem also disproportionaler, d.h. der ENP-Wert
+verändert sich um -0.105. Wir stellen hier also einen negativen
+Zusammenhang zwischen der Parteienanzahl und der
+Wahlsystemdisproportionalität fest, der sich mit den Ergebnissen von
+Lijphart deckt. Die Regressionsgleichung für unser Beispiel lautet:</p>
+<p><span class="math inline">\(y_i = 4.092 – 0.150 * x_i\)</span></p>
+<p>Auf Grundlage des Regressionsmodells können wir nun für bestimmte
+Ausprägungen von x Werte für y vorhersagen. In dieser Sitzung machen wir
+das noch händisch über die Konsole, ab der nächsten Sitzung mit einem
+neuen Befehl. Für eine Demokratie mit einem Gallagher-Index von 3.480
+wie Deutschland im Jahr 2021 würde unser Modell eine effektive
+Parteienzahl von 3.57 vorhersagen:</p>
+<p><span class="math inline">\(\hat{y}_i= 4.092 – 0.150 * 3.480 =
+3.570\)</span></p>
+<p>Intercept und Koeffizient allein reichen aber nicht aus, um die
+Ergebnisse der linearen Regression vollständig zu beurteilen. Hierfür
+benötigen wir zusätzlich Informationen über den Standardfehler, den
+p-Wert und weitere Modellstatistiken. Diese Informationen erhalten wir,
+wenn wir die <code>summary()</code>-Funktion auf unser Objekt mit der
+linearen Regression (<code>lm_lijphart</code>) anwenden.</p>
+<pre class="r"><code>summary(lm_lijphart)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = enpp4510 ~ disprop4510, data = lijphart)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.8840 -0.7336 -0.2241  0.9471  1.7194 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.09206    0.27417  14.925  &lt; 2e-16 ***
+## disprop4510 -0.10536    0.02619  -4.023 0.000303 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.9503 on 34 degrees of freedom
+## Multiple R-squared:  0.3225, Adjusted R-squared:  0.3026 
+## F-statistic: 16.19 on 1 and 34 DF,  p-value: 0.000303</code></pre>
+<p>Wir sehen hier, dass die Schätzung für <code>disprop4510</code>
+negativ und statistisch signifikant ist. Wir können also davon ausgehen,
+dass der Effekt des Gallagher-Index auf die effektive Parteienzahl in
+der Grundgesamtheit von Null verschieden ist. Je disproportionaler ein
+Wahlsystem ist, desto niedriger ist die effektive Zahl der Parteien.
+Weiterhin sehen wir, dass <span class="math inline">\(R^2\)</span> 0.30
+beträgt. Das bedeutet, dass 30 % der Varianz der Parteienzahl durch die
+unabhängige Variable erklärt wird.</p>
+<p>Mit diesen wenigen Code-Zeilen haben wir eine bivariate lineare
+Regression berechnet und uns die Ergebnisse anzeigen lassen. Im Grunde
+können wir mit dem oben gezeigten Code alle notwendigen Informationen
+für unsere Analyse generieren. Mittels ein paar zusätzlicher Operationen
+lassen sich die Modellkomponenten einzeln speichern und für weitere
+Analyseschritte wie z.B. eine Visualisierung nutzen. Zuerst nutzen wir
+das Paket <code>broom</code> und die <code>tidy</code>-Funktion und
+konvertieren das Modell in einen Datensatz, in dem wir unsere
+Modellschätzungen und Teststatistiken speichern. Die
+<code>tidy</code>-Funktion fasst Informationen über
+Regressionsmodellkomponenten zusammen. Wir speichern den neuen Datensatz
+in dem Objekt <code>lm_fit_lijphart</code>:</p>
+<pre class="r"><code>library(broom)
+lm_fit_lijphart &lt;- tidy(lm_lijphart)
+lm_fit_lijphart</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">4.0920607</td>
+<td align="right">0.2741723</td>
+<td align="right">14.925143</td>
+<td align="right">0.000000</td>
+</tr>
+<tr class="even">
+<td align="left">disprop4510</td>
+<td align="right">-0.1053572</td>
+<td align="right">0.0261877</td>
+<td align="right">-4.023157</td>
+<td align="right">0.000303</td>
+</tr>
+</tbody>
+</table>
+<p>Die Konfidenzintervalle extrahieren wir mit conf.int = TRUE.
+Konfidenzintervalle geben Auskunft über die Präzision des Modells.</p>
+<pre class="r"><code>lm_fit_lijphart &lt;- tidy(lm_lijphart, conf.int = TRUE)
+lm_fit_lijphart</code></pre>
+<table>
+<colgroup>
+<col width="16%" />
+<col width="14%" />
+<col width="13%" />
+<col width="13%" />
+<col width="12%" />
+<col width="14%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">term</th>
+<th align="right">estimate</th>
+<th align="right">std.error</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">conf.low</th>
+<th align="right">conf.high</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">(Intercept)</td>
+<td align="right">4.0920607</td>
+<td align="right">0.2741723</td>
+<td align="right">14.925143</td>
+<td align="right">0.000000</td>
+<td align="right">3.5348755</td>
+<td align="right">4.6492458</td>
+</tr>
+<tr class="even">
+<td align="left">disprop4510</td>
+<td align="right">-0.1053572</td>
+<td align="right">0.0261877</td>
+<td align="right">-4.023157</td>
+<td align="right">0.000303</td>
+<td align="right">-0.1585769</td>
+<td align="right">-0.0521374</td>
+</tr>
+</tbody>
+</table>
+<p>Die Maße zur Interpretation der Modellgüte, wie z.B. <span
+class="math inline">\(R^2\)</span>, können wir mittels der
+<code>glance</code>-Funktion in ein zusätzliches Objekt speichern.</p>
+<pre class="r"><code>lm_glance_lijphart &lt;- glance(lm_lijphart)
+lm_glance_lijphart</code></pre>
+<table style="width:100%;">
+<colgroup>
+<col width="9%" />
+<col width="12%" />
+<col width="9%" />
+<col width="9%" />
+<col width="8%" />
+<col width="2%" />
+<col width="9%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="10%" />
+<col width="4%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">r.squared</th>
+<th align="right">adj.r.squared</th>
+<th align="right">sigma</th>
+<th align="right">statistic</th>
+<th align="right">p.value</th>
+<th align="right">df</th>
+<th align="right">logLik</th>
+<th align="right">AIC</th>
+<th align="right">BIC</th>
+<th align="right">deviance</th>
+<th align="right">df.residual</th>
+<th align="right">nobs</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.3225175</td>
+<td align="right">0.3025915</td>
+<td align="right">0.9502519</td>
+<td align="right">16.18579</td>
+<td align="right">0.000303</td>
+<td align="right">1</td>
+<td align="right">-48.21592</td>
+<td align="right">102.4318</td>
+<td align="right">107.1824</td>
+<td align="right">30.70127</td>
+<td align="right">34</td>
+<td align="right">36</td>
+</tr>
+</tbody>
+</table>
+<p>Zusätzlich können wir auch Modellvorhersagen und Residuen speichern.
+Diese Metriken helfen uns dabei, die Modellgüte zu beurteilen. Sind die
+Residuen eines Regressionsmodells nicht normalverteilt (das können wir
+in einem ersten Schritt mit einem Histogramm grafisch prüfen), dann
+müssen wir davon ausgehen, dass die Modellergebnisse verzerrt sind. Wir
+speichern die Modellvorhersagen und Residuen mit der
+<code>augment()</code>-Funktion und speichern die Informationen in dem
+neuen Objekt <code>lm_aug_lijphart</code>.</p>
+<pre class="r"><code>lm_aug_lijphart &lt;- augment(lm_lijphart)
+lm_aug_lijphart</code></pre>
+<table>
+<colgroup>
+<col width="10%" />
+<col width="14%" />
+<col width="10%" />
+<col width="13%" />
+<col width="12%" />
+<col width="12%" />
+<col width="12%" />
+<col width="13%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">enpp4510</th>
+<th align="right">disprop4510</th>
+<th align="right">.fitted</th>
+<th align="right">.resid</th>
+<th align="right">.hat</th>
+<th align="right">.sigma</th>
+<th align="right">.cooksd</th>
+<th align="right">.std.resid</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">3.15</td>
+<td align="right">17.98</td>
+<td align="right">2.197739</td>
+<td align="right">0.9522611</td>
+<td align="right">0.0953702</td>
+<td align="right">0.9486653</td>
+<td align="right">0.0585161</td>
+<td align="right">1.0536148</td>
+</tr>
+<tr class="even">
+<td align="right">2.22</td>
+<td align="right">9.44</td>
+<td align="right">3.097489</td>
+<td align="right">-0.8774891</td>
+<td align="right">0.0283846</td>
+<td align="right">0.9520121</td>
+<td align="right">0.0128195</td>
+<td align="right">-0.9368192</td>
+</tr>
+<tr class="odd">
+<td align="right">2.68</td>
+<td align="right">2.51</td>
+<td align="right">3.827614</td>
+<td align="right">-1.1476142</td>
+<td align="right">0.0554492</td>
+<td align="right">0.9423848</td>
+<td align="right">0.0453241</td>
+<td align="right">-1.2426377</td>
+</tr>
+<tr class="even">
+<td align="right">1.69</td>
+<td align="right">16.48</td>
+<td align="right">2.355775</td>
+<td align="right">-0.6657746</td>
+<td align="right">0.0755845</td>
+<td align="right">0.9569803</td>
+<td align="right">0.0217093</td>
+<td align="right">-0.7287103</td>
+</tr>
+<tr class="odd">
+<td align="right">1.68</td>
+<td align="right">17.27</td>
+<td align="right">2.272543</td>
+<td align="right">-0.5925425</td>
+<td align="right">0.0855790</td>
+<td align="right">0.9584917</td>
+<td align="right">0.0198979</td>
+<td align="right">-0.6520902</td>
+</tr>
+<tr class="even">
+<td align="right">4.72</td>
+<td align="right">3.35</td>
+<td align="right">3.739114</td>
+<td align="right">0.9808858</td>
+<td align="right">0.0482834</td>
+<td align="right">0.9485288</td>
+<td align="right">0.0283996</td>
+<td align="right">1.0580980</td>
+</tr>
+<tr class="odd">
+<td align="right">1.38</td>
+<td align="right">14.61</td>
+<td align="right">2.552792</td>
+<td align="right">-1.1727925</td>
+<td align="right">0.0557044</td>
+<td align="right">0.9413835</td>
+<td align="right">0.0475783</td>
+<td align="right">-1.2700724</td>
+</tr>
+<tr class="even">
+<td align="right">2.52</td>
+<td align="right">11.56</td>
+<td align="right">2.874132</td>
+<td align="right">-0.3541319</td>
+<td align="right">0.0346765</td>
+<td align="right">0.9624993</td>
+<td align="right">0.0025841</td>
+<td align="right">-0.3793061</td>
+</tr>
+<tr class="odd">
+<td align="right">2.67</td>
+<td align="right">14.38</td>
+<td align="right">2.577025</td>
+<td align="right">0.0929753</td>
+<td align="right">0.0536261</td>
+<td align="right">0.9643987</td>
+<td align="right">0.0002866</td>
+<td align="right">0.1005767</td>
+</tr>
+<tr class="even">
+<td align="right">4.57</td>
+<td align="right">1.71</td>
+<td align="right">3.911900</td>
+<td align="right">0.6581001</td>
+<td align="right">0.0632701</td>
+<td align="right">0.9572518</td>
+<td align="right">0.0172920</td>
+<td align="right">0.7155599</td>
+</tr>
+<tr class="odd">
+<td align="right">5.04</td>
+<td align="right">2.96</td>
+<td align="right">3.780203</td>
+<td align="right">1.2597965</td>
+<td align="right">0.0514771</td>
+<td align="right">0.9378902</td>
+<td align="right">0.0502819</td>
+<td align="right">1.3612496</td>
+</tr>
+<tr class="even">
+<td align="right">3.26</td>
+<td align="right">20.88</td>
+<td align="right">1.892203</td>
+<td align="right">1.3677969</td>
+<td align="right">0.1433136</td>
+<td align="right">0.9296045</td>
+<td align="right">0.2022924</td>
+<td align="right">1.5551488</td>
+</tr>
+<tr class="odd">
+<td align="right">3.09</td>
+<td align="right">2.67</td>
+<td align="right">3.810757</td>
+<td align="right">-0.7207571</td>
+<td align="right">0.0540016</td>
+<td align="right">0.9558770</td>
+<td align="right">0.0173579</td>
+<td align="right">-0.7798391</td>
+</tr>
+<tr class="even">
+<td align="right">2.27</td>
+<td align="right">7.88</td>
+<td align="right">3.261846</td>
+<td align="right">-0.9918462</td>
+<td align="right">0.0281148</td>
+<td align="right">0.9485085</td>
+<td align="right">0.0162138</td>
+<td align="right">-1.0587615</td>
+</tr>
+<tr class="odd">
+<td align="right">3.72</td>
+<td align="right">3.85</td>
+<td align="right">3.686436</td>
+<td align="right">0.0335644</td>
+<td align="right">0.0445270</td>
+<td align="right">0.9645237</td>
+<td align="right">0.0000304</td>
+<td align="right">0.0361352</td>
+</tr>
+<tr class="even">
+<td align="right">4.80</td>
+<td align="right">9.60</td>
+<td align="right">3.080632</td>
+<td align="right">1.7193681</td>
+<td align="right">0.0286213</td>
+<td align="right">0.9154887</td>
+<td align="right">0.0496527</td>
+<td align="right">1.8358443</td>
+</tr>
+<tr class="odd">
+<td align="right">2.89</td>
+<td align="right">3.93</td>
+<td align="right">3.678007</td>
+<td align="right">-0.7880070</td>
+<td align="right">0.0439612</td>
+<td align="right">0.9542848</td>
+<td align="right">0.0165375</td>
+<td align="right">-0.8481128</td>
+</tr>
+<tr class="even">
+<td align="right">5.18</td>
+<td align="right">2.60</td>
+<td align="right">3.818132</td>
+<td align="right">1.3618679</td>
+<td align="right">0.0546302</td>
+<td align="right">0.9332156</td>
+<td align="right">0.0627757</td>
+<td align="right">1.4739929</td>
+</tr>
+<tr class="odd">
+<td align="right">4.84</td>
+<td align="right">3.61</td>
+<td align="right">3.711721</td>
+<td align="right">1.1282787</td>
+<td align="right">0.0462827</td>
+<td align="right">0.9433416</td>
+<td align="right">0.0358678</td>
+<td align="right">1.2158159</td>
+</tr>
+<tr class="even">
+<td align="right">1.67</td>
+<td align="right">15.66</td>
+<td align="right">2.442168</td>
+<td align="right">-0.7721675</td>
+<td align="right">0.0662131</td>
+<td align="right">0.9544593</td>
+<td align="right">0.0250706</td>
+<td align="right">-0.8409088</td>
+</tr>
+<tr class="odd">
+<td align="right">3.62</td>
+<td align="right">7.00</td>
+<td align="right">3.354560</td>
+<td align="right">0.2654395</td>
+<td align="right">0.0295933</td>
+<td align="right">0.9634010</td>
+<td align="right">0.0012261</td>
+<td align="right">0.2835632</td>
+</tr>
+<tr class="even">
+<td align="right">2.85</td>
+<td align="right">21.97</td>
+<td align="right">1.777364</td>
+<td align="right">1.0726362</td>
+<td align="right">0.1646368</td>
+<td align="right">0.9426586</td>
+<td align="right">0.1503050</td>
+<td align="right">1.2350258</td>
+</tr>
+<tr class="odd">
+<td align="right">3.48</td>
+<td align="right">3.43</td>
+<td align="right">3.730686</td>
+<td align="right">-0.2506856</td>
+<td align="right">0.0476569</td>
+<td align="right">0.9635050</td>
+<td align="right">0.0018285</td>
+<td align="right">-0.2703298</td>
+</tr>
+<tr class="even">
+<td align="right">1.99</td>
+<td align="right">2.07</td>
+<td align="right">3.873971</td>
+<td align="right">-1.8839714</td>
+<td align="right">0.0596304</td>
+<td align="right">0.9033080</td>
+<td align="right">0.1325292</td>
+<td align="right">-2.0444960</td>
+</tr>
+<tr class="odd">
+<td align="right">2.85</td>
+<td align="right">15.61</td>
+<td align="right">2.447435</td>
+<td align="right">0.4025646</td>
+<td align="right">0.0656747</td>
+<td align="right">0.9618137</td>
+<td align="right">0.0067510</td>
+<td align="right">0.4382761</td>
+</tr>
+<tr class="even">
+<td align="right">4.87</td>
+<td align="right">1.21</td>
+<td align="right">3.964579</td>
+<td align="right">0.9054215</td>
+<td align="right">0.0686519</td>
+<td align="right">0.9506147</td>
+<td align="right">0.0359271</td>
+<td align="right">0.9873157</td>
+</tr>
+<tr class="odd">
+<td align="right">3.64</td>
+<td align="right">4.53</td>
+<td align="right">3.614793</td>
+<td align="right">0.0252073</td>
+<td align="right">0.0400276</td>
+<td align="right">0.9645318</td>
+<td align="right">0.0000153</td>
+<td align="right">0.0270743</td>
+</tr>
+<tr class="even">
+<td align="right">2.28</td>
+<td align="right">9.25</td>
+<td align="right">3.117507</td>
+<td align="right">-0.8375069</td>
+<td align="right">0.0281541</td>
+<td align="right">0.9531373</td>
+<td align="right">0.0115775</td>
+<td align="right">-0.8940277</td>
+</tr>
+<tr class="odd">
+<td align="right">3.13</td>
+<td align="right">4.43</td>
+<td align="right">3.625329</td>
+<td align="right">-0.4953285</td>
+<td align="right">0.0406452</td>
+<td align="right">0.9605164</td>
+<td align="right">0.0059997</td>
+<td align="right">-0.5321878</td>
+</tr>
+<tr class="even">
+<td align="right">2.66</td>
+<td align="right">7.28</td>
+<td align="right">3.325061</td>
+<td align="right">-0.6650605</td>
+<td align="right">0.0289953</td>
+<td align="right">0.9573600</td>
+<td align="right">0.0075318</td>
+<td align="right">-0.7102509</td>
+</tr>
+<tr class="odd">
+<td align="right">3.47</td>
+<td align="right">2.04</td>
+<td align="right">3.877132</td>
+<td align="right">-0.4071321</td>
+<td align="right">0.0599262</td>
+<td align="right">0.9617684</td>
+<td align="right">0.0062238</td>
+<td align="right">-0.4418915</td>
+</tr>
+<tr class="even">
+<td align="right">5.20</td>
+<td align="right">2.55</td>
+<td align="right">3.823400</td>
+<td align="right">1.3766001</td>
+<td align="right">0.0550836</td>
+<td align="right">0.9325068</td>
+<td align="right">0.0647357</td>
+<td align="right">1.4902954</td>
+</tr>
+<tr class="odd">
+<td align="right">1.87</td>
+<td align="right">11.33</td>
+<td align="right">2.898364</td>
+<td align="right">-1.0283640</td>
+<td align="right">0.0336638</td>
+<td align="right">0.9471952</td>
+<td align="right">0.0211102</td>
+<td align="right">-1.1008902</td>
+</tr>
+<tr class="even">
+<td align="right">2.16</td>
+<td align="right">11.70</td>
+<td align="right">2.859382</td>
+<td align="right">-0.6993819</td>
+<td align="right">0.0353323</td>
+<td align="right">0.9565440</td>
+<td align="right">0.0102834</td>
+<td align="right">-0.7493536</td>
+</tr>
+<tr class="odd">
+<td align="right">4.40</td>
+<td align="right">6.05</td>
+<td align="right">3.454650</td>
+<td align="right">0.9453501</td>
+<td align="right">0.0325098</td>
+<td align="right">0.9499212</td>
+<td align="right">0.0171869</td>
+<td align="right">1.0114180</td>
+</tr>
+<tr class="even">
+<td align="right">2.39</td>
+<td align="right">14.28</td>
+<td align="right">2.587560</td>
+<td align="right">-0.1975604</td>
+<td align="right">0.0527476</td>
+<td align="right">0.9638947</td>
+<td align="right">0.0012705</td>
+<td align="right">-0.2136133</td>
+</tr>
+</tbody>
+</table>
+<p>Diesen neuen Datensatz können wir zur Visualisierung der linearen
+Regression und der Residuen, die wir mit rot hervorheben, nutzen. Die
+Visualisierung realisieren wir mit dem <code>ggplot2</code>-Paket, das
+wir bereits grundlegend kennengelernt haben und auch noch genauer
+kennenlernen werden.</p>
+<pre class="r"><code>library(ggplot2)
+ggplot(lm_aug_lijphart, aes(x = disprop4510, y = enpp4510)) +
+  geom_segment(aes(xend = disprop4510, y = enpp4510, yend = .fitted),
+               colour = &quot;red&quot;) +
+  geom_point() +
+  geom_line(aes(x = disprop4510, y = .fitted)) +
+xlab(&quot;Disproportionalität des Wahlsystems (Gallagher-Index)&quot;) + ylab(&quot;Effektive Parteienanzahl (ENP)&quot;)</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+<div id="visualisierung" class="section level1">
+<h1>4. Visualisierung</h1>
+<p>Zusammenhänge lassen sich mit vielen unterschiedlichen Graphen
+präsentieren. Zwei dieser Möglichkeiten werden wir im Folgenden
+besprechen: Streudiagramme und Linienplots. Für die Darstellung von
+Zusammenhängen werden wir vor allem die <code>ggplot()</code>-Funktion
+und <code>geom_point()</code> aus dem Paket <code>ggplot2</code>
+verwenden. Zur Erinnerung: Die Grafiken von <code>ggplot2</code>
+bestehen aus Schichten, welche mit Visualisierungselementen, den geoms
+gestaltet werden. Mit dem ersten Argument wird der Datensatz definiert.
+Das zweite Argument <code>mapping</code> legt mit Hilfe von
+<code>aes()</code> fest, welche Daten genutzt werden. Wie bereits oben
+erwähnt, werden wir unsere Visualisierungen mit den Variablen
+<code>enpp4510</code> und <code>disprop4510</code> durchführen.</p>
+<div id="streudiagramme" class="section level2">
+<h2>4.1 Streudiagramme</h2>
+<p>Wollen wir den Zusammenhang zwischen der effektiven Parteienanzahl
+und der Wahlsystemdisproportionalität darstellen, dann bietet sich ein
+Streudiagramm an. Hierfür verwenden wir die Funktion
+<code>geom_point()</code>.</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point()</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Wollen wir wissen, welche Länder sich hinter den Punkten verstecken,
+dann können wir mittels <code>geom_text()</code> und der Variable
+<code>Country</code> ganz einfach Beschriftungen hinzufügen:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_text(label = lijphart$Country)</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="linienplots" class="section level2">
+<h2>4.2 Linienplots</h2>
+<p>Die Aussagekraft lässt sich noch erweitern, wenn wir eine
+Regressionslinie hinzufügen. Zur kurzen Erinnerung: In Sitzung 7 haben
+wir eine bivariate Regression zwischen der ENPP und dem Gallagher-Index
+gerechnet und herausgefunden, dass beide Variablen signifikant negativ
+zusammenhängen. Um das auch grafisch darzustellen, nutzen wir die
+Funktion <code>geom_smooth()</code> und bestimmen mit method = lm, dass
+wir eine lineare Regressionsgerade visualisieren wollen.</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code># Eine alternative Schreibweise bietet das Tilde (~) Zeichen, welches wir bereits aus dem Tutorial zur bivariaten OLS Regression kennen
+
+# ggplot(lijphart, aes(enpp4510 ~ disprop4510)) +
+#  geom_point() +
+#  geom_smooth(method = lm)</code></pre>
+<p>Wie wir sehen können, werden die Konfidenzintervalle automatisch
+visualisiert. Wollen wir das nicht, dann können wir das wie folgt
+bestimmen:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510, y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm, se = FALSE)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>In einem letzten Schritt beschriften wir die Punkte mit den
+dazugehörigen Ländernamen. Hierfür verwenden wir wieder die Funktion
+<code>geom_text()</code> und die Variable <code>Country</code>,
+zusätzlich passen wir mit hjust und vjust die Platzierung der
+Beschriftungen an und garantieren so eine bessere Lesbarkeit:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+</div>
+</div>
+<div id="graphen-verändern" class="section level1">
+<h1>5. Graphen verändern</h1>
+<p>Wollen wir das Aussehen unserer Graphen verändern, dann bietet uns
+<code>ggplot2</code> zahlreiche Möglichkeiten. Einige davon werden in
+den folgenden Unterkapitels präsentiert, andere finden Sie mittels der
+help-Funktion <code>?</code> oder aber über die ggplot2-Homepage.</p>
+<div id="skalierung-der-achsen" class="section level2">
+<h2>5.1 Skalierung der Achsen</h2>
+<p>Mit <code>ggplot</code> können wir die Skalierung der Achsen
+anpassen. Für die Skalierung der x-Achse kann die Funktion
+<code>xlim()</code> verwendet werden. Hierbei wird der
+Definitionsbereich durch die Benennung des Anfangswertes und des
+Endwertes bestimmt. Die Werte werden dabei mit einem Komma getrennt.</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  xlim(0,7)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>Das Prinzip ist analog für die y-Achse anwendbar.</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  ylim(0,30)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>Um die Skalierung der Achsen noch genauer bestimmen zu können, kann
+die Funktion <code>scale_x_continuous()</code> bzw.
+<code>scale_y_continuous()</code> genutzt werden (s. Sitzung 5).</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  ylim(0,30)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="beschriftungen" class="section level2">
+<h2>5.2 Beschriftungen</h2>
+<p><code>ggplot2</code> macht die Benennung eines Graphen sehr einfach.
+Hierfür verwenden wir die Funktion <code>labs()</code> und setzen unsere
+gewünschte Beschriftung in Anführungszeichen:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;,
+        x =&quot;Effektive Parteienanzahl&quot;, y = &quot;Disproportionalität von Wahlsystemen&quot;)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="hintergrund-themes" class="section level2">
+<h2>5.3 Hintergrund-Themes</h2>
+<p>ggplot2 bietet unterschiedliche Hintergrund-Themes an. Zusätzlich
+bietet das Paket ggthemes weitere Möglichkeiten. Die folgende Tabelle
+bietet einen kleinen Überblick über mögliche Themes.</p>
+<table>
+<colgroup>
+<col width="31%" />
+<col width="15%" />
+<col width="53%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Funktion</th>
+<th align="left">Paket</th>
+<th align="left">Beschreibung</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>theme_bw()</code></td>
+<td align="left"><code>ggplot2</code></td>
+<td align="left">Schwarze Elemente auf weißem Hintergrund</td>
+</tr>
+<tr class="even">
+<td align="left"><code>theme_minimal()</code></td>
+<td align="left"><code>ggplot2</code></td>
+<td align="left">Minimalistisch</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>theme_classic()</code></td>
+<td align="left"><code>ggplot2</code></td>
+<td align="left">Theme ohne grid Linien</td>
+</tr>
+<tr class="even">
+<td align="left"><code>theme_base()</code></td>
+<td align="left"><code>ggthemes</code></td>
+<td align="left">Basis Theme</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>theme_economist()</code></td>
+<td align="left"><code>ggthemes</code></td>
+<td align="left">The Economist Theme</td>
+</tr>
+<tr class="even">
+<td align="left"><code>theme_fivethirtyeight()</code></td>
+<td align="left"><code>ggthemes</code></td>
+<td align="left">FiveThirtyEight Theme</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>theme_tufte()</code></td>
+<td align="left"><code>ggthemes</code></td>
+<td align="left">Tufte (1983) theme</td>
+</tr>
+</tbody>
+</table>
+<p>Die Veränderung des Hintergrunds ist denkbar einfach. Hierfür müssen
+wir einfach die jeweilige Theme-Funktion verwenden:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;
+       , x =&quot;Effektive Parteienanzahl&quot;
+       , y = &quot;Disproportionalität von Wahlsystemen&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code># The Economist
+library(ggthemes) # für dieses Theme brauchen wir ein weiteres Paket
+
+ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point() +
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;
+       , x =&quot;Effektive Parteienanzahl&quot;
+       , y = &quot;Disproportionalität von Wahlsystemen&quot;) +
+  theme_economist() </code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
+</div>
+<div id="farben" class="section level2">
+<h2>5.4 Farben</h2>
+<p>Wenn wir die Farben der Datenpunkte verändern wollen, dann müssen wir
+lediglich das Argument color in die <code>geom_point()</code> Funktion
+einbauen. Gleiches gilt für die Form der Punkte, wobei wir hier das
+Argument shape verwenden (die einzelnen Formen können über die Ziffern
+1-20 ausgewählt werden):</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point(shape = 18, color = &quot;blue&quot;) + # Form und Farbe der Punkte verändern
+  geom_smooth(method = lm) + 
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;
+       , x =&quot;Effektive Parteienanzahl&quot;
+       , y = &quot;Disproportionalität von Wahlsystemen&quot;) +
+  theme_minimal() </code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p>Die Schritte sind ähnlich, wenn wir die Form, Farbe und Füllung
+unsere Regressionslinie verändern möchten:</p>
+<pre class="r"><code>ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) +
+  geom_point(shape = 18, color = &quot;blue&quot;) +
+  geom_smooth(method = lm,  linetype = &quot;dashed&quot;,
+             color = &quot;darkred&quot;, fill = &quot;blue&quot;) + # Form und Aussehen der Regressionslinie und Füllung der Konfidenzintervalle verändern
+  geom_text(label = lijphart$Country, hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;
+       , x =&quot;Effektive Parteienanzahl&quot;
+       , y = &quot;Disproportionalität von Wahlsystemen&quot;) +
+  theme_minimal()</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p><img src="R_7_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+</div>
+<div id="einen-plot-speichern" class="section level2">
+<h2>5.5 Einen Plot speichern</h2>
+<p>Wenn wir einen Plot erstellt haben, den wir speichern möchten, können
+wir die Funktion <code>ggsave()</code> verwenden. Die Benennung der
+Datei bestimmen wir, indem wir Anführungszeichen verwenden. Dabei wird
+nur die zuletzt erstellte Darstellung gespeichert. Die gespeicherte
+Darstellung wird in dem Ordner gespeichert, den wir zuvor mit
+<code>setwd()</code> festgelegt haben.</p>
+<pre class="r"><code>ggsave(&quot;fig1-ENPP_Gallagher.png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p>Die Abbildung wird in Ihrem Arbeitsverzeichnis gespeichert. Der
+Dateityp .png kann durch ein beliebiges Format (z.B. .jpg) ersetzt
+werden.</p>
+<p>Haben wir unsere Abbildungen in einem Objekt gespeichert, können wir
+die Graphen speichern, indem wir den Objektnamen vor dem Dateinamen
+angeben. Dieses Vorgehen hat vor allem bei vielen Graphen Vorteile, da
+wir so effizient einzelne Visualisierungen ansteuern können.</p>
+<pre class="r"><code># Graph wird im Objekt &quot;ENPP_Gallagher&quot; gespeichert:
+
+ENPP_Gallagher &lt;- ggplot(lijphart, aes(x = enpp4510,  y = disprop4510)) + 
+  geom_point(shape = 18, color = &quot;blue&quot;) +
+  geom_smooth(method = lm,  linetype = &quot;dashed&quot;,
+             color = &quot;darkred&quot;, fill = &quot;blue&quot;) + # Form und Aussehen der Regressionslinie und Füllung der Konfidenzintervalle verändern
+  
+  geom_text(data = lijphart, aes(label = Country), hjust = 0, vjust = 0) +
+  labs(title = &quot;Zusammenhang zwischen ENPP und Gallagher-Index&quot;
+       , x =&quot;Effektive Parteienanzahl&quot;
+       , y = &quot;Disproportionalität von Wahlsystemen&quot;) +
+  theme_minimal()
+
+# Den Graphen als Datei in unserem Arbeitsverzeichnis speichern
+
+ggsave(plot = ENPP_Gallagher, filename = &quot;fig1-ENPP_Gallagher.png&quot;, device = &quot;png&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p>Sie werden feststellen, dass Sie gelegentlich mit der Größe Ihres
+Graphs nicht ganz zufrieden sind. Um das zu ändern, können wir die
+Breite und Höhe der zu speichernden Graphen verändern:</p>
+<pre class="r"><code>ggsave(plot = ENPP_Gallagher, &quot;fig1-ENPP_Gallagher.png&quot;, device = &quot;png&quot;, width = 4, height = 4)</code></pre>
+<pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
+<p>Alternativ kann, ohne dabei aber Anpassungen der Größe o.ä. vornehmen
+zu können, die Grafik über Plots -&gt; Export gespeichert werden.</p>
+</div>
+</div>
+<div id="übungsaufgaben" class="section level1">
+<h1>6. Übungsaufgaben</h1>
+<ol style="list-style-type: decimal">
+<li>Untersuchen Sie den Zusammenhang zwischen dem Kabinettstyp
+(bicam4510) und der Regierungsdauer (exe_dom4510). Berechnen Sie
+Korrelationsmaße und eine bivariate lineare Regression.</li>
+<li>Visualisieren Sie die in Aufgabe 1 berechnete Regression mithilfe
+des Pakets ggplot2. Verwenden Sie dabei andere Hintergrund-Themes als
+die gezeigten.</li>
+<li>Interpretieren Sie Korrelationskoeffizient, Effektstärke, die
+Regressionskoeffizienten und Determinationskoeffizient des in Aufgabe 1
+berechneten Modells.</li>
+</ol>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
